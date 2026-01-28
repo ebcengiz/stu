@@ -1,0 +1,18 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 3.9%;
+    --primary: 142 76% 36%;
+    --primary-foreground: 356 29% 98%;
+    --border: 0 0% 89.8%;
+  }
+
+  body {
+    background-color: white;
+    color: #0a0a0a;
+  }
+}
