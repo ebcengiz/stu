@@ -74,6 +74,14 @@ export default function ProductsPage() {
     try {
       const response = await fetch('/api/products')
       const data = await response.json()
+
+      // DEBUG: Log stock data to see duplicates
+      data.forEach((p: any) => {
+        if (p.stock && p.stock.length > 1) {
+          console.log(`Product "${p.name}" has ${p.stock.length} stock records:`, p.stock)
+        }
+      })
+
       setProducts(data)
     } catch (error) {
       console.error('Error fetching products:', error)
@@ -314,23 +322,9 @@ export default function ProductsPage() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         {(() => {
-                          // FIX: Group by warehouse_id and take the latest record for each warehouse
-                          const byWarehouse = new Map<string, { quantity: number, last_updated: string }>()
-                          product.stock?.forEach(s => {
-                            if (s.warehouse_id) {
-                              const existing = byWarehouse.get(s.warehouse_id)
-                              // Keep the record with the latest last_updated timestamp
-                              if (!existing || s.last_updated > existing.last_updated) {
-                                byWarehouse.set(s.warehouse_id, {
-                                  quantity: Number(s.quantity || 0),
-                                  last_updated: s.last_updated
-                                })
-                              }
-                            }
-                          })
-
-                          // Sum only unique warehouse stocks (latest value for each warehouse)
-                          const totalStock = Array.from(byWarehouse.values()).reduce((sum, item) => sum + item.quantity, 0)
+                          // Simple approach: just sum all quantities (same as Dashboard)
+                          // If database has duplicates, this will show the issue
+                          const totalStock = product.stock?.reduce((sum, s) => sum + Number(s.quantity || 0), 0) || 0
                           const isLow = totalStock <= product.min_stock_level
 
                           return (
