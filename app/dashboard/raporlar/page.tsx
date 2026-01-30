@@ -11,7 +11,10 @@ interface Product {
   min_stock_level: number
   categories?: { name: string }
   stock?: Array<{
+    id: string
     quantity: number
+    warehouse_id?: string
+    last_updated: string
     warehouses?: { name: string }
   }>
 }
@@ -56,13 +59,22 @@ export default function ReportsPage() {
 
   const getLowStockProducts = () => {
     return products.filter(product => {
-      // FIX: Handle duplicate stock records by grouping by warehouse
-      const uniqueStocks = new Map<string, number>()
+      // ROBUST FIX: Two-level deduplication
+      // Step 1: Deduplicate by record ID
+      const uniqueById = new Map()
       product.stock?.forEach(s => {
-        const warehouseKey = s.warehouses?.name || 'unknown'
-        uniqueStocks.set(warehouseKey, Number(s.quantity || 0))
+        if (!uniqueById.has(s.id) || uniqueById.get(s.id).last_updated < s.last_updated) {
+          uniqueById.set(s.id, s)
+        }
       })
-      const totalStock = Array.from(uniqueStocks.values()).reduce((sum, qty) => sum + qty, 0)
+      // Step 2: Group by warehouse
+      const byWarehouse = new Map<string, number>()
+      Array.from(uniqueById.values()).forEach(s => {
+        if (s.warehouse_id) {
+          byWarehouse.set(s.warehouse_id, Number(s.quantity || 0))
+        }
+      })
+      const totalStock = Array.from(byWarehouse.values()).reduce((sum, qty) => sum + qty, 0)
       return totalStock < product.min_stock_level
     })
   }
@@ -185,13 +197,22 @@ export default function ReportsPage() {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {products.map((product) => {
-                    // FIX: Handle duplicate stock records by grouping by warehouse
-                    const uniqueStocks = new Map<string, number>()
+                    // ROBUST FIX: Two-level deduplication
+                    // Step 1: Deduplicate by record ID
+                    const uniqueById = new Map()
                     product.stock?.forEach(s => {
-                      const warehouseKey = s.warehouses?.name || 'unknown'
-                      uniqueStocks.set(warehouseKey, Number(s.quantity || 0))
+                      if (!uniqueById.has(s.id) || uniqueById.get(s.id).last_updated < s.last_updated) {
+                        uniqueById.set(s.id, s)
+                      }
                     })
-                    const totalStock = Array.from(uniqueStocks.values()).reduce((sum, qty) => sum + qty, 0)
+                    // Step 2: Group by warehouse
+                    const byWarehouse = new Map<string, number>()
+                    Array.from(uniqueById.values()).forEach(s => {
+                      if (s.warehouse_id) {
+                        byWarehouse.set(s.warehouse_id, Number(s.quantity || 0))
+                      }
+                    })
+                    const totalStock = Array.from(byWarehouse.values()).reduce((sum, qty) => sum + qty, 0)
                     const isLow = totalStock < product.min_stock_level
                     const isCritical = totalStock < product.min_stock_level / 2
 
@@ -355,13 +376,22 @@ export default function ReportsPage() {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {lowStockProducts.map((product) => {
-                    // FIX: Handle duplicate stock records by grouping by warehouse
-                    const uniqueStocks = new Map<string, number>()
+                    // ROBUST FIX: Two-level deduplication
+                    // Step 1: Deduplicate by record ID
+                    const uniqueById = new Map()
                     product.stock?.forEach(s => {
-                      const warehouseKey = s.warehouses?.name || 'unknown'
-                      uniqueStocks.set(warehouseKey, Number(s.quantity || 0))
+                      if (!uniqueById.has(s.id) || uniqueById.get(s.id).last_updated < s.last_updated) {
+                        uniqueById.set(s.id, s)
+                      }
                     })
-                    const totalStock = Array.from(uniqueStocks.values()).reduce((sum, qty) => sum + qty, 0)
+                    // Step 2: Group by warehouse
+                    const byWarehouse = new Map<string, number>()
+                    Array.from(uniqueById.values()).forEach(s => {
+                      if (s.warehouse_id) {
+                        byWarehouse.set(s.warehouse_id, Number(s.quantity || 0))
+                      }
+                    })
+                    const totalStock = Array.from(byWarehouse.values()).reduce((sum, qty) => sum + qty, 0)
                     const shortage = product.min_stock_level - totalStock
                     const isCritical = totalStock < product.min_stock_level / 2
 

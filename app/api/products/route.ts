@@ -28,6 +28,7 @@ export async function GET() {
           id,
           quantity,
           warehouse_id,
+          last_updated,
           warehouses:warehouse_id (
             id,
             name

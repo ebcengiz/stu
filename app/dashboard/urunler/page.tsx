@@ -29,8 +29,10 @@ interface Product {
   category_id: string
   categories?: Category
   stock?: Array<{
+    id: string
     quantity: number
     warehouse_id?: string
+    last_updated: string
     warehouses?: {
       name: string
     }
@@ -312,17 +314,26 @@ export default function ProductsPage() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         {(() => {
-                          // FIX: Handle duplicate stock records by grouping by warehouse_id
-                          // Create a Map to store unique warehouse stocks (last one wins)
-                          const uniqueStocks = new Map<string, number>()
+                          // ROBUST FIX: Two-level deduplication
+                          // Step 1: Deduplicate by record ID (each stock record has unique id)
+                          const uniqueById = new Map()
                           product.stock?.forEach(s => {
+                            // Use id as key to ensure only one record per ID
+                            if (!uniqueById.has(s.id) || uniqueById.get(s.id).last_updated < s.last_updated) {
+                              uniqueById.set(s.id, s)
+                            }
+                          })
+
+                          // Step 2: Group by warehouse and take the latest quantity
+                          const byWarehouse = new Map<string, number>()
+                          Array.from(uniqueById.values()).forEach(s => {
                             if (s.warehouse_id) {
-                              uniqueStocks.set(s.warehouse_id, Number(s.quantity || 0))
+                              byWarehouse.set(s.warehouse_id, Number(s.quantity || 0))
                             }
                           })
 
                           // Sum only unique warehouse stocks
-                          const totalStock = Array.from(uniqueStocks.values()).reduce((sum, qty) => sum + qty, 0)
+                          const totalStock = Array.from(byWarehouse.values()).reduce((sum, qty) => sum + qty, 0)
                           const isLow = totalStock <= product.min_stock_level
 
                           return (
