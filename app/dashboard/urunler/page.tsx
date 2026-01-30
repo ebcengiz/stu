@@ -28,6 +28,12 @@ interface Product {
   is_active: boolean
   category_id: string
   categories?: Category
+  stock?: Array<{
+    quantity: number
+    warehouses?: {
+      name: string
+    }
+  }>
   created_at: string
 }
 
@@ -269,6 +275,9 @@ export default function ProductsPage() {
                     Birim
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Mevcut Stok
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Min. Stok
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -299,6 +308,17 @@ export default function ProductsPage() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {product.unit}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        {(() => {
+                          const totalStock = product.stock?.reduce((sum, s) => sum + Number(s.quantity || 0), 0) || 0
+                          const isLow = totalStock <= product.min_stock_level
+                          return (
+                            <span className={isLow ? 'text-red-600' : 'text-gray-900'}>
+                              {totalStock}
+                            </span>
+                          )
+                        })()}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {product.min_stock_level}
@@ -332,7 +352,7 @@ export default function ProductsPage() {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={8} className="px-6 py-12 text-center text-gray-500">
+                    <td colSpan={9} className="px-6 py-12 text-center text-gray-500">
                       {searchTerm ? 'Arama sonucu bulunamadı.' : 'Henüz ürün eklenmemiş. Yeni ürün eklemek için yukarıdaki butonu kullanın.'}
                     </td>
                   </tr>
