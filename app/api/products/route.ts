@@ -15,7 +15,9 @@ export async function GET() {
         ),
         stock (
           quantity,
-          warehouses (
+          warehouse_id,
+          warehouses:warehouse_id (
+            id,
             name
           )
         )
