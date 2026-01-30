@@ -30,6 +30,7 @@ interface Product {
   categories?: Category
   stock?: Array<{
     quantity: number
+    warehouse_id?: string
     warehouses?: {
       name: string
     }
@@ -311,8 +312,19 @@ export default function ProductsPage() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         {(() => {
-                          const totalStock = product.stock?.reduce((sum, s) => sum + Number(s.quantity || 0), 0) || 0
+                          // FIX: Handle duplicate stock records by grouping by warehouse_id
+                          // Create a Map to store unique warehouse stocks (last one wins)
+                          const uniqueStocks = new Map<string, number>()
+                          product.stock?.forEach(s => {
+                            if (s.warehouse_id) {
+                              uniqueStocks.set(s.warehouse_id, Number(s.quantity || 0))
+                            }
+                          })
+
+                          // Sum only unique warehouse stocks
+                          const totalStock = Array.from(uniqueStocks.values()).reduce((sum, qty) => sum + qty, 0)
                           const isLow = totalStock <= product.min_stock_level
+
                           return (
                             <span className={isLow ? 'text-red-600' : 'text-gray-900'}>
                               {totalStock}
