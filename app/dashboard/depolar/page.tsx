@@ -131,16 +131,16 @@ export default function WarehousesPage() {
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {warehouses.map((warehouse) => (
-          <Card key={warehouse.id} className="h-full">
-            <CardBody className="h-full flex flex-col">
+          <Card key={warehouse.id}>
+            <CardBody>
               <div className="flex items-start gap-4">
                 <div className="p-3 bg-primary-100 rounded-lg flex-shrink-0">
                   <Warehouse className="h-6 w-6 text-primary-600" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center justify-between gap-2 mb-2">
                     <h3 className="font-semibold text-gray-900 truncate">{warehouse.name}</h3>
                     <span className={`px-2 py-1 text-xs font-semibold rounded-full whitespace-nowrap flex-shrink-0 ${
                       warehouse.is_active
@@ -151,7 +151,7 @@ export default function WarehousesPage() {
                     </span>
                   </div>
                   {warehouse.location && (
-                    <div className="flex items-start gap-1 mt-2 text-sm text-gray-500">
+                    <div className="flex items-start gap-1 mb-3 text-sm text-gray-500">
                       <MapPin className="h-4 w-4 flex-shrink-0 mt-0.5" />
                       <a
                         href={(() => {
@@ -163,14 +163,14 @@ export default function WarehousesPage() {
                         })()}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="hover:text-primary-600 hover:underline line-clamp-2"
+                        className="hover:text-primary-600 hover:underline line-clamp-2 flex-1"
                         title={warehouse.location}
                       >
                         {warehouse.location.replace(/\s*\(-?\d+\.?\d*,\s*-?\d+\.?\d*\)\s*$/, '')}
                       </a>
                     </div>
                   )}
-                  <div className="flex gap-2 mt-3">
+                  <div className="flex gap-2">
                     <button
                       onClick={() => handleEdit(warehouse)}
                       className="p-2 text-blue-600 hover:bg-blue-50 rounded"
