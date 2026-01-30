@@ -17,21 +17,41 @@
   }
 }
 
-/* Leaflet Map z-index fixes */
+/* CRITICAL: Leaflet Map z-index overrides to fix dropdown issues */
+/* Leaflet defaults use z-index: 1000 which blocks ALL dropdowns */
+/* Solution from: https://github.com/Leaflet/Leaflet/issues/6555 */
+
+.leaflet-container {
+  z-index: 1 !important;
+  position: relative !important;
+}
+
 .leaflet-pane {
   z-index: 1 !important;
 }
 
 .leaflet-top,
 .leaflet-bottom {
-  z-index: 10 !important;
+  z-index: 100 !important; /* Changed from default 1000 to 100 */
+  pointer-events: none !important; /* Allow clicks through to map */
 }
 
 .leaflet-control {
-  z-index: 20 !important;
+  z-index: 100 !important;
+  pointer-events: auto !important; /* Re-enable clicks on controls */
 }
 
-/* Ensure dropdowns stay above map */
-.leaflet-container {
-  z-index: 0 !important;
+.leaflet-control-zoom,
+.leaflet-control-attribution {
+  z-index: 100 !important;
+}
+
+/* Ensure map tiles stay below everything */
+.leaflet-tile-pane {
+  z-index: 1 !important;
+}
+
+/* Marker pane should be above tiles but below UI */
+.leaflet-marker-pane {
+  z-index: 50 !important;
 }

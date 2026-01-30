@@ -172,11 +172,13 @@ export default function LocationPicker({ value, onChange }: LocationPickerProps)
       {/* Search Results Dropdown - Portal to avoid z-index issues */}
       {showResults && mounted && typeof window !== 'undefined' && createPortal(
         <div
-          className="fixed inset-0 z-[99999]"
+          className="fixed inset-0 bg-black/20 backdrop-blur-sm"
+          style={{ zIndex: 999999 }}
           onClick={() => setShowResults(false)}
         >
           <div
             className="fixed left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl bg-white border-2 border-primary-500 rounded-lg shadow-2xl max-h-96 overflow-auto"
+            style={{ zIndex: 1000000 }}
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between p-3 border-b bg-primary-50">
@@ -217,18 +219,22 @@ export default function LocationPicker({ value, onChange }: LocationPickerProps)
         document.body
       )}
 
-      {/* Map */}
-      <div className="h-80 rounded-md overflow-hidden border-2 border-gray-300 relative">
+      {/* Map - Isolated with low z-index wrapper */}
+      <div
+        className="h-80 rounded-md overflow-hidden border-2 border-gray-300 relative isolate"
+        style={{ zIndex: 1 }}
+      >
         <MapContainer
           center={position}
           zoom={13}
-          style={{ height: '100%', width: '100%' }}
+          style={{ height: '100%', width: '100%', zIndex: 1, position: 'relative' }}
           key={`${position[0]}-${position[1]}`}
           zoomControl={true}
         >
           <TileLayer
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            zIndex={1}
           />
           <MapClickHandler onClick={handleMapClick} />
           <Marker position={position} />
