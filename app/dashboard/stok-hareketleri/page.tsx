@@ -326,6 +326,11 @@ export default function StockMovementsPage() {
                     step="0.01"
                     value={formData.quantity}
                     onChange={(e) => setFormData({ ...formData, quantity: parseFloat(e.target.value) || 0 })}
+                    onFocus={(e) => {
+                      if (e.target.value === '0' || e.target.value === '0.00') {
+                        e.target.select() // Select all so typing replaces it
+                      }
+                    }}
                     className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   />
                 </div>

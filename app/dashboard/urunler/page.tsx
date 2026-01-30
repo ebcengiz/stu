@@ -431,6 +431,11 @@ export default function ProductsPage() {
                     min="0"
                     value={formData.min_stock_level}
                     onChange={(e) => setFormData({ ...formData, min_stock_level: parseInt(e.target.value) || 0 })}
+                    onFocus={(e) => {
+                      if (e.target.value === '0') {
+                        e.target.select() // Select all so typing replaces it
+                      }
+                    }}
                     className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   />
                 </div>
@@ -501,6 +506,11 @@ export default function ProductsPage() {
                       step="0.01"
                       value={formData.initial_quantity}
                       onChange={(e) => setFormData({ ...formData, initial_quantity: parseFloat(e.target.value) || 0 })}
+                      onFocus={(e) => {
+                        if (e.target.value === '0' || e.target.value === '0.00') {
+                          e.target.select() // Select all so typing replaces it
+                        }
+                      }}
                       className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                       placeholder={editingProduct ? "0 = Güncelleme yok" : "Başlangıç miktarı"}
                     />

@@ -140,7 +140,12 @@ export default function NewProductPage() {
                   type="number"
                   min="0"
                   value={formData.min_stock_level}
-                  onChange={(e) => setFormData({ ...formData, min_stock_level: parseInt(e.target.value) })}
+                  onChange={(e) => setFormData({ ...formData, min_stock_level: parseInt(e.target.value) || 0 })}
+                  onFocus={(e) => {
+                    if (e.target.value === '0') {
+                      e.target.select() // Select all so typing replaces it
+                    }
+                  }}
                   className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 />
               </div>
