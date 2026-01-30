@@ -7,9 +7,10 @@ export async function POST(request: Request) {
     const { email, password, fullName, tenantName } = body
 
     // Create Supabase client with service role (bypasses RLS)
+    // CRITICAL FIX: trim() removes newline characters
     const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      process.env.NEXT_PUBLIC_SUPABASE_URL!.trim(),
+      process.env.SUPABASE_SERVICE_ROLE_KEY!.trim(),
       {
         auth: {
           autoRefreshToken: false,
