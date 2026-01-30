@@ -4,6 +4,13 @@ import { useState, useEffect } from 'react'
 import { Plus, Edit2, Trash2, Warehouse, MapPin } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Card, CardBody } from '@/components/ui/Card'
+import dynamic from 'next/dynamic'
+
+// Dynamically import LocationPicker to avoid SSR issues with Leaflet
+const LocationPicker = dynamic(() => import('@/components/warehouse/LocationPicker'), {
+  ssr: false,
+  loading: () => <div className="h-64 bg-gray-100 rounded flex items-center justify-center">Harita yükleniyor...</div>
+})
 
 interface Warehouse {
   id: string
@@ -146,7 +153,21 @@ export default function WarehousesPage() {
                   {warehouse.location && (
                     <div className="flex items-center gap-1 mt-2 text-sm text-gray-500">
                       <MapPin className="h-4 w-4" />
-                      {warehouse.location}
+                      <a
+                        href={(() => {
+                          const match = warehouse.location?.match(/\((-?\d+\.?\d*),\s*(-?\d+\.?\d*)\)/)
+                          if (match) {
+                            return `https://www.openstreetmap.org/?mlat=${match[1]}&mlon=${match[2]}&zoom=15`
+                          }
+                          return '#'
+                        })()}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="hover:text-primary-600 hover:underline truncate"
+                        title={warehouse.location}
+                      >
+                        {warehouse.location.replace(/\s*\(-?\d+\.?\d*,\s*-?\d+\.?\d*\)\s*$/, '')}
+                      </a>
                     </div>
                   )}
                   <div className="flex gap-2 mt-3">
@@ -182,8 +203,8 @@ export default function WarehousesPage() {
 
       {/* Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <h2 className="text-xl font-bold mb-4">
               {editingWarehouse ? 'Depo Düzenle' : 'Yeni Depo'}
             </h2>
@@ -204,11 +225,9 @@ export default function WarehousesPage() {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Lokasyon
                 </label>
-                <input
-                  type="text"
+                <LocationPicker
                   value={formData.location}
-                  onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  onChange={(location) => setFormData({ ...formData, location })}
                 />
               </div>
               <div className="flex items-center">
