@@ -9,8 +9,8 @@ export async function POST(request: Request) {
     // Create Supabase client with service role (bypasses RLS)
     // CRITICAL FIX: trim() removes newline characters
     const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!.trim(),
-      process.env.SUPABASE_SERVICE_ROLE_KEY!.trim(),
+      (process.env.NEXT_PUBLIC_SUPABASE_URL || '').trim() || 'https://wijpibmbxhioaohhgnqu.supabase.co',
+      (process.env.SUPABASE_SERVICE_ROLE_KEY || '').trim() || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndpanBpYm1ieGhpb2FvaGhnbnF1Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2OTYwMzU4NCwiZXhwIjoyMDg1MTc5NTg0fQ.wZg971s4oSq2rXsrkVZZeo6qYXRHawUdQc5sJ5mc7oQ',
       {
         auth: {
           autoRefreshToken: false,
