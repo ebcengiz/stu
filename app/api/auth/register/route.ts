@@ -19,10 +19,12 @@ export async function POST(request: Request) {
     )
 
     // 1. Create tenant
+    // Generate unique slug with random suffix
+    const randomId = Math.random().toString(36).substring(2, 8)
     const tenantSlug = tenantName
       .toLowerCase()
       .replace(/\s+/g, '-')
-      .replace(/[^a-z0-9-]/g, '')
+      .replace(/[^a-z0-9-]/g, '') + '-' + randomId
 
     const { data: tenant, error: tenantError } = await supabase
       .from('tenants')
