@@ -92,49 +92,10 @@ export async function POST(request: Request) {
       throw productError
     }
 
-    // 2. Eğer başlangıç stok bilgisi varsa, stock ve stock_movements tablosuna ekle
+    // 2. Eğer başlangıç stok bilgisi varsa, SADECE stock_movements tablosuna ekle
+    // Trigger otomatik olarak stock tablosunu güncelleyecek
     if (initial_quantity && initial_quantity > 0 && warehouse_id) {
-      // First check if stock record already exists
-      const { data: existingStock } = await supabase
-        .from('stock')
-        .select('id, quantity')
-        .eq('product_id', product.id)
-        .eq('warehouse_id', warehouse_id)
-        .single()
-
-      if (existingStock) {
-        // Update existing stock
-        const { error: stockError } = await supabase
-          .from('stock')
-          .update({
-            quantity: initial_quantity,
-            last_updated: new Date().toISOString()
-          })
-          .eq('id', existingStock.id)
-
-        if (stockError) {
-          console.error('Stock update error:', stockError)
-          throw stockError
-        }
-      } else {
-        // Insert new stock record
-        const { error: stockError } = await supabase
-          .from('stock')
-          .insert({
-            tenant_id: profile.tenant_id,
-            product_id: product.id,
-            warehouse_id: warehouse_id,
-            quantity: initial_quantity,
-            last_updated: new Date().toISOString()
-          })
-
-        if (stockError) {
-          console.error('Stock create error:', stockError)
-          throw stockError
-        }
-      }
-
-      // İlk stok hareketini kaydet
+      // Stok hareketini kaydet - trigger stock tablosunu otomatik güncelleyecek
       const { error: movementError } = await supabase
         .from('stock_movements')
         .insert({

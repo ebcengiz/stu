@@ -50,70 +50,10 @@ export async function PUT(
       throw productError
     }
 
-    // 2. Eğer stok güncellemesi varsa
+    // 2. Eğer stok güncellemesi varsa, SADECE stock_movements'a ekle
+    // Trigger otomatik olarak stock tablosunu güncelleyecek
     if (initial_quantity && initial_quantity > 0 && warehouse_id) {
-      // Mevcut stok kaydını bul
-      const { data: existingStock } = await supabase
-        .from('stock')
-        .select('*')
-        .eq('product_id', params.id)
-        .eq('warehouse_id', warehouse_id)
-        .maybeSingle() // single() yerine maybeSingle() kullan - hata vermez
-
-      let newQuantity = initial_quantity
-
-      if (existingStock) {
-        // Mevcut stok var, işlem tipine göre güncelle
-        if (movement_type === 'in') {
-          newQuantity = Number(existingStock.quantity) + Number(initial_quantity)
-        } else if (movement_type === 'out') {
-          newQuantity = Math.max(0, Number(existingStock.quantity) - Number(initial_quantity))
-        } else if (movement_type === 'adjustment') {
-          newQuantity = Number(initial_quantity)
-        }
-
-        // UPSERT kullan - duplicate önler
-        const { error: stockError } = await supabase
-          .from('stock')
-          .upsert({
-            id: existingStock.id,
-            tenant_id: profile.tenant_id,
-            product_id: params.id,
-            warehouse_id: warehouse_id,
-            quantity: newQuantity,
-            last_updated: new Date().toISOString()
-          }, {
-            onConflict: 'product_id,warehouse_id'
-          })
-
-        if (stockError) {
-          console.error('Stock update error:', stockError)
-          throw stockError
-        }
-      } else {
-        // Stok kaydı yok, yeni oluştur (sadece giriş veya düzeltme için)
-        if (movement_type === 'in' || movement_type === 'adjustment') {
-          // UPSERT kullan - duplicate önler
-          const { error: stockError } = await supabase
-            .from('stock')
-            .upsert({
-              tenant_id: profile.tenant_id,
-              product_id: params.id,
-              warehouse_id: warehouse_id,
-              quantity: newQuantity,
-              last_updated: new Date().toISOString()
-            }, {
-              onConflict: 'product_id,warehouse_id'
-            })
-
-          if (stockError) {
-            console.error('Stock create error:', stockError)
-            throw stockError
-          }
-        }
-      }
-
-      // Stok hareketini kaydet
+      // Stok hareketini kaydet - trigger stock tablosunu otomatik güncelleyecek
       const { error: movementError } = await supabase
         .from('stock_movements')
         .insert({

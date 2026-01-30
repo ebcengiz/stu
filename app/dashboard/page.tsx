@@ -2,6 +2,27 @@ import { createClient } from '@/lib/supabase/server'
 import { Package, TrendingDown, Warehouse, ArrowLeftRight } from 'lucide-react'
 import Link from 'next/link'
 
+// Helper function to calculate total stock correctly (handles duplicates)
+function calculateTotalStock(stockRecords?: Array<{ warehouse_id?: string; quantity: number }>) {
+  if (!stockRecords || stockRecords.length === 0) return 0
+
+  // Group by warehouse_id and keep only one record per warehouse (sum duplicates)
+  const uniqueStockByWarehouse = new Map<string, number>()
+
+  stockRecords.forEach(record => {
+    const warehouseId = record.warehouse_id || 'default'
+    const currentQty = uniqueStockByWarehouse.get(warehouseId) || 0
+
+    // For duplicates in same warehouse, only count once (take max or first one)
+    if (currentQty === 0) {
+      uniqueStockByWarehouse.set(warehouseId, Number(record.quantity || 0))
+    }
+  })
+
+  // Sum up the quantities from unique warehouses
+  return Array.from(uniqueStockByWarehouse.values()).reduce((sum, qty) => sum + qty, 0)
+}
+
 export default async function DashboardPage() {
   const supabase = await createClient()
 
@@ -33,7 +54,7 @@ export default async function DashboardPage() {
 
   // Calculate low stock products
   const lowStockProducts = productsWithStock?.filter(product => {
-    const totalStock = product.stock?.reduce((sum: number, s: any) => sum + Number(s.quantity || 0), 0) || 0
+    const totalStock = calculateTotalStock(product.stock)
     return totalStock < product.min_stock_level
   }) || []
 
@@ -204,7 +225,7 @@ export default async function DashboardPage() {
           {lowStockProducts.length > 0 ? (
             <div className="space-y-4">
               {lowStockProducts.slice(0, 5).map((product: any) => {
-                const totalStock = product.stock?.reduce((sum: number, s: any) => sum + Number(s.quantity || 0), 0) || 0
+                const totalStock = calculateTotalStock(product.stock)
                 return (
                   <div
                     key={product.id}

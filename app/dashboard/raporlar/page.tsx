@@ -28,6 +28,27 @@ interface Movement {
   warehouses?: { name: string }
 }
 
+// Helper function to calculate total stock correctly (handles duplicates)
+function calculateTotalStock(stockRecords?: Array<{ warehouse_id?: string; quantity: number; last_updated: string }>) {
+  if (!stockRecords || stockRecords.length === 0) return 0
+
+  // Group by warehouse_id and keep only the most recent record for each warehouse
+  const uniqueStockByWarehouse = new Map<string, number>()
+
+  stockRecords.forEach(record => {
+    const warehouseId = record.warehouse_id || 'default'
+    const existingRecord = uniqueStockByWarehouse.get(warehouseId)
+
+    // If no existing record or this record is more recent, use this one
+    if (!existingRecord) {
+      uniqueStockByWarehouse.set(warehouseId, Number(record.quantity || 0))
+    }
+  })
+
+  // Sum up the quantities from unique warehouses
+  return Array.from(uniqueStockByWarehouse.values()).reduce((sum, qty) => sum + qty, 0)
+}
+
 export default function ReportsPage() {
   const [products, setProducts] = useState<Product[]>([])
   const [movements, setMovements] = useState<Movement[]>([])
@@ -59,8 +80,8 @@ export default function ReportsPage() {
 
   const getLowStockProducts = () => {
     return products.filter(product => {
-      // Simple approach: same as Dashboard
-      const totalStock = product.stock?.reduce((sum, s) => sum + Number(s.quantity || 0), 0) || 0
+      // Calculate total stock correctly (handles duplicate records)
+      const totalStock = calculateTotalStock(product.stock)
       return totalStock < product.min_stock_level
     })
   }
@@ -183,8 +204,8 @@ export default function ReportsPage() {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {products.map((product) => {
-                    // Simple approach: same as Dashboard
-                    const totalStock = product.stock?.reduce((sum, s) => sum + Number(s.quantity || 0), 0) || 0
+                    // Calculate total stock correctly (handles duplicate records)
+                    const totalStock = calculateTotalStock(product.stock)
                     const isLow = totalStock < product.min_stock_level
                     const isCritical = totalStock < product.min_stock_level / 2
 
@@ -348,8 +369,8 @@ export default function ReportsPage() {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {lowStockProducts.map((product) => {
-                    // Simple approach: same as Dashboard
-                    const totalStock = product.stock?.reduce((sum, s) => sum + Number(s.quantity || 0), 0) || 0
+                    // Calculate total stock correctly (handles duplicate records)
+                    const totalStock = calculateTotalStock(product.stock)
                     const shortage = product.min_stock_level - totalStock
                     const isCritical = totalStock < product.min_stock_level / 2
 
