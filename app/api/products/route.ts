@@ -94,23 +94,44 @@ export async function POST(request: Request) {
 
     // 2. Eğer başlangıç stok bilgisi varsa, stock ve stock_movements tablosuna ekle
     if (initial_quantity && initial_quantity > 0 && warehouse_id) {
-      // UPSERT kullan - duplicate önler
-      const { error: stockError } = await supabase
+      // First check if stock record already exists
+      const { data: existingStock } = await supabase
         .from('stock')
-        .upsert({
-          tenant_id: profile.tenant_id,
-          product_id: product.id,
-          warehouse_id: warehouse_id,
-          quantity: initial_quantity,
-          last_updated: new Date().toISOString()
-        }, {
-          onConflict: 'product_id,warehouse_id'
-        })
+        .select('id, quantity')
+        .eq('product_id', product.id)
+        .eq('warehouse_id', warehouse_id)
+        .single()
 
-      if (stockError) {
-        console.error('Stock create error:', stockError)
-        // Ürün oluşturuldu ama stok eklenemedi - uyarı ver ama devam et
-        throw stockError
+      if (existingStock) {
+        // Update existing stock
+        const { error: stockError } = await supabase
+          .from('stock')
+          .update({
+            quantity: initial_quantity,
+            last_updated: new Date().toISOString()
+          })
+          .eq('id', existingStock.id)
+
+        if (stockError) {
+          console.error('Stock update error:', stockError)
+          throw stockError
+        }
+      } else {
+        // Insert new stock record
+        const { error: stockError } = await supabase
+          .from('stock')
+          .insert({
+            tenant_id: profile.tenant_id,
+            product_id: product.id,
+            warehouse_id: warehouse_id,
+            quantity: initial_quantity,
+            last_updated: new Date().toISOString()
+          })
+
+        if (stockError) {
+          console.error('Stock create error:', stockError)
+          throw stockError
+        }
       }
 
       // İlk stok hareketini kaydet
