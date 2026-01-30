@@ -16,3 +16,22 @@
     color: #0a0a0a;
   }
 }
+
+/* Leaflet Map z-index fixes */
+.leaflet-pane {
+  z-index: 1 !important;
+}
+
+.leaflet-top,
+.leaflet-bottom {
+  z-index: 10 !important;
+}
+
+.leaflet-control {
+  z-index: 20 !important;
+}
+
+/* Ensure dropdowns stay above map */
+.leaflet-container {
+  z-index: 0 !important;
+}
