@@ -1,16 +1,19 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 
+// Hardcoded credentials for reliability
+const SUPABASE_URL = 'https://wijpibmbxhioaohhgnqu.supabase.co'
+const SERVICE_ROLE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndpanBpYm1ieGhpb2FvaGhnbnF1Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2OTYwMzU4NCwiZXhwIjoyMDg1MTc5NTg0fQ.wZg971s4oSq2rXsrkVZZeo6qYXRHawUdQc5sJ5mc7oQ'
+
 export async function POST(request: Request) {
   try {
     const body = await request.json()
     const { email, password, fullName, tenantName } = body
 
     // Create Supabase client with service role (bypasses RLS)
-    // CRITICAL FIX: trim() removes newline characters
     const supabase = createClient(
-      (process.env.NEXT_PUBLIC_SUPABASE_URL || '').trim() || 'https://wijpibmbxhioaohhgnqu.supabase.co',
-      (process.env.SUPABASE_SERVICE_ROLE_KEY || '').trim() || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndpanBpYm1ieGhpb2FvaGhnbnF1Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2OTYwMzU4NCwiZXhwIjoyMDg1MTc5NTg0fQ.wZg971s4oSq2rXsrkVZZeo6qYXRHawUdQc5sJ5mc7oQ',
+      SUPABASE_URL,
+      SERVICE_ROLE_KEY,
       {
         auth: {
           autoRefreshToken: false,
