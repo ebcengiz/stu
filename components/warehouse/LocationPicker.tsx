@@ -5,7 +5,6 @@ import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css'
 import L from 'leaflet'
 import { Search, MapPin, Loader2, X } from 'lucide-react'
-import { createPortal } from 'react-dom'
 
 // Fix for default marker icon
 delete (L.Icon.Default.prototype as any)._getIconUrl
@@ -41,11 +40,6 @@ export default function LocationPicker({ value, onChange }: LocationPickerProps)
   const [searchResults, setSearchResults] = useState<SearchResult[]>([])
   const [searching, setSearching] = useState(false)
   const [showResults, setShowResults] = useState(false)
-  const [mounted, setMounted] = useState(false)
-
-  useEffect(() => {
-    setMounted(true)
-  }, [])
 
   // Parse initial value if exists (format: "Address (lat, lng)")
   useEffect(() => {
@@ -167,79 +161,88 @@ export default function LocationPicker({ value, onChange }: LocationPickerProps)
             {searching ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Ara'}
           </button>
         </div>
+
+        {/* Search Results Dropdown - Now inside normal flow, below search */}
+        {showResults && (
+          <div className="relative z-50 mt-2">
+            <div className="bg-white border-2 border-primary-500 rounded-lg shadow-2xl max-h-96 overflow-auto">
+              <div className="flex items-center justify-between p-3 border-b bg-primary-50 sticky top-0">
+                <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+                  <Search className="h-4 w-4" />
+                  Arama Sonuçları ({searchResults.length})
+                </h3>
+                <button
+                  type="button"
+                  onClick={() => setShowResults(false)}
+                  className="p-1 hover:bg-gray-200 rounded"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+              {searchResults.length > 0 ? (
+                <div>
+                  {searchResults.map((result, index) => (
+                    <button
+                      key={index}
+                      type="button"
+                      onClick={() => handleSelectResult(result)}
+                      className="w-full text-left px-4 py-3 hover:bg-primary-50 border-b last:border-b-0 flex items-start gap-2 transition-colors"
+                    >
+                      <MapPin className="h-5 w-5 text-primary-600 mt-0.5 flex-shrink-0" />
+                      <span className="text-sm">{result.display_name}</span>
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div className="p-8 text-center text-gray-500">
+                  <p>Sonuç bulunamadı.</p>
+                  <p className="text-xs mt-1">Farklı bir arama deneyin.</p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Search Results Dropdown - Portal to avoid z-index issues */}
-      {showResults && mounted && typeof window !== 'undefined' && createPortal(
+      {/* Map - Collapses when dropdown is shown */}
+      {!showResults && (
         <div
-          className="fixed inset-0 bg-black/20 backdrop-blur-sm"
-          style={{ zIndex: 999999 }}
-          onClick={() => setShowResults(false)}
+          className="rounded-md overflow-hidden border-2 border-gray-300 relative transition-all duration-300"
+          style={{ height: '320px' }}
         >
-          <div
-            className="fixed left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl bg-white border-2 border-primary-500 rounded-lg shadow-2xl max-h-96 overflow-auto"
-            style={{ zIndex: 1000000 }}
-            onClick={(e) => e.stopPropagation()}
+          <MapContainer
+            center={position}
+            zoom={13}
+            style={{ height: '100%', width: '100%' }}
+            key={`${position[0]}-${position[1]}`}
+            zoomControl={true}
           >
-            <div className="flex items-center justify-between p-3 border-b bg-primary-50">
-              <h3 className="font-semibold text-gray-900 flex items-center gap-2">
-                <Search className="h-4 w-4" />
-                Arama Sonuçları
-              </h3>
-              <button
-                type="button"
-                onClick={() => setShowResults(false)}
-                className="p-1 hover:bg-gray-200 rounded"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-            {searchResults.length > 0 ? (
-              <div>
-                {searchResults.map((result, index) => (
-                  <button
-                    key={index}
-                    type="button"
-                    onClick={() => handleSelectResult(result)}
-                    className="w-full text-left px-4 py-3 hover:bg-primary-50 border-b last:border-b-0 flex items-start gap-2 transition-colors"
-                  >
-                    <MapPin className="h-5 w-5 text-primary-600 mt-0.5 flex-shrink-0" />
-                    <span className="text-sm">{result.display_name}</span>
-                  </button>
-                ))}
-              </div>
-            ) : (
-              <div className="p-8 text-center text-gray-500">
-                <p>Sonuç bulunamadı.</p>
-                <p className="text-xs mt-1">Farklı bir arama deneyin.</p>
-              </div>
-            )}
-          </div>
-        </div>,
-        document.body
+            <TileLayer
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            />
+            <MapClickHandler onClick={handleMapClick} />
+            <Marker position={position} />
+          </MapContainer>
+        </div>
       )}
 
-      {/* Map - Isolated with low z-index wrapper */}
-      <div
-        className="h-80 rounded-md overflow-hidden border-2 border-gray-300 relative isolate"
-        style={{ zIndex: 1 }}
-      >
-        <MapContainer
-          center={position}
-          zoom={13}
-          style={{ height: '100%', width: '100%', zIndex: 1, position: 'relative' }}
-          key={`${position[0]}-${position[1]}`}
-          zoomControl={true}
-        >
-          <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            zIndex={1}
-          />
-          <MapClickHandler onClick={handleMapClick} />
-          <Marker position={position} />
-        </MapContainer>
-      </div>
+      {/* Show map collapsed message when dropdown is active */}
+      {showResults && (
+        <div className="p-4 bg-blue-50 border-2 border-blue-300 rounded-md text-center">
+          <MapPin className="h-5 w-5 text-blue-600 mx-auto mb-2" />
+          <p className="text-sm text-blue-700 font-medium">
+            Harita gizlendi - Yukarıdan bir sonuç seçin
+          </p>
+          <button
+            type="button"
+            onClick={() => setShowResults(false)}
+            className="mt-2 text-xs text-blue-600 hover:text-blue-800 underline"
+          >
+            Haritayı tekrar göster
+          </button>
+        </div>
+      )}
 
       {/* Seçilen lokasyon bilgisi */}
       {value && value.trim() && (
