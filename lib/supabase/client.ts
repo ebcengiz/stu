@@ -9,5 +9,12 @@ export function createClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || SUPABASE_URL
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || SUPABASE_ANON_KEY
 
+  // Debug log (production'da da görmek için)
+  if (typeof window !== 'undefined') {
+    console.log('[Supabase Client] URL:', supabaseUrl?.substring(0, 30) + '...')
+    console.log('[Supabase Client] Key exists:', !!supabaseAnonKey)
+    console.log('[Supabase Client] Key length:', supabaseAnonKey?.length)
+  }
+
   return createBrowserClient(supabaseUrl, supabaseAnonKey)
 }
