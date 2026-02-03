@@ -75,11 +75,11 @@ export default function ProductsPage() {
     barcode: '',
     description: '',
     unit: 'adet',
-    min_stock_level: 0,
+    min_stock_level: '' as string | number,
     category_id: '',
     is_active: true,
     // Yeni alanlar: Başlangıç stok bilgileri
-    initial_quantity: 0,
+    initial_quantity: '' as string | number,
     warehouse_id: '',
     movement_type: 'in' // Düzenlerken giriş mi çıkış mı
   })
@@ -147,11 +147,18 @@ export default function ProductsPage() {
       const method = editingProduct ? 'PUT' : 'POST'
 
       // Clean data: convert empty strings to null for optional fields
+      // Convert string numbers to actual numbers
       const cleanedData = {
         ...formData,
         sku: formData.sku.trim() || null,
         barcode: formData.barcode.trim() || null,
         description: formData.description.trim() || null,
+        min_stock_level: typeof formData.min_stock_level === 'string'
+          ? parseFloat(formData.min_stock_level) || 0
+          : formData.min_stock_level,
+        initial_quantity: typeof formData.initial_quantity === 'string'
+          ? parseFloat(formData.initial_quantity) || 0
+          : formData.initial_quantity,
       }
 
       const response = await fetch(url, {
@@ -173,10 +180,10 @@ export default function ProductsPage() {
         barcode: '',
         description: '',
         unit: 'adet',
-        min_stock_level: 0,
+        min_stock_level: '',
         category_id: '',
         is_active: true,
-        initial_quantity: 0,
+        initial_quantity: '',
         warehouse_id: '',
         movement_type: 'in'
       })
@@ -201,11 +208,11 @@ export default function ProductsPage() {
       barcode: product.barcode || '',
       description: product.description || '',
       unit: product.unit,
-      min_stock_level: product.min_stock_level || 0,
+      min_stock_level: product.min_stock_level || '',
       category_id: product.category_id || '',
       is_active: product.is_active,
       // Düzenlerken de stok değişikliği yapılabilir
-      initial_quantity: 0,
+      initial_quantity: '',
       warehouse_id: '',
       movement_type: 'in'
     })
@@ -237,10 +244,10 @@ export default function ProductsPage() {
       barcode: '',
       description: '',
       unit: 'adet',
-      min_stock_level: 0,
+      min_stock_level: '',
       category_id: '',
       is_active: true,
-      initial_quantity: 0,
+      initial_quantity: '',
       warehouse_id: '',
       movement_type: 'in'
     })
@@ -482,7 +489,7 @@ export default function ProductsPage() {
                   <input
                     type="text"
                     required
-                    value={formData.min_stock_level === 0 ? '' : formData.min_stock_level}
+                    value={formData.min_stock_level}
                     onChange={(e) => {
                       const isDecimalUnit = ['kg', 'litre', 'metre'].includes(formData.unit)
                       let value = e.target.value
@@ -490,18 +497,19 @@ export default function ProductsPage() {
                       if (isDecimalUnit) {
                         // Allow digits, dot and comma for decimal units
                         value = value.replace(/[^0-9.,]/g, '')
-                        // Replace comma with dot for parsing
-                        value = value.replace(',', '.')
+                        // Replace comma with dot
+                        value = value.replace(/,/g, '.')
                         // Prevent multiple dots
                         const parts = value.split('.')
                         if (parts.length > 2) {
                           value = parts[0] + '.' + parts.slice(1).join('')
                         }
-                        setFormData({ ...formData, min_stock_level: value ? parseFloat(value) : 0 })
+                        // Store as string to preserve typing state (e.g., "10." before "10.5")
+                        setFormData({ ...formData, min_stock_level: value })
                       } else {
                         // Only allow digits for piece/package units
                         value = value.replace(/[^0-9]/g, '')
-                        setFormData({ ...formData, min_stock_level: value ? parseInt(value) : 0 })
+                        setFormData({ ...formData, min_stock_level: value })
                       }
                     }}
                     placeholder="0"
@@ -571,7 +579,7 @@ export default function ProductsPage() {
                     <input
                       type="text"
                       required={!editingProduct}
-                      value={formData.initial_quantity === 0 ? '' : formData.initial_quantity}
+                      value={formData.initial_quantity}
                       onChange={(e) => {
                         const isDecimalUnit = ['kg', 'litre', 'metre'].includes(formData.unit)
                         let value = e.target.value
@@ -579,18 +587,19 @@ export default function ProductsPage() {
                         if (isDecimalUnit) {
                           // Allow digits, dot and comma for decimal units
                           value = value.replace(/[^0-9.,]/g, '')
-                          // Replace comma with dot for parsing
-                          value = value.replace(',', '.')
+                          // Replace comma with dot
+                          value = value.replace(/,/g, '.')
                           // Prevent multiple dots
                           const parts = value.split('.')
                           if (parts.length > 2) {
                             value = parts[0] + '.' + parts.slice(1).join('')
                           }
-                          setFormData({ ...formData, initial_quantity: value ? parseFloat(value) : 0 })
+                          // Store as string to preserve typing state
+                          setFormData({ ...formData, initial_quantity: value })
                         } else {
                           // Only allow digits for piece/package units
                           value = value.replace(/[^0-9]/g, '')
-                          setFormData({ ...formData, initial_quantity: value ? parseInt(value) : 0 })
+                          setFormData({ ...formData, initial_quantity: value })
                         }
                       }}
                       placeholder={editingProduct ? "0" : "0"}
