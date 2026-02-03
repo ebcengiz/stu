@@ -480,16 +480,14 @@ export default function ProductsPage() {
                     Minimum Stok Seviyesi *
                   </label>
                   <input
-                    type="number"
+                    type="text"
                     required
-                    min="0"
-                    value={formData.min_stock_level}
-                    onChange={(e) => setFormData({ ...formData, min_stock_level: parseInt(e.target.value) || 0 })}
-                    onFocus={(e) => {
-                      if (e.target.value === '0') {
-                        e.target.select() // Select all so typing replaces it
-                      }
+                    value={formData.min_stock_level === 0 ? '' : formData.min_stock_level}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/[^0-9]/g, '')
+                      setFormData({ ...formData, min_stock_level: value ? parseInt(value) : 0 })
                     }}
+                    placeholder="0"
                     className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   />
                 </div>
@@ -554,19 +552,19 @@ export default function ProductsPage() {
                       {editingProduct ? 'Miktar' : 'Başlangıç Stok Miktarı'} {!editingProduct && '*'}
                     </label>
                     <input
-                      type="number"
+                      type="text"
                       required={!editingProduct}
-                      min="0"
-                      step="0.01"
-                      value={formData.initial_quantity}
-                      onChange={(e) => setFormData({ ...formData, initial_quantity: parseFloat(e.target.value) || 0 })}
-                      onFocus={(e) => {
-                        if (e.target.value === '0' || e.target.value === '0.00') {
-                          e.target.select() // Select all so typing replaces it
-                        }
+                      value={formData.initial_quantity === 0 ? '' : formData.initial_quantity}
+                      onChange={(e) => {
+                        // Allow digits and one decimal point
+                        const value = e.target.value.replace(/[^0-9.]/g, '')
+                        // Prevent multiple decimal points
+                        const parts = value.split('.')
+                        const sanitized = parts.length > 2 ? parts[0] + '.' + parts.slice(1).join('') : value
+                        setFormData({ ...formData, initial_quantity: sanitized ? parseFloat(sanitized) : 0 })
                       }}
+                      placeholder={editingProduct ? "0" : "0"}
                       className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                      placeholder={editingProduct ? "0 = Güncelleme yok" : "Başlangıç miktarı"}
                     />
                     {editingProduct && (
                       <p className="text-xs text-gray-500 mt-1">0 bırakırsanız stok değişmez, sadece ürün bilgileri güncellenir</p>
