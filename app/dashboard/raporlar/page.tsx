@@ -214,7 +214,7 @@ export default function ReportsPage() {
                         isCritical
                           ? 'bg-red-200 hover:bg-red-300'
                           : isLow
-                          ? 'bg-yellow-50 hover:bg-yellow-100'
+                          ? 'bg-red-50 hover:bg-red-100'
                           : 'hover:bg-gray-100'
                       }>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
@@ -245,9 +245,9 @@ export default function ReportsPage() {
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
                             isCritical
-                              ? 'bg-red-100 text-red-800'
+                              ? 'bg-red-600 text-white'
                               : isLow
-                              ? 'bg-yellow-100 text-yellow-800'
+                              ? 'bg-red-100 text-red-800'
                               : 'bg-green-100 text-green-800'
                           }`}>
                             {isCritical ? 'Kritik' : isLow ? 'Düşük' : 'Normal'}
@@ -386,7 +386,7 @@ export default function ReportsPage() {
                         isCritical
                           ? 'bg-red-200 hover:bg-red-300'
                           : isLow
-                          ? 'bg-yellow-50 hover:bg-yellow-100'
+                          ? 'bg-red-50 hover:bg-red-100'
                           : 'hover:bg-gray-100'
                       }>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">

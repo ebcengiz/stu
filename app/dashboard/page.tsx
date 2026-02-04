@@ -248,7 +248,11 @@ export default async function DashboardPage() {
                       )}
                     </div>
                     <div className="ml-4">
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                        totalStock <= product.min_stock_level / 2
+                          ? 'bg-red-600 text-white'
+                          : 'bg-red-100 text-red-800'
+                      }`}>
                         {totalStock <= product.min_stock_level / 2 ? 'Kritik' : 'Düşük'}
                       </span>
                     </div>
