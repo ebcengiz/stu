@@ -1,10 +1,10 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Plus, Search, Edit2, Trash2 } from 'lucide-react'
+import { Plus, Search, Edit2, Trash2, X } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Card, CardHeader, CardBody, CardTitle } from '@/components/ui/Card'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 
 interface Category {
   id: string
@@ -69,6 +69,7 @@ export default function ProductsPage() {
   const [showModal, setShowModal] = useState(false)
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
+  const [stockFilter, setStockFilter] = useState<'all' | 'low-stock'>('all')
   const [formData, setFormData] = useState({
     name: '',
     sku: '',
@@ -84,12 +85,21 @@ export default function ProductsPage() {
     movement_type: 'in' // Düzenlerken giriş mi çıkış mı
   })
   const router = useRouter()
+  const searchParams = useSearchParams()
 
   useEffect(() => {
     fetchProducts()
     fetchCategories()
     fetchWarehouses()
   }, [])
+
+  // URL parametresinden filtreyi oku
+  useEffect(() => {
+    const filter = searchParams.get('filter')
+    if (filter === 'low-stock') {
+      setStockFilter('low-stock')
+    }
+  }, [searchParams])
 
   const fetchProducts = async () => {
     try {
@@ -257,11 +267,21 @@ export default function ProductsPage() {
     setShowModal(true)
   }
 
-  const filteredProducts = products.filter(product =>
-    product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    product.sku?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    product.barcode?.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+  const filteredProducts = products.filter(product => {
+    // Arama filtresi
+    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      product.sku?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      product.barcode?.toLowerCase().includes(searchTerm.toLowerCase())
+
+    // Stok filtresi
+    if (stockFilter === 'low-stock') {
+      const totalStock = calculateTotalStock(product.stock)
+      const isLowStock = totalStock <= product.min_stock_level
+      return matchesSearch && isLowStock
+    }
+
+    return matchesSearch
+  })
 
   if (loading && products.length === 0) {
     return <div className="p-8">Yükleniyor...</div>
@@ -283,7 +303,23 @@ export default function ProductsPage() {
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle>Ürün Listesi</CardTitle>
+            <div className="flex items-center gap-3">
+              <CardTitle>Ürün Listesi</CardTitle>
+              {stockFilter === 'low-stock' && (
+                <div className="flex items-center gap-2 px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm font-medium">
+                  <span>Düşük Stok Ürünleri</span>
+                  <button
+                    onClick={() => {
+                      setStockFilter('all')
+                      router.push('/dashboard/urunler')
+                    }}
+                    className="hover:bg-red-200 rounded-full p-0.5"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              )}
+            </div>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
               <input
@@ -332,38 +368,34 @@ export default function ProductsPage() {
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {filteredProducts.length > 0 ? (
-                  filteredProducts.map((product) => (
-                    <tr key={product.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">
-                          {product.name}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {product.sku || '-'}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {product.barcode || '-'}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {product.categories?.name || '-'}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {product.unit}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        {(() => {
-                          // Calculate total stock correctly (handles duplicate records)
-                          const totalStock = calculateTotalStock(product.stock)
-                          const isLow = totalStock <= product.min_stock_level
+                  filteredProducts.map((product) => {
+                    const totalStock = calculateTotalStock(product.stock)
+                    const isLow = totalStock <= product.min_stock_level
 
-                          return (
-                            <span className={isLow ? 'text-red-600' : 'text-gray-900'}>
-                              {totalStock}
-                            </span>
-                          )
-                        })()}
-                      </td>
+                    return (
+                      <tr key={product.id} className={`${isLow ? 'bg-red-50' : ''} hover:bg-gray-100`}>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm font-medium text-gray-900">
+                            {product.name}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {product.sku || '-'}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {product.barcode || '-'}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {product.categories?.name || '-'}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {product.unit}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                          <span className={isLow ? 'text-red-600 font-semibold' : 'text-gray-900'}>
+                            {totalStock}
+                          </span>
+                        </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {product.min_stock_level}
                       </td>
@@ -393,7 +425,8 @@ export default function ProductsPage() {
                         </div>
                       </td>
                     </tr>
-                  ))
+                    )
+                  })
                 ) : (
                   <tr>
                     <td colSpan={9} className="px-6 py-12 text-center text-gray-500">
