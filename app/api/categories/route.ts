@@ -7,12 +7,39 @@ export async function GET() {
 
     const { data: categories, error } = await supabase
       .from('categories')
-      .select('*')
+      .select(`
+        *,
+        products (
+          id,
+          stock (
+            quantity
+          )
+        )
+      `)
       .order('created_at', { ascending: false })
 
     if (error) throw error
 
-    return NextResponse.json(categories)
+    // Calculate stats for each category
+    const categoriesWithStats = categories.map((category: any) => {
+      const productCount = category.products?.length || 0
+      
+      const totalStock = category.products?.reduce((sum: number, product: any) => {
+        const productStock = product.stock?.reduce((pSum: number, s: any) => pSum + Number(s.quantity), 0) || 0
+        return sum + productStock
+      }, 0) || 0
+
+      // Remove the heavy products data from the response
+      const { products, ...categoryData } = category
+      
+      return {
+        ...categoryData,
+        product_count: productCount,
+        total_stock: totalStock
+      }
+    })
+
+    return NextResponse.json(categoriesWithStats)
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
