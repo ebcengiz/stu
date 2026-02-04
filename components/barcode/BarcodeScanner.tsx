@@ -35,7 +35,6 @@ export default function BarcodeScanner({
       const config = {
         fps: 10,
         qrbox: { width: 250, height: 250 },
-        aspectRatio: 1.0,
         formatsToSupport: [
           Html5QrcodeSupportedFormats.EAN_13,
           Html5QrcodeSupportedFormats.EAN_8,
@@ -47,20 +46,25 @@ export default function BarcodeScanner({
           Html5QrcodeSupportedFormats.ITF,
           Html5QrcodeSupportedFormats.CODABAR,
           Html5QrcodeSupportedFormats.QR_CODE
-        ]
+        ],
+        rememberLastUsedCamera: true,
+        showTorchButtonIfSupported: true
       }
 
-      scannerRef.current = new Html5QrcodeScanner('barcode-reader', config, false)
+      scannerRef.current = new Html5QrcodeScanner('barcode-reader', config, /* verbose= */ false)
 
       scannerRef.current.render(
         (decodedText) => {
           // Başarılı okuma
+          console.log('Barkod okundu:', decodedText)
           onScan(decodedText)
-          scannerRef.current?.clear()
+          if (scannerRef.current) {
+            scannerRef.current.clear().catch(console.error)
+          }
           setScanMode('manual')
         },
-        (error) => {
-          // Okuma hatası - sessiz geç
+        (errorMessage) => {
+          // Okuma hatası - sessiz geç (sürekli tarama yaparken normal)
         }
       )
     }

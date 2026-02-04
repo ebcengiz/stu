@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button'
 import { Card, CardHeader, CardBody, CardTitle } from '@/components/ui/Card'
 import { useRouter, useSearchParams } from 'next/navigation'
 import BarcodeScanner from '@/components/barcode/BarcodeScanner'
+import BarcodeDisplay from '@/components/barcode/BarcodeDisplay'
 
 interface Category {
   id: string
@@ -538,6 +539,11 @@ export default function ProductsPage() {
                     onChange={(e) => setFormData({ ...formData, barcode: e.target.value })}
                     className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   />
+                  {formData.barcode && (
+                    <div className="mt-3 p-3 bg-gray-50 rounded-md flex justify-center">
+                      <BarcodeDisplay value={formData.barcode} />
+                    </div>
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
