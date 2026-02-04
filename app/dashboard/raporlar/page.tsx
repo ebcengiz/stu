@@ -82,7 +82,7 @@ export default function ReportsPage() {
     return products.filter(product => {
       // Calculate total stock correctly (handles duplicate records)
       const totalStock = calculateTotalStock(product.stock)
-      return totalStock < product.min_stock_level
+      return totalStock <= product.min_stock_level
     })
   }
 
@@ -206,8 +206,8 @@ export default function ReportsPage() {
                   {products.map((product) => {
                     // Calculate total stock correctly (handles duplicate records)
                     const totalStock = calculateTotalStock(product.stock)
-                    const isLow = totalStock < product.min_stock_level
-                    const isCritical = totalStock < product.min_stock_level / 2
+                    const isLow = totalStock <= product.min_stock_level
+                    const isCritical = totalStock <= product.min_stock_level / 2
 
                     return (
                       <tr key={product.id} className={isLow ? 'bg-red-50' : ''}>
@@ -372,7 +372,7 @@ export default function ReportsPage() {
                     // Calculate total stock correctly (handles duplicate records)
                     const totalStock = calculateTotalStock(product.stock)
                     const shortage = product.min_stock_level - totalStock
-                    const isCritical = totalStock < product.min_stock_level / 2
+                    const isCritical = totalStock <= product.min_stock_level / 2
 
                     return (
                       <tr key={product.id} className="hover:bg-gray-50">

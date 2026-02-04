@@ -55,7 +55,7 @@ export default async function DashboardPage() {
   // Calculate low stock products
   const lowStockProducts = productsWithStock?.filter(product => {
     const totalStock = calculateTotalStock(product.stock)
-    return totalStock < product.min_stock_level
+    return totalStock <= product.min_stock_level
   }) || []
 
   // Get recent stock movements
@@ -249,7 +249,7 @@ export default async function DashboardPage() {
                     </div>
                     <div className="ml-4">
                       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                        {totalStock < product.min_stock_level / 2 ? 'Kritik' : 'Düşük'}
+                        {totalStock <= product.min_stock_level / 2 ? 'Kritik' : 'Düşük'}
                       </span>
                     </div>
                   </div>
