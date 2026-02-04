@@ -73,6 +73,8 @@ export default function ProductsPage() {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [stockFilter, setStockFilter] = useState<'all' | 'low-stock'>('all')
+  const [categoryFilter, setCategoryFilter] = useState('')
+  const [warehouseFilter, setWarehouseFilter] = useState('')
   const [formData, setFormData] = useState({
     name: '',
     sku: '',
@@ -287,14 +289,19 @@ export default function ProductsPage() {
       product.sku?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       product.barcode?.toLowerCase().includes(searchTerm.toLowerCase())
 
-    // Stok filtresi
-    if (stockFilter === 'low-stock') {
-      const totalStock = calculateTotalStock(product.stock)
-      const isLowStock = totalStock <= product.min_stock_level
-      return matchesSearch && isLowStock
-    }
+    // Kategori filtresi
+    const matchesCategory = categoryFilter ? product.category_id === categoryFilter : true
 
-    return matchesSearch
+    // Depo filtresi
+    const matchesWarehouse = warehouseFilter
+      ? product.stock?.some(s => s.warehouse_id === warehouseFilter && Number(s.quantity) > 0)
+      : true
+
+    // Stok filtresi
+    const totalStock = calculateTotalStock(product.stock)
+    const isLowStock = stockFilter === 'low-stock' ? totalStock <= product.min_stock_level : true
+
+    return matchesSearch && matchesCategory && matchesWarehouse && isLowStock
   })
 
   if (loading && products.length === 0) {
@@ -316,44 +323,85 @@ export default function ProductsPage() {
 
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-wrap gap-4 items-center justify-between">
               <CardTitle>Ürün Listesi</CardTitle>
-              {stockFilter === 'low-stock' && (
-                <div className="flex items-center gap-2 px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm font-medium">
-                  <span>Düşük Stok Ürünleri</span>
-                  <button
-                    onClick={() => {
-                      setStockFilter('all')
-                      router.push('/dashboard/urunler')
-                    }}
-                    className="hover:bg-red-200 rounded-full p-0.5"
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
+              <div className="flex gap-2">
+                 <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="Ürün ara..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  />
                 </div>
-              )}
-            </div>
-            <div className="flex gap-2">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Ürün ara..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowBarcodeScanner(true)}
+                  className="flex items-center gap-2"
+                >
+                  <ScanBarcode className="h-4 w-4" />
+                  Barkod Oku
+                </Button>
               </div>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setShowBarcodeScanner(true)}
-                className="flex items-center gap-2"
+            </div>
+            
+            <div className="flex flex-wrap gap-3 items-center bg-gray-50 p-3 rounded-lg border border-gray-100">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-gray-700">Filtreler:</span>
+              </div>
+              
+              <select
+                value={categoryFilter}
+                onChange={(e) => setCategoryFilter(e.target.value)}
+                className="text-sm border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500 py-1.5"
               >
-                <ScanBarcode className="h-4 w-4" />
-                Barkod Oku
-              </Button>
+                <option value="">Tüm Kategoriler</option>
+                {categories.map((c) => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
+              </select>
+
+              <select
+                value={warehouseFilter}
+                onChange={(e) => setWarehouseFilter(e.target.value)}
+                className="text-sm border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500 py-1.5"
+              >
+                <option value="">Tüm Depolar</option>
+                {warehouses.map((w) => (
+                  <option key={w.id} value={w.id}>{w.name}</option>
+                ))}
+              </select>
+
+              <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer select-none bg-white px-3 py-1.5 rounded-md border border-gray-200 hover:border-gray-300 transition-colors">
+                <input
+                  type="checkbox"
+                  checked={stockFilter === 'low-stock'}
+                  onChange={(e) => setStockFilter(e.target.checked ? 'low-stock' : 'all')}
+                  className="rounded text-red-600 focus:ring-red-500"
+                />
+                <span className={stockFilter === 'low-stock' ? 'text-red-600 font-medium' : ''}>
+                  Sadece Düşük Stok
+                </span>
+              </label>
+
+              {(categoryFilter || warehouseFilter || stockFilter === 'low-stock') && (
+                <button
+                  onClick={() => {
+                    setCategoryFilter('')
+                    setWarehouseFilter('')
+                    setStockFilter('all')
+                    setSearchTerm('')
+                  }}
+                  className="text-sm text-gray-500 hover:text-red-600 flex items-center gap-1 ml-auto"
+                >
+                  <X className="h-3 w-3" />
+                  Filtreleri Temizle
+                </button>
+              )}
             </div>
           </div>
         </CardHeader>
