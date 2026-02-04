@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
-import { Package, TrendingDown, Warehouse, ArrowLeftRight } from 'lucide-react'
+import { Package, TrendingDown, Warehouse, ArrowLeftRight, Boxes } from 'lucide-react'
 import Link from 'next/link'
 
 // Helper function to calculate total stock correctly (handles duplicates)
@@ -39,6 +39,13 @@ export default async function DashboardPage() {
     .from('stock_movements')
     .select('*', { count: 'exact', head: true })
 
+  // Get total stock quantity across all warehouses
+  const { data: stockData } = await supabase
+    .from('stock')
+    .select('quantity')
+  
+  const totalStockQuantity = stockData?.reduce((sum, record) => sum + Number(record.quantity), 0) || 0
+
   // Get products with stock info to calculate low stock
   const { data: productsWithStock } = await supabase
     .from('products')
@@ -71,10 +78,17 @@ export default async function DashboardPage() {
 
   const stats = [
     {
-      name: 'Toplam Ürün',
+      name: 'Toplam Ürün Çeşidi',
       value: productsCount || 0,
       icon: Package,
       color: 'bg-blue-500',
+      href: '/dashboard/urunler'
+    },
+    {
+      name: 'Toplam Stok Adedi',
+      value: totalStockQuantity.toLocaleString('tr-TR'),
+      icon: Boxes,
+      color: 'bg-indigo-500',
       href: '/dashboard/urunler'
     },
     {
@@ -128,7 +142,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-5">
         {stats.map((stat) => {
           const Icon = stat.icon
           return (
