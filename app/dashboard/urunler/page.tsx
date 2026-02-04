@@ -184,7 +184,7 @@ export default function ProductsPage() {
         category_id: '',
         is_active: true,
         initial_quantity: '',
-        warehouse_id: '',
+        warehouse_id: warehouses[0]?.id || '',
         movement_type: 'in'
       })
 
@@ -202,6 +202,9 @@ export default function ProductsPage() {
 
   const handleEdit = (product: Product) => {
     setEditingProduct(product)
+    // Ürünün ilk stok kaydının deposunu seç, yoksa ilk aktif depoyu seç
+    const defaultWarehouse = product.stock?.[0]?.warehouse_id || warehouses[0]?.id || ''
+
     setFormData({
       name: product.name,
       sku: product.sku || '',
@@ -213,7 +216,7 @@ export default function ProductsPage() {
       is_active: product.is_active,
       // Düzenlerken de stok değişikliği yapılabilir
       initial_quantity: '',
-      warehouse_id: '',
+      warehouse_id: defaultWarehouse,
       movement_type: 'in'
     })
     setShowModal(true)
@@ -248,7 +251,7 @@ export default function ProductsPage() {
       category_id: '',
       is_active: true,
       initial_quantity: '',
-      warehouse_id: '',
+      warehouse_id: warehouses[0]?.id || '', // İlk depoyu otomatik seç
       movement_type: 'in'
     })
     setShowModal(true)
@@ -553,10 +556,10 @@ export default function ProductsPage() {
                   )}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Depo {!editingProduct && '*'}
+                      Depo *
                     </label>
                     <select
-                      required={!editingProduct}
+                      required
                       value={formData.warehouse_id}
                       onChange={(e) => setFormData({ ...formData, warehouse_id: e.target.value })}
                       className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
@@ -568,17 +571,14 @@ export default function ProductsPage() {
                         </option>
                       ))}
                     </select>
-                    {editingProduct && (
-                      <p className="text-xs text-gray-500 mt-1">Stok güncellemek isterseniz depo seçin</p>
-                    )}
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      {editingProduct ? 'Miktar' : 'Başlangıç Stok Miktarı'} {!editingProduct && '*'}
+                      {editingProduct ? 'Miktar' : 'Başlangıç Stok Miktarı'} *
                     </label>
                     <input
                       type="text"
-                      required={!editingProduct}
+                      required
                       value={formData.initial_quantity}
                       onChange={(e) => {
                         const isDecimalUnit = ['kg', 'litre', 'metre'].includes(formData.unit)
