@@ -338,25 +338,19 @@ export default function ProductsPage() {
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Ürün Adı
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    SKU
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Barkod
+                    Ürün
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Kategori
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Birim
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Mevcut Stok
+                    Toplam Stok
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Min. Stok
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Depo Dağılımı
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Durum
@@ -371,66 +365,80 @@ export default function ProductsPage() {
                   filteredProducts.map((product) => {
                     const totalStock = calculateTotalStock(product.stock)
                     const isLow = totalStock <= product.min_stock_level
+                    const isCritical = totalStock <= product.min_stock_level / 2
 
                     return (
                       <tr key={product.id} className={`${isLow ? 'bg-red-50' : ''} hover:bg-gray-100`}>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">
-                            {product.name}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {product.sku || '-'}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {product.barcode || '-'}
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                          {product.name}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                           {product.categories?.name || '-'}
                         </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
+                          {totalStock.toFixed(2)} {product.unit}
+                        </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {product.unit}
+                          {product.min_stock_level} {product.unit}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-500">
+                          {product.stock && product.stock.length > 0 ? (
+                            <div className="space-y-1">
+                              {product.stock.map((s, i) => (
+                                <div key={i}>
+                                  {s.warehouses?.name}: {Number(s.quantity || 0).toFixed(2)} {product.unit}
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            'Stok yok'
+                          )}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          {product.is_active ? (
+                            <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                              isCritical
+                                ? 'bg-red-100 text-red-800'
+                                : isLow
+                                ? 'bg-yellow-100 text-yellow-800'
+                                : 'bg-green-100 text-green-800'
+                            }`}>
+                              {isCritical ? 'Kritik' : isLow ? 'Düşük' : 'Normal'}
+                            </span>
+                          ) : (
+                            <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
+                              Pasif
+                            </span>
+                          )}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                          <span className={isLow ? 'text-red-600 font-semibold' : 'text-gray-900'}>
-                            {totalStock}
-                          </span>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => handleEdit(product)}
+                              className="text-blue-600 hover:text-blue-900"
+                            >
+                              <Edit2 className="h-4 w-4" />
+                            </button>
+                            <button
+                              onClick={() => handleDelete(product.id)}
+                              className="text-red-600 hover:text-red-900"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </div>
                         </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {product.min_stock_level}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                          product.is_active
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-red-100 text-red-800'
-                        }`}>
-                          {product.is_active ? 'Aktif' : 'Pasif'}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => handleEdit(product)}
-                            className="text-blue-600 hover:text-blue-900"
-                          >
-                            <Edit2 className="h-4 w-4" />
-                          </button>
-                          <button
-                            onClick={() => handleDelete(product.id)}
-                            className="text-red-600 hover:text-red-900"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
+                      </tr>
                     )
                   })
                 ) : (
                   <tr>
-                    <td colSpan={9} className="px-6 py-12 text-center text-gray-500">
-                      {searchTerm ? 'Arama sonucu bulunamadı.' : 'Henüz ürün eklenmemiş. Yeni ürün eklemek için yukarıdaki butonu kullanın.'}
+                    <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
+                      {stockFilter === 'low-stock'
+                        ? 'Düşük stokta ürün bulunmuyor.'
+                        : searchTerm
+                        ? 'Arama sonucu bulunamadı.'
+                        : 'Henüz ürün eklenmemiş. Yeni ürün eklemek için yukarıdaki butonu kullanın.'
+                      }
                     </td>
                   </tr>
                 )}
