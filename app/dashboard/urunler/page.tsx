@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Plus, Search, Edit2, Trash2, X, ScanBarcode } from 'lucide-react'
+import { Plus, Search, Edit2, Trash2, X, ScanBarcode, Filter } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Card, CardHeader, CardBody, CardTitle } from '@/components/ui/Card'
 import { useRouter, useSearchParams } from 'next/navigation'
@@ -70,6 +70,7 @@ export default function ProductsPage() {
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
   const [showBarcodeScanner, setShowBarcodeScanner] = useState(false)
+  const [showFilters, setShowFilters] = useState(false)
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [stockFilter, setStockFilter] = useState<'all' | 'low-stock'>('all')
@@ -323,72 +324,117 @@ export default function ProductsPage() {
 
       <Card>
         <CardHeader>
-          <div className="flex flex-col gap-4">
-            <div className="flex flex-wrap gap-4 items-center justify-between">
+            <div className="flex flex-col gap-4">
+            <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
               <CardTitle>Ürün Listesi</CardTitle>
-              <div className="flex gap-2">
-                 <div className="relative">
+              <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                <div className="relative flex-grow sm:flex-grow-0">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                   <input
                     type="text"
                     placeholder="Ürün ara..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    className="w-full sm:w-64 pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm"
                   />
                 </div>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setShowBarcodeScanner(true)}
-                  className="flex items-center gap-2"
-                >
-                  <ScanBarcode className="h-4 w-4" />
-                  Barkod Oku
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setShowFilters(!showFilters)}
+                    className={`flex items-center gap-2 ${showFilters || categoryFilter || warehouseFilter || stockFilter === 'low-stock' ? 'border-primary-500 text-primary-700 bg-primary-50' : ''}`}
+                  >
+                    <Filter className="h-4 w-4" />
+                    <span className="hidden sm:inline">Filtrele</span>
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setShowBarcodeScanner(true)}
+                    className="flex items-center gap-2"
+                  >
+                    <ScanBarcode className="h-4 w-4" />
+                    <span className="hidden sm:inline">Barkod</span>
+                  </Button>
+                </div>
               </div>
             </div>
-            
-            <div className="flex flex-wrap gap-3 items-center bg-gray-50 p-3 rounded-lg border border-gray-100">
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-gray-700">Filtreler:</span>
+
+            {/* Modern Filter Panel */}
+            {showFilters && (
+              <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 animate-in fade-in slide-in-from-top-2 duration-200">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Kategori</label>
+                    <select
+                      value={categoryFilter}
+                      onChange={(e) => setCategoryFilter(e.target.value)}
+                      className="w-full bg-white border border-gray-300 rounded-md py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    >
+                      <option value="">Tümü</option>
+                      {categories.map((c) => (
+                        <option key={c.id} value={c.id}>{c.name}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Depo</label>
+                    <select
+                      value={warehouseFilter}
+                      onChange={(e) => setWarehouseFilter(e.target.value)}
+                      className="w-full bg-white border border-gray-300 rounded-md py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    >
+                      <option value="">Tümü</option>
+                      {warehouses.map((w) => (
+                        <option key={w.id} value={w.id}>{w.name}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Durum</label>
+                    <label className={`flex items-center justify-between w-full bg-white border rounded-md py-2 px-3 text-sm cursor-pointer transition-colors ${stockFilter === 'low-stock' ? 'border-red-300 bg-red-50 text-red-700' : 'border-gray-300 hover:border-gray-400'}`}>
+                      <span>Düşük Stok Uyarıları</span>
+                      <input
+                        type="checkbox"
+                        checked={stockFilter === 'low-stock'}
+                        onChange={(e) => setStockFilter(e.target.checked ? 'low-stock' : 'all')}
+                        className="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"
+                      />
+                    </label>
+                  </div>
+                </div>
               </div>
-              
-              <select
-                value={categoryFilter}
-                onChange={(e) => setCategoryFilter(e.target.value)}
-                className="text-sm border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500 py-1.5"
-              >
-                <option value="">Tüm Kategoriler</option>
-                {categories.map((c) => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
-                ))}
-              </select>
+            )}
 
-              <select
-                value={warehouseFilter}
-                onChange={(e) => setWarehouseFilter(e.target.value)}
-                className="text-sm border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500 py-1.5"
-              >
-                <option value="">Tüm Depolar</option>
-                {warehouses.map((w) => (
-                  <option key={w.id} value={w.id}>{w.name}</option>
-                ))}
-              </select>
+            {/* Active Filters Badges */}
+            {(categoryFilter || warehouseFilter || stockFilter === 'low-stock') && (
+              <div className="flex flex-wrap items-center gap-2 pt-2">
+                <span className="text-xs text-gray-500 mr-1">Aktif Filtreler:</span>
+                
+                {categoryFilter && (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200">
+                    Kategori: {categories.find(c => c.id === categoryFilter)?.name}
+                    <button onClick={() => setCategoryFilter('')} className="hover:text-blue-600"><X className="h-3 w-3" /></button>
+                  </span>
+                )}
+                
+                {warehouseFilter && (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800 border border-purple-200">
+                    Depo: {warehouses.find(w => w.id === warehouseFilter)?.name}
+                    <button onClick={() => setWarehouseFilter('')} className="hover:text-purple-600"><X className="h-3 w-3" /></button>
+                  </span>
+                )}
 
-              <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer select-none bg-white px-3 py-1.5 rounded-md border border-gray-200 hover:border-gray-300 transition-colors">
-                <input
-                  type="checkbox"
-                  checked={stockFilter === 'low-stock'}
-                  onChange={(e) => setStockFilter(e.target.checked ? 'low-stock' : 'all')}
-                  className="rounded text-red-600 focus:ring-red-500"
-                />
-                <span className={stockFilter === 'low-stock' ? 'text-red-600 font-medium' : ''}>
-                  Sadece Düşük Stok
-                </span>
-              </label>
+                {stockFilter === 'low-stock' && (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 border border-red-200">
+                    Düşük Stok
+                    <button onClick={() => setStockFilter('all')} className="hover:text-red-600"><X className="h-3 w-3" /></button>
+                  </span>
+                )}
 
-              {(categoryFilter || warehouseFilter || stockFilter === 'low-stock') && (
                 <button
                   onClick={() => {
                     setCategoryFilter('')
@@ -396,13 +442,12 @@ export default function ProductsPage() {
                     setStockFilter('all')
                     setSearchTerm('')
                   }}
-                  className="text-sm text-gray-500 hover:text-red-600 flex items-center gap-1 ml-auto"
+                  className="text-xs text-gray-500 hover:text-gray-900 underline underline-offset-2 ml-2"
                 >
-                  <X className="h-3 w-3" />
-                  Filtreleri Temizle
+                  Temizle
                 </button>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         </CardHeader>
         <CardBody className="p-0">
