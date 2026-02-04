@@ -610,7 +610,7 @@ export default function ProductsPage() {
                     )}
                   </div>
                 </div>
-                {editingProduct && formData.initial_quantity > 0 && (
+                {editingProduct && Number(formData.initial_quantity) > 0 && (
                   <p className="text-xs text-gray-500 mt-2">
                     {formData.movement_type === 'in' && '✅ Stok artırılacak'}
                     {formData.movement_type === 'out' && '⚠️ Stok azaltılacak'}
