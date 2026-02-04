@@ -210,7 +210,13 @@ export default function ReportsPage() {
                     const isCritical = totalStock <= product.min_stock_level / 2
 
                     return (
-                      <tr key={product.id} className={isLow ? 'bg-red-50' : ''}>
+                      <tr key={product.id} className={
+                        isCritical
+                          ? 'bg-red-200 hover:bg-red-300'
+                          : isLow
+                          ? 'bg-yellow-50 hover:bg-yellow-100'
+                          : 'hover:bg-gray-100'
+                      }>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                           {product.name}
                         </td>
@@ -372,10 +378,17 @@ export default function ReportsPage() {
                     // Calculate total stock correctly (handles duplicate records)
                     const totalStock = calculateTotalStock(product.stock)
                     const shortage = product.min_stock_level - totalStock
+                    const isLow = totalStock <= product.min_stock_level
                     const isCritical = totalStock <= product.min_stock_level / 2
 
                     return (
-                      <tr key={product.id} className="hover:bg-gray-50">
+                      <tr key={product.id} className={
+                        isCritical
+                          ? 'bg-red-200 hover:bg-red-300'
+                          : isLow
+                          ? 'bg-yellow-50 hover:bg-yellow-100'
+                          : 'hover:bg-gray-100'
+                      }>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                           {product.name}
                         </td>

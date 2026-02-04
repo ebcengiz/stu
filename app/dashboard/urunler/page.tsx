@@ -96,9 +96,7 @@ export default function ProductsPage() {
   // URL parametresinden filtreyi oku
   useEffect(() => {
     const filter = searchParams.get('filter')
-    if (filter === 'low-stock') {
-      setStockFilter('low-stock')
-    }
+    setStockFilter(filter === 'low-stock' ? 'low-stock' : 'all')
   }, [searchParams])
 
   const fetchProducts = async () => {
@@ -368,7 +366,13 @@ export default function ProductsPage() {
                     const isCritical = totalStock <= product.min_stock_level / 2
 
                     return (
-                      <tr key={product.id} className={`${isLow ? 'bg-red-50' : ''} hover:bg-gray-100`}>
+                      <tr key={product.id} className={`${
+                        isCritical
+                          ? 'bg-red-200 hover:bg-red-300'
+                          : isLow
+                          ? 'bg-yellow-50 hover:bg-yellow-100'
+                          : 'hover:bg-gray-100'
+                      }`}>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                           {product.name}
                         </td>
