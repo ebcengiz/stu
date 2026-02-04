@@ -121,12 +121,6 @@ export default function CategoriesPage() {
         </Button>
       </div>
 
-import { Package, Layers } from 'lucide-react'
-
-// ... (imports remain same, added Package, Layers to existing imports)
-
-// ... inside component ...
-
       <div className="bg-white shadow-sm rounded-lg border border-gray-200 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
