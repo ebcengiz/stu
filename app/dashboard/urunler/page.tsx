@@ -1,10 +1,11 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Plus, Search, Edit2, Trash2, X } from 'lucide-react'
+import { Plus, Search, Edit2, Trash2, X, ScanBarcode } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Card, CardHeader, CardBody, CardTitle } from '@/components/ui/Card'
 import { useRouter, useSearchParams } from 'next/navigation'
+import BarcodeScanner from '@/components/barcode/BarcodeScanner'
 
 interface Category {
   id: string
@@ -67,6 +68,7 @@ export default function ProductsPage() {
   const [warehouses, setWarehouses] = useState<Warehouse[]>([])
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
+  const [showBarcodeScanner, setShowBarcodeScanner] = useState(false)
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [stockFilter, setStockFilter] = useState<'all' | 'low-stock'>('all')
@@ -265,6 +267,19 @@ export default function ProductsPage() {
     setShowModal(true)
   }
 
+  const handleBarcodeScanned = (barcode: string) => {
+    setSearchTerm(barcode)
+    setShowBarcodeScanner(false)
+
+    // Barkod ile ürün bul ve varsa düzenleme modunu aç
+    const product = products.find(p => p.barcode === barcode)
+    if (product) {
+      setTimeout(() => {
+        handleEdit(product)
+      }, 300)
+    }
+  }
+
   const filteredProducts = products.filter(product => {
     // Arama filtresi
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -318,15 +333,26 @@ export default function ProductsPage() {
                 </div>
               )}
             </div>
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Ürün ara..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-              />
+            <div className="flex gap-2">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Ürün ara..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                />
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setShowBarcodeScanner(true)}
+                className="flex items-center gap-2"
+              >
+                <ScanBarcode className="h-4 w-4" />
+                Barkod Oku
+              </Button>
             </div>
           </div>
         </CardHeader>
@@ -689,6 +715,27 @@ export default function ProductsPage() {
                 </Button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Barkod Okuyucu Modal */}
+      {showBarcodeScanner && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold">Barkod Okuyucu</h2>
+              <button
+                onClick={() => setShowBarcodeScanner(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+            <BarcodeScanner
+              onScan={handleBarcodeScanned}
+              placeholder="Barkodu okutun veya manuel girin..."
+            />
           </div>
         </div>
       )}
