@@ -14,6 +14,8 @@ export async function GET() {
         barcode,
         description,
         price,
+        purchase_price,
+        currency,
         unit,
         min_stock_level,
         is_active,

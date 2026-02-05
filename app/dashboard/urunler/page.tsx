@@ -7,6 +7,7 @@ import { Card, CardHeader, CardBody, CardTitle } from '@/components/ui/Card'
 import { useRouter, useSearchParams } from 'next/navigation'
 import BarcodeScanner from '@/components/barcode/BarcodeScanner'
 import BarcodeDisplay from '@/components/barcode/BarcodeDisplay'
+import { CURRENCY_SYMBOLS } from '@/lib/currency'
 
 interface Category {
   id: string
@@ -26,6 +27,8 @@ interface Product {
   barcode: string | null
   description: string | null
   price: number | null
+  purchase_price: number | null
+  currency: string
   unit: string
   min_stock_level: number
   is_active: boolean
@@ -83,6 +86,8 @@ export default function ProductsPage() {
     barcode: '',
     description: '',
     price: '' as string | number,
+    purchase_price: '' as string | number,
+    currency: 'TRY',
     unit: 'adet',
     min_stock_level: '' as string | number,
     category_id: '',
@@ -172,6 +177,9 @@ export default function ProductsPage() {
         price: typeof formData.price === 'string'
           ? parseFloat(formData.price) || 0
           : formData.price,
+        purchase_price: typeof formData.purchase_price === 'string'
+          ? parseFloat(formData.purchase_price) || 0
+          : formData.purchase_price,
         min_stock_level: typeof formData.min_stock_level === 'string'
           ? parseFloat(formData.min_stock_level) || 0
           : formData.min_stock_level,
@@ -199,6 +207,8 @@ export default function ProductsPage() {
         barcode: '',
         description: '',
         price: '',
+        purchase_price: '',
+        currency: 'TRY',
         unit: 'adet',
         min_stock_level: '',
         category_id: '',
@@ -231,6 +241,8 @@ export default function ProductsPage() {
       barcode: product.barcode || '',
       description: product.description || '',
       price: product.price || '',
+      purchase_price: product.purchase_price || '',
+      currency: product.currency || 'TRY',
       unit: product.unit,
       min_stock_level: product.min_stock_level || '',
       category_id: product.category_id || '',
@@ -268,6 +280,8 @@ export default function ProductsPage() {
       barcode: '',
       description: '',
       price: '',
+      purchase_price: '',
+      currency: 'TRY',
       unit: 'adet',
       min_stock_level: '',
       category_id: '',
@@ -470,10 +484,10 @@ export default function ProductsPage() {
                     Kategori
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Toplam Stok
+                    Fiyat
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Min. Stok
+                    Toplam Stok
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Depo Dağılımı
@@ -492,6 +506,7 @@ export default function ProductsPage() {
                     const totalStock = calculateTotalStock(product.stock)
                     const isLow = totalStock <= product.min_stock_level
                     const isCritical = totalStock <= product.min_stock_level / 2
+                    const symbol = CURRENCY_SYMBOLS[product.currency || 'TRY'] || product.currency || '₺'
 
                     return (
                       <tr key={product.id} className={`${
@@ -507,11 +522,20 @@ export default function ProductsPage() {
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                           {product.categories?.name || '-'}
                         </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          <div className="flex flex-col">
+                            <span className="font-medium text-green-700" title="Satış Fiyatı">
+                              S: {symbol}{Number(product.price || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2 })}
+                            </span>
+                            {product.purchase_price && (
+                              <span className="text-xs text-red-600" title="Alış Fiyatı">
+                                A: {symbol}{Number(product.purchase_price).toLocaleString('tr-TR', { minimumFractionDigits: 2 })}
+                              </span>
+                            )}
+                          </div>
+                        </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
                           {totalStock.toFixed(2)} {product.unit}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {product.min_stock_level} {product.unit}
                         </td>
                         <td className="px-6 py-4 text-sm text-gray-500">
                           {product.stock && product.stock.length > 0 ? (
@@ -646,32 +670,63 @@ export default function ProductsPage() {
                     </div>
                   )}
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Fiyat
-                  </label>
-                  <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">₺</span>
+                
+                {/* Fiyat ve Para Birimi Alanları */}
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Para Birimi
+                    </label>
+                    <select
+                      value={formData.currency}
+                      onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    >
+                      <option value="TRY">TRY (₺)</option>
+                      <option value="USD">USD ($)</option>
+                      <option value="EUR">EUR (€)</option>
+                      <option value="GBP">GBP (£)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Satış Fiyatı
+                    </label>
                     <input
                       type="text"
                       value={formData.price}
                       onChange={(e) => {
-                        // Allow digits, dot and comma
                         let value = e.target.value.replace(/[^0-9.,]/g, '')
-                        // Replace comma with dot
                         value = value.replace(/,/g, '.')
-                        // Prevent multiple dots
                         const parts = value.split('.')
-                        if (parts.length > 2) {
-                          value = parts[0] + '.' + parts.slice(1).join('')
-                        }
+                        if (parts.length > 2) value = parts[0] + '.' + parts.slice(1).join('')
                         setFormData({ ...formData, price: value })
                       }}
                       placeholder="0.00"
-                      className="w-full pl-8 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     />
                   </div>
                 </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Alış Fiyatı
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.purchase_price}
+                    onChange={(e) => {
+                      let value = e.target.value.replace(/[^0-9.,]/g, '')
+                      value = value.replace(/,/g, '.')
+                      const parts = value.split('.')
+                      if (parts.length > 2) value = parts[0] + '.' + parts.slice(1).join('')
+                      setFormData({ ...formData, purchase_price: value })
+                    }}
+                    placeholder="0.00"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  />
+                </div>
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Birim *

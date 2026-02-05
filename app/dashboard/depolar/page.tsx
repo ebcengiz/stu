@@ -5,6 +5,7 @@ import { Plus, Edit2, Trash2, Warehouse, MapPin, X, Package, Search } from 'luci
 import { Button } from '@/components/ui/Button'
 import { Card, CardBody } from '@/components/ui/Card'
 import dynamic from 'next/dynamic'
+import { getExchangeRates, CURRENCY_SYMBOLS, type ExchangeRates } from '@/lib/currency'
 
 // Dynamically import LocationPicker to avoid SSR issues with Leaflet
 const LocationPicker = dynamic(() => import('@/components/warehouse/LocationPicker'), {
@@ -25,6 +26,8 @@ interface ProductStock {
   name: string
   sku: string | null
   price: number | null
+  purchase_price: number | null
+  currency: string
   unit: string
   quantity: number
 }
@@ -41,9 +44,11 @@ export default function WarehousesPage() {
   const [warehouseStock, setWarehouseStock] = useState<ProductStock[]>([])
   const [loadingStock, setLoadingStock] = useState(false)
   const [stockSearchTerm, setStockSearchTerm] = useState('')
+  const [exchangeRates, setExchangeRates] = useState<ExchangeRates>({ TRY: 1, USD: 1, EUR: 1, GBP: 1 })
 
   useEffect(() => {
     fetchWarehouses()
+    fetchRates()
   }, [])
 
   // Fetch stock when a warehouse is selected
@@ -52,6 +57,11 @@ export default function WarehousesPage() {
       fetchWarehouseStock(selectedWarehouse.id)
     }
   }, [selectedWarehouse])
+
+  const fetchRates = async () => {
+    const rates = await getExchangeRates()
+    setExchangeRates(rates)
+  }
 
   const fetchWarehouses = async () => {
     try {
@@ -69,7 +79,6 @@ export default function WarehousesPage() {
     setLoadingStock(true)
     try {
       // Fetch all products with their stock info
-      // In a real app with many products, this should be a dedicated API endpoint with filtering
       const response = await fetch('/api/products')
       const products = await response.json()
 
@@ -86,6 +95,8 @@ export default function WarehousesPage() {
               name: product.name,
               sku: product.sku,
               price: product.price,
+              purchase_price: product.purchase_price,
+              currency: product.currency || 'TRY',
               unit: product.unit,
               quantity: quantity
             }
@@ -180,7 +191,34 @@ export default function WarehousesPage() {
     item.sku?.toLowerCase().includes(stockSearchTerm.toLowerCase())
   )
 
-  const totalWarehouseValue = filteredStock.reduce((sum, item) => sum + (item.quantity * (item.price || 0)), 0)
+  // Calculate total value in TRY using dynamic rates
+  const totalWarehouseValueTRY = filteredStock.reduce((sum, item) => {
+    const price = item.price || 0
+    const currency = item.currency || 'TRY'
+    
+    // Convert to TRY: (Price / Rate of Currency) * Rate of TRY (which is 1)
+    // Wait, Frankfurter API returns rates relative to base (TRY).
+    // If base is TRY, then rates are: USD=0.03, EUR=0.028 (1 TRY = X USD).
+    // To convert USD to TRY: Amount / Rate. e.g. 100 USD / 0.03 = 3333 TRY.
+    
+    // Let's re-verify getExchangeRates logic in lib/currency.ts
+    // We fetch `?from=TRY&to=USD`. 
+    // Response: {"rates":{"USD":0.032}}. This means 1 TRY = 0.032 USD.
+    // So to convert USD to TRY: Amount * (1 / Rate).
+    
+    // BUT! Ideally, we want rates where 1 USD = 30 TRY.
+    // Frankfurter: `?from=USD&to=TRY`. Response: {"rates":{"TRY":31.5}}.
+    // My getExchangeRates fetches `from=TRY`. This gives 1 TRY = X Foreign.
+    // So Foreign to TRY = Foreign Amount / Rate.
+    
+    const rate = exchangeRates[currency] || 1
+    // If currency is TRY, rate is 1. Result = Price.
+    // If currency is USD, rate is (e.g.) 0.03. Result = Price / 0.03 = Price * 33.
+    // Correct.
+    
+    const priceInTRY = price / rate
+    return sum + (item.quantity * priceInTRY)
+  }, 0)
 
   if (loading && warehouses.length === 0) {
     return <div className="p-8">Yükleniyor...</div>
@@ -230,7 +268,6 @@ export default function WarehousesPage() {
                           className="line-clamp-2 flex-1"
                           onClick={(e) => {
                              e.stopPropagation()
-                             // Open map logic here if needed, or link
                              const match = warehouse.location?.match(/\((-?\d+\.?\d*),\s*(-?\d+\.?\d*)\)/)
                              if (match) {
                                window.open(`https://www.openstreetmap.org/?mlat=${match[1]}&mlon=${match[2]}&zoom=15`, '_blank')
@@ -289,7 +326,11 @@ export default function WarehousesPage() {
                 </div>
                 <div>
                   <h2 className="text-xl font-bold text-gray-900">{selectedWarehouse.name}</h2>
-                  <p className="text-sm text-gray-500">Depo Stok Detayları</p>
+                  <div className="flex items-center gap-2 text-sm text-gray-500">
+                    <span>Depo Stok Detayları</span>
+                    <span className="text-gray-300">•</span>
+                    <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded">Döviz Kurları Güncel</span>
+                  </div>
                 </div>
               </div>
               <button 
@@ -312,10 +353,10 @@ export default function WarehousesPage() {
                     className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 text-sm"
                   />
                 </div>
-                <div className="bg-green-50 px-4 py-2 rounded-lg border border-green-100">
-                  <span className="text-sm text-green-700 font-medium">Toplam Depo Değeri:</span>
-                  <span className="ml-2 text-lg font-bold text-green-800">
-                    ₺{totalWarehouseValue.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                <div className="bg-green-50 px-4 py-3 rounded-lg border border-green-100 flex flex-col items-end">
+                  <span className="text-xs text-green-700 font-medium mb-1">Toplam Depo Değeri (Tahmini)</span>
+                  <span className="text-2xl font-bold text-green-800">
+                    ₺{totalWarehouseValueTRY.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </span>
                 </div>
               </div>
@@ -333,14 +374,23 @@ export default function WarehousesPage() {
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">SKU</th>
                         <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Miktar</th>
                         <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Birim Fiyat</th>
-                        <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Toplam Değer</th>
+                        <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Toplam Değer (TRY)</th>
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
-                      {filteredStock.map((item) => (
+                      {filteredStock.map((item) => {
+                         const symbol = CURRENCY_SYMBOLS[item.currency] || '₺'
+                         const rate = exchangeRates[item.currency] || 1
+                         const priceInTRY = (item.price || 0) / rate
+                         const totalInTRY = priceInTRY * item.quantity
+                         
+                         return (
                         <tr key={item.id} className="hover:bg-gray-50">
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="font-medium text-gray-900">{item.name}</div>
+                            {item.currency !== 'TRY' && (
+                              <span className="text-[10px] text-gray-400">Orig: {item.currency}</span>
+                            )}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             {item.sku || '-'}
@@ -351,13 +401,18 @@ export default function WarehousesPage() {
                             </span>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-900">
-                            {item.price ? `₺${item.price.toLocaleString('tr-TR', { minimumFractionDigits: 2 })}` : '-'}
+                            <div className="flex flex-col items-end">
+                              <span>{item.price ? `${symbol}${item.price.toLocaleString('tr-TR', { minimumFractionDigits: 2 })}` : '-'}</span>
+                              {item.currency !== 'TRY' && (
+                                <span className="text-xs text-gray-400">≈ ₺{priceInTRY.toLocaleString('tr-TR', { maximumFractionDigits: 2 })}</span>
+                              )}
+                            </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-semibold text-gray-900">
-                            ₺{((item.price || 0) * item.quantity).toLocaleString('tr-TR', { minimumFractionDigits: 2 })}
+                            ₺{totalInTRY.toLocaleString('tr-TR', { minimumFractionDigits: 2 })}
                           </td>
                         </tr>
-                      ))}
+                      )})}
                     </tbody>
                   </table>
                 </div>
