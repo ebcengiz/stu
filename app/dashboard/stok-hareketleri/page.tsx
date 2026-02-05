@@ -24,7 +24,7 @@ interface Movement {
   notes: string | null
   created_at: string
   products?: { name: string; unit: string }
-  warehouses?: { name: string }
+  warehouses?: { name: string; deleted_at?: string }
   profiles?: { full_name: string }
 }
 
@@ -232,6 +232,9 @@ export default function StockMovementsPage() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {movement.warehouses?.name || '-'}
+                        {movement.warehouses?.deleted_at && (
+                          <span className="text-xs text-red-500 ml-1">(Silindi)</span>
+                        )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
                         {movement.quantity} {movement.products?.unit || ''}

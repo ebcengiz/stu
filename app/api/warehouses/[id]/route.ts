@@ -49,9 +49,13 @@ export async function DELETE(
     const params = await context.params
     const supabase = await createClient()
 
+    // Perform Soft Delete
     const { error } = await supabase
       .from('warehouses')
-      .delete()
+      .update({ 
+        deleted_at: new Date().toISOString(),
+        is_active: false // Also deactivate it
+      })
       .eq('id', params.id)
 
     if (error) {

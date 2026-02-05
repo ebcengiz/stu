@@ -10,7 +10,7 @@ export async function GET() {
       .select(`
         *,
         products (name, unit),
-        warehouses (name),
+        warehouses (name, deleted_at),
         profiles (full_name)
       `)
       .order('created_at', { ascending: false })
