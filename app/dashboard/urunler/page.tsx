@@ -702,92 +702,68 @@ export default function ProductsPage() {
                 />
               </div>
 
-              {/* Stok Bilgileri - Hem yeni eklerken hem düzenlerken */}
-              <div className="border-t border-gray-200 pt-4 mt-4">
-                <h3 className="text-sm font-semibold text-gray-900 mb-3">
-                  {editingProduct ? 'Stok Güncelle' : 'Başlangıç Stok Bilgileri'}
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {editingProduct && (
+              {/* Stok Bilgileri - Sadece yeni ürün eklerken */}
+              {!editingProduct && (
+                <div className="border-t border-gray-200 pt-4 mt-4">
+                  <h3 className="text-sm font-semibold text-gray-900 mb-3">
+                    Başlangıç Stok Bilgileri
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        İşlem Tipi *
+                        Depo *
                       </label>
                       <select
-                        value={formData.movement_type}
-                        onChange={(e) => setFormData({ ...formData, movement_type: e.target.value })}
+                        required
+                        value={formData.warehouse_id}
+                        onChange={(e) => setFormData({ ...formData, warehouse_id: e.target.value })}
                         className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                       >
-                        <option value="in">Stok Girişi (+)</option>
-                        <option value="out">Stok Çıkışı (-)</option>
-                        <option value="adjustment">Düzeltme (=)</option>
+                        <option value="">Depo Seçin</option>
+                        {warehouses.map((warehouse) => (
+                          <option key={warehouse.id} value={warehouse.id}>
+                            {warehouse.name}
+                          </option>
+                        ))}
                       </select>
                     </div>
-                  )}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Depo *
-                    </label>
-                    <select
-                      required
-                      value={formData.warehouse_id}
-                      onChange={(e) => setFormData({ ...formData, warehouse_id: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                    >
-                      <option value="">Depo Seçin</option>
-                      {warehouses.map((warehouse) => (
-                        <option key={warehouse.id} value={warehouse.id}>
-                          {warehouse.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      {editingProduct ? 'Miktar' : 'Başlangıç Stok Miktarı'} *
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={formData.initial_quantity}
-                      onChange={(e) => {
-                        const isDecimalUnit = ['kg', 'litre', 'metre'].includes(formData.unit)
-                        let value = e.target.value
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Başlangıç Stok Miktarı *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={formData.initial_quantity}
+                        onChange={(e) => {
+                          const isDecimalUnit = ['kg', 'litre', 'metre'].includes(formData.unit)
+                          let value = e.target.value
 
-                        if (isDecimalUnit) {
-                          // Allow digits, dot and comma for decimal units
-                          value = value.replace(/[^0-9.,]/g, '')
-                          // Replace comma with dot
-                          value = value.replace(/,/g, '.')
-                          // Prevent multiple dots
-                          const parts = value.split('.')
-                          if (parts.length > 2) {
-                            value = parts[0] + '.' + parts.slice(1).join('')
+                          if (isDecimalUnit) {
+                            // Allow digits, dot and comma for decimal units
+                            value = value.replace(/[^0-9.,]/g, '')
+                            // Replace comma with dot
+                            value = value.replace(/,/g, '.')
+                            // Prevent multiple dots
+                            const parts = value.split('.')
+                            if (parts.length > 2) {
+                              value = parts[0] + '.' + parts.slice(1).join('')
+                            }
+                            // Store as string to preserve typing state
+                            setFormData({ ...formData, initial_quantity: value })
+                          } else {
+                            // Only allow digits for piece/package units
+                            value = value.replace(/[^0-9]/g, '')
+                            setFormData({ ...formData, initial_quantity: value })
                           }
-                          // Store as string to preserve typing state
-                          setFormData({ ...formData, initial_quantity: value })
-                        } else {
-                          // Only allow digits for piece/package units
-                          value = value.replace(/[^0-9]/g, '')
-                          setFormData({ ...formData, initial_quantity: value })
-                        }
-                      }}
-                      placeholder={editingProduct ? "0" : "0"}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                    />
-                    {editingProduct && (
-                      <p className="text-xs text-gray-500 mt-1">0 bırakırsanız stok değişmez, sadece ürün bilgileri güncellenir</p>
-                    )}
+                        }}
+                        placeholder="0"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      />
+                    </div>
                   </div>
                 </div>
-                {editingProduct && Number(formData.initial_quantity) > 0 && (
-                  <p className="text-xs text-gray-500 mt-2">
-                    {formData.movement_type === 'in' && '✅ Stok artırılacak'}
-                    {formData.movement_type === 'out' && '⚠️ Stok azaltılacak'}
-                    {formData.movement_type === 'adjustment' && '🔄 Stok bu değere ayarlanacak'}
-                  </p>
-                )}
-              </div>
+              )}
 
               <div className="flex items-center">
                 <input
