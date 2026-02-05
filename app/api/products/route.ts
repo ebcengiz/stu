@@ -13,6 +13,7 @@ export async function GET() {
         sku,
         barcode,
         description,
+        price,
         unit,
         min_stock_level,
         is_active,

@@ -25,6 +25,7 @@ interface Product {
   sku: string | null
   barcode: string | null
   description: string | null
+  price: number | null
   unit: string
   min_stock_level: number
   is_active: boolean
@@ -81,6 +82,7 @@ export default function ProductsPage() {
     sku: '',
     barcode: '',
     description: '',
+    price: '' as string | number,
     unit: 'adet',
     min_stock_level: '' as string | number,
     category_id: '',
@@ -167,6 +169,9 @@ export default function ProductsPage() {
         sku: formData.sku.trim() || null,
         barcode: formData.barcode.trim() || null,
         description: formData.description.trim() || null,
+        price: typeof formData.price === 'string'
+          ? parseFloat(formData.price) || 0
+          : formData.price,
         min_stock_level: typeof formData.min_stock_level === 'string'
           ? parseFloat(formData.min_stock_level) || 0
           : formData.min_stock_level,
@@ -193,6 +198,7 @@ export default function ProductsPage() {
         sku: '',
         barcode: '',
         description: '',
+        price: '',
         unit: 'adet',
         min_stock_level: '',
         category_id: '',
@@ -224,6 +230,7 @@ export default function ProductsPage() {
       sku: product.sku || '',
       barcode: product.barcode || '',
       description: product.description || '',
+      price: product.price || '',
       unit: product.unit,
       min_stock_level: product.min_stock_level || '',
       category_id: product.category_id || '',
@@ -260,6 +267,7 @@ export default function ProductsPage() {
       sku: '',
       barcode: '',
       description: '',
+      price: '',
       unit: 'adet',
       min_stock_level: '',
       category_id: '',
@@ -637,6 +645,32 @@ export default function ProductsPage() {
                       <BarcodeDisplay value={formData.barcode} />
                     </div>
                   )}
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Fiyat
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">₺</span>
+                    <input
+                      type="text"
+                      value={formData.price}
+                      onChange={(e) => {
+                        // Allow digits, dot and comma
+                        let value = e.target.value.replace(/[^0-9.,]/g, '')
+                        // Replace comma with dot
+                        value = value.replace(/,/g, '.')
+                        // Prevent multiple dots
+                        const parts = value.split('.')
+                        if (parts.length > 2) {
+                          value = parts[0] + '.' + parts.slice(1).join('')
+                        }
+                        setFormData({ ...formData, price: value })
+                      }}
+                      placeholder="0.00"
+                      className="w-full pl-8 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    />
+                  </div>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
