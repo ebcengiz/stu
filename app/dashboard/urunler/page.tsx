@@ -487,6 +487,9 @@ export default function ProductsPage() {
                     Fiyat
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Kar Oranı
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Toplam Stok
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -533,6 +536,21 @@ export default function ProductsPage() {
                               </span>
                             )}
                           </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                          {product.purchase_price && Number(product.purchase_price) > 0 ? (
+                            (() => {
+                              const profit = (Number(product.price) || 0) - (Number(product.purchase_price) || 0)
+                              const margin = (profit / Number(product.purchase_price)) * 100
+                              return (
+                                <span className={`font-medium ${margin >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                  %{margin.toLocaleString('tr-TR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}
+                                </span>
+                              )
+                            })()
+                          ) : (
+                            <span className="text-gray-400">-</span>
+                          )}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
                           {totalStock.toFixed(2)} {product.unit}
@@ -588,7 +606,7 @@ export default function ProductsPage() {
                   })
                 ) : (
                   <tr>
-                    <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
+                    <td colSpan={8} className="px-6 py-12 text-center text-gray-500">
                       {stockFilter === 'low-stock'
                         ? 'Düşük stokta ürün bulunmuyor.'
                         : searchTerm
