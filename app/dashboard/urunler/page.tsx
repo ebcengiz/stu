@@ -73,6 +73,12 @@ export default function ProductsPage() {
   const [warehouses, setWarehouses] = useState<Warehouse[]>([])
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
+  const [showNewCategoryModal, setShowNewCategoryModal] = useState(false)
+  const [showNewWarehouseModal, setShowNewWarehouseModal] = useState(false)
+  const [newCategoryLoading, setNewCategoryLoading] = useState(false)
+  const [newWarehouseLoading, setNewWarehouseLoading] = useState(false)
+  const [newCategoryData, setNewCategoryData] = useState({ name: '', description: '' })
+  const [newWarehouseData, setNewWarehouseData] = useState({ name: '', location: '', is_active: true })
   const [showBarcodeScanner, setShowBarcodeScanner] = useState(false)
   const [showFilters, setShowFilters] = useState(false)
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
@@ -230,6 +236,80 @@ export default function ProductsPage() {
     }
   }
 
+  const handleCreateCategory = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (newCategoryLoading) return
+    setNewCategoryLoading(true)
+
+    try {
+      const response = await fetch('/api/categories', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newCategoryData),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Kategori oluşturulamadı')
+      }
+
+      const newCategory = await response.json()
+      
+      // Update categories list
+      await fetchCategories()
+      
+      // Select the new category
+      setFormData(prev => ({ ...prev, category_id: newCategory.id }))
+      
+      // Close modal and reset
+      setShowNewCategoryModal(false)
+      setNewCategoryData({ name: '', description: '' })
+    } catch (error) {
+      console.error('Error creating category:', error)
+      alert('Kategori oluşturulamadı')
+    } finally {
+      setNewCategoryLoading(false)
+    }
+  }
+
+  const handleCreateWarehouse = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (newWarehouseLoading) return
+    setNewWarehouseLoading(true)
+
+    try {
+      const response = await fetch('/api/warehouses', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newWarehouseData),
+      })
+
+      const responseData = await response.json()
+
+      if (!response.ok) {
+        console.error('Server error details:', responseData)
+        throw new Error(responseData.error || 'Sunucu hatası oluştu')
+      }
+
+      const newWarehouse = responseData
+      
+      // Update warehouses list
+      await fetchWarehouses()
+      
+      // Select the new warehouse
+      setFormData(prev => ({ ...prev, warehouse_id: newWarehouse.id }))
+      
+      // Close modal and reset
+      setShowNewWarehouseModal(false)
+      setNewWarehouseData({ name: '', location: '', is_active: true })
+    } catch (error) {
+      console.error('Error creating warehouse:', error)
+      alert('Depo oluşturulamadı')
+    } finally {
+      setNewWarehouseLoading(false)
+    }
+  }
+
   const handleEdit = (product: Product) => {
     setEditingProduct(product)
     // Ürünün ilk stok kaydının deposunu seç, yoksa ilk aktif depoyu seç
@@ -346,7 +426,7 @@ export default function ProductsPage() {
 
       <Card>
         <CardHeader>
-            <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-4">
             <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
               <CardTitle>Ürün Listesi</CardTitle>
               <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
@@ -629,19 +709,29 @@ export default function ProductsPage() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Kategori *
                   </label>
-                  <select
-                    required
-                    value={formData.category_id}
-                    onChange={(e) => setFormData({ ...formData, category_id: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  >
-                    <option value="">Kategori Seçin</option>
-                    {categories.map((category) => (
-                      <option key={category.id} value={category.id}>
-                        {category.name}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="flex gap-2">
+                    <select
+                      required
+                      value={formData.category_id}
+                      onChange={(e) => setFormData({ ...formData, category_id: e.target.value })}
+                      className="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    >
+                      <option value="">Kategori Seçin</option>
+                      {categories.map((category) => (
+                        <option key={category.id} value={category.id}>
+                          {category.name}
+                        </option>
+                      ))}
+                    </select>
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      className="px-2"
+                      onClick={() => setShowNewCategoryModal(true)}
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -802,19 +892,29 @@ export default function ProductsPage() {
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Depo *
                       </label>
-                      <select
-                        required
-                        value={formData.warehouse_id}
-                        onChange={(e) => setFormData({ ...formData, warehouse_id: e.target.value })}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                      >
-                        <option value="">Depo Seçin</option>
-                        {warehouses.map((warehouse) => (
-                          <option key={warehouse.id} value={warehouse.id}>
-                            {warehouse.name}
-                          </option>
-                        ))}
-                      </select>
+                      <div className="flex gap-2">
+                        <select
+                          required
+                          value={formData.warehouse_id}
+                          onChange={(e) => setFormData({ ...formData, warehouse_id: e.target.value })}
+                          className="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                        >
+                          <option value="">Depo Seçin</option>
+                          {warehouses.map((warehouse) => (
+                            <option key={warehouse.id} value={warehouse.id}>
+                              {warehouse.name}
+                            </option>
+                          ))}
+                        </select>
+                        <Button 
+                          type="button" 
+                          variant="outline" 
+                          className="px-2"
+                          onClick={() => setShowNewWarehouseModal(true)}
+                        >
+                          <Plus className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -900,6 +1000,120 @@ export default function ProductsPage() {
               onScan={handleBarcodeScanned}
               placeholder="Barkodu okutun veya manuel girin..."
             />
+          </div>
+        </div>
+      )}
+
+      {/* Yeni Kategori Modal */}
+      {showNewCategoryModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60] p-4">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-xl animate-in fade-in zoom-in duration-200">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold">Yeni Kategori Ekle</h2>
+              <button
+                onClick={() => setShowNewCategoryModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+            <form onSubmit={handleCreateCategory} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Kategori Adı *
+                </label>
+                <input
+                  type="text"
+                  required
+                  autoFocus
+                  value={newCategoryData.name}
+                  onChange={(e) => setNewCategoryData({ ...newCategoryData, name: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  placeholder="Örn: Elektronik"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Açıklama
+                </label>
+                <textarea
+                  rows={3}
+                  value={newCategoryData.description}
+                  onChange={(e) => setNewCategoryData({ ...newCategoryData, description: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  placeholder="Kategori açıklaması (isteğe bağlı)"
+                />
+              </div>
+              <div className="flex justify-end gap-3 pt-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowNewCategoryModal(false)}
+                >
+                  İptal
+                </Button>
+                <Button type="submit" disabled={newCategoryLoading}>
+                  {newCategoryLoading ? 'Ekleniyor...' : 'Kategori Ekle'}
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Yeni Depo Modal */}
+      {showNewWarehouseModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60] p-4">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-xl animate-in fade-in zoom-in duration-200">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold">Yeni Depo Ekle</h2>
+              <button
+                onClick={() => setShowNewWarehouseModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+            <form onSubmit={handleCreateWarehouse} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Depo Adı *
+                </label>
+                <input
+                  type="text"
+                  required
+                  autoFocus
+                  value={newWarehouseData.name}
+                  onChange={(e) => setNewWarehouseData({ ...newWarehouseData, name: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  placeholder="Örn: Ana Depo"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Adres
+                </label>
+                <textarea
+                  rows={3}
+                  value={newWarehouseData.location}
+                  onChange={(e) => setNewWarehouseData({ ...newWarehouseData, location: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  placeholder="Depo adresi (isteğe bağlı)"
+                />
+              </div>
+              <div className="flex justify-end gap-3 pt-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowNewWarehouseModal(false)}
+                >
+                  İptal
+                </Button>
+                <Button type="submit" disabled={newWarehouseLoading}>
+                  {newWarehouseLoading ? 'Ekleniyor...' : 'Depo Ekle'}
+                </Button>
+              </div>
+            </form>
           </div>
         </div>
       )}
