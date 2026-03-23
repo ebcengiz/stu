@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { Card, CardHeader, CardBody, CardTitle } from '@/components/ui/Card'
 import { Users, Building, Settings as SettingsIcon, Package, Warehouse, ArrowLeftRight } from 'lucide-react'
 import { redirect } from 'next/navigation'
+import UserManagement from '@/components/admin/UserManagement'
 
 export default async function AdminPage() {
   const supabase = await createClient()
@@ -24,6 +25,7 @@ export default async function AdminPage() {
     .from('profiles')
     .select('*', { count: 'exact' })
     .eq('tenant_id', profile.tenant_id)
+    .order('created_at', { ascending: false })
 
   // Get tenant info
   const { data: tenant } = await supabase
@@ -44,15 +46,6 @@ export default async function AdminPage() {
   const { count: movementsCount } = await supabase
     .from('stock_movements')
     .select('*', { count: 'exact', head: true })
-
-  const getRoleBadge = (role: string) => {
-    const roles: Record<string, { label: string; class: string }> = {
-      'admin': { label: 'Admin', class: 'bg-purple-100 text-purple-800' },
-      'manager': { label: 'Yönetici', class: 'bg-blue-100 text-blue-800' },
-      'user': { label: 'Kullanıcı', class: 'bg-gray-100 text-gray-800' }
-    }
-    return roles[role] || roles['user']
-  }
 
   return (
     <div className="space-y-6">
@@ -193,58 +186,7 @@ export default async function AdminPage() {
       </Card>
 
       {/* Users List */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Kullanıcı Listesi</CardTitle>
-        </CardHeader>
-        <CardBody className="p-0">
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Ad Soyad
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Rol
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Kayıt Tarihi
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {users && users.length > 0 ? (
-                  users.map((usr: any) => {
-                    const roleBadge = getRoleBadge(usr.role)
-                    return (
-                      <tr key={usr.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                          {usr.full_name || 'İsimsiz Kullanıcı'}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`px-2 py-1 text-xs font-semibold rounded-full ${roleBadge.class}`}>
-                            {roleBadge.label}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {new Date(usr.created_at).toLocaleDateString('tr-TR')}
-                        </td>
-                      </tr>
-                    )
-                  })
-                ) : (
-                  <tr>
-                    <td colSpan={3} className="px-6 py-12 text-center text-gray-500">
-                      Henüz kullanıcı bulunmuyor
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </CardBody>
-      </Card>
+      <UserManagement initialUsers={users || []} />
     </div>
   )
 }
