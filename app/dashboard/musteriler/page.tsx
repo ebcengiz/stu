@@ -22,6 +22,7 @@ interface Customer {
 }
 
 export default function CustomersPage() {
+  const router = useRouter()
   const [customers, setCustomers] = useState<Customer[]>([])
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
@@ -144,20 +145,12 @@ export default function CustomersPage() {
   }
 
   const handleEdit = (customer: Customer) => {
-    setEditingCustomer(customer)
-    setFormData({
-      company_name: customer.company_name,
-      company_logo: customer.company_logo || '',
-      address: customer.address || '',
-      contact_person: customer.contact_person || '',
-      phone: customer.phone || '',
-      email: customer.email || '',
-      tax_number: customer.tax_number || '',
-      tax_office: customer.tax_office || '',
-      notes: customer.notes || '',
-      is_active: customer.is_active
-    })
-    setShowModal(true)
+    // Instead of opening modal, navigate to customer detail page
+    router.push(`/dashboard/musteriler/${customer.id}`)
+  }
+
+  const handleRowClick = (id: string) => {
+    router.push(`/dashboard/musteriler/${id}`)
   }
 
   const handleDelete = async (id: string) => {
@@ -256,7 +249,11 @@ export default function CustomersPage() {
               <tbody className="bg-white divide-y divide-gray-200">
                 {filteredCustomers.length > 0 ? (
                   filteredCustomers.map((customer) => (
-                    <tr key={customer.id} className="hover:bg-gray-50 transition-colors">
+                    <tr 
+                      key={customer.id} 
+                      onClick={() => handleRowClick(customer.id)}
+                      className="hover:bg-gray-50 transition-colors cursor-pointer"
+                    >
                       <td className="px-6 py-4">
                         <div className="flex items-center">
                           {customer.company_logo ? (
