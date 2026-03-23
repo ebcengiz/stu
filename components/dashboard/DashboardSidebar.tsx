@@ -14,7 +14,8 @@ import {
   Menu,
   X,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Users
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useState, useEffect } from 'react'
@@ -63,6 +64,7 @@ export default function DashboardSidebar({ profile }: { profile: Profile | null 
     { name: 'Stok Hareketleri', href: '/dashboard/stok-hareketleri', icon: ArrowLeftRight },
     { name: 'Kategoriler', href: '/dashboard/kategoriler', icon: FolderTree },
     { name: 'Depolar', href: '/dashboard/depolar', icon: Warehouse },
+    { name: 'Müşteriler', href: '/dashboard/musteriler', icon: Users },
     { name: 'Raporlar', href: '/dashboard/raporlar', icon: BarChart3 },
   ]
 
