@@ -1,31 +1,67 @@
-import { createClient } from '@/lib/supabase/server'
-import { redirect } from 'next/navigation'
-import DashboardNav from '@/components/dashboard/DashboardNav'
+'use client'
 
-export default async function DashboardLayout({
+import { createClient } from '@/lib/supabase/client'
+import { redirect, useRouter } from 'next/navigation'
+import DashboardSidebar from '@/components/dashboard/DashboardSidebar'
+import { useEffect, useState } from 'react'
+
+export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const router = useRouter()
+  const [profile, setProfile] = useState<any>(null)
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
+  const [isMounted, setIsMounted] = useState(false)
 
-  if (!user) {
-    redirect('/login')
-  }
+  useEffect(() => {
+    setIsMounted(true)
+    const checkAuth = async () => {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('*, tenants(*)')
-    .eq('id', user.id)
-    .single()
+      if (!user) {
+        router.push('/login')
+        return
+      }
+
+      const { data: userProfile } = await supabase
+        .from('profiles')
+        .select('*, tenants(*)')
+        .eq('id', user.id)
+        .single()
+      
+      setProfile(userProfile)
+    }
+    
+    checkAuth()
+
+    const savedState = localStorage.getItem('sidebarCollapsed')
+    if (savedState !== null) {
+      setIsSidebarCollapsed(savedState === 'true')
+    }
+
+    const handleSidebarToggle = (e: Event) => {
+      const customEvent = e as CustomEvent
+      setIsSidebarCollapsed(customEvent.detail)
+    }
+
+    window.addEventListener('sidebarToggle', handleSidebarToggle)
+    return () => window.removeEventListener('sidebarToggle', handleSidebarToggle)
+  }, [router])
+
+  // Use a fallback margin to prevent flicker before mounting, matching the default uncollapsed state
+  const marginClass = isMounted && isSidebarCollapsed ? 'lg:pl-20' : 'lg:pl-64'
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <DashboardNav profile={profile} />
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {children}
-      </main>
+    <div className="min-h-screen bg-gray-50 flex flex-col lg:flex-row">
+      <DashboardSidebar profile={profile} />
+      <div className={`flex-1 flex flex-col transition-all duration-300 ${marginClass}`}>
+        <main className="flex-1 p-4 sm:p-6 lg:p-8">
+          {children}
+        </main>
+      </div>
     </div>
   )
 }
