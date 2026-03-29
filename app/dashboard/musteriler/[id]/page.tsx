@@ -48,6 +48,10 @@ interface Transaction {
   description: string
   transaction_date: string
   payment_method?: 'cash' | 'credit_card' | 'cheque'
+  document_number?: string
+  waybill_number?: string
+  shipment_date?: string
+  order_date?: string
   created_at: string
   customer_transaction_items?: TransactionItem[]
 }
@@ -116,7 +120,11 @@ export default function CustomerDetailPage() {
     payment_method: 'cash' as 'cash' | 'credit_card' | 'cheque',
     amount: '',
     description: '',
-    transaction_date: new Date().toISOString().split('T')[0]
+    transaction_date: new Date().toISOString().split('T')[0],
+    document_number: '',
+    waybill_number: '',
+    shipment_date: new Date().toISOString().split('T')[0],
+    order_date: new Date().toISOString().split('T')[0]
   })
 
   // Sale Items
@@ -281,6 +289,10 @@ export default function CustomerDetailPage() {
         customer_id: customerId, type: txForm.type, amount: parseFloat(txForm.amount),
         description: txForm.description, transaction_date: new Date(txForm.transaction_date).toISOString(),
         payment_method: txForm.type === 'payment' ? txForm.payment_method : null,
+        document_number: txForm.type === 'sale' ? txForm.document_number : null,
+        waybill_number: txForm.type === 'sale' ? txForm.waybill_number : null,
+        shipment_date: txForm.type === 'sale' ? new Date(txForm.shipment_date).toISOString() : null,
+        order_date: txForm.type === 'sale' ? new Date(txForm.order_date).toISOString() : null,
         items: txForm.type === 'sale' ? selectedItems : []
       }
       const res = await fetch('/api/customer-transactions', {
@@ -288,7 +300,17 @@ export default function CustomerDetailPage() {
       })
       if (!res.ok) throw new Error('İşlem kaydedilemedi')
       alert('İşlem başarıyla eklendi!')
-      setTxForm({ ...txForm, amount: '', description: '' }); setSelectedItems([]); fetchTransactions(); setActiveTab('ledger')
+      setTxForm({ 
+        ...txForm, 
+        amount: '', 
+        description: '', 
+        document_number: '', 
+        waybill_number: '',
+        transaction_date: new Date().toISOString().split('T')[0],
+        shipment_date: new Date().toISOString().split('T')[0],
+        order_date: new Date().toISOString().split('T')[0]
+      }); 
+      setSelectedItems([]); fetchTransactions(); setActiveTab('ledger')
     } catch (err: any) { alert(err.message) }
     finally { setSaving(false) }
   }
@@ -351,11 +373,12 @@ export default function CustomerDetailPage() {
               <CardHeader className="border-b"><CardTitle>Hesap Ekstresi</CardTitle></CardHeader>
               <CardBody className="p-0">
                 <div className="overflow-x-auto"><table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50"><tr><th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tarih</th><th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tip</th><th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Açıklama</th><th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Tutar</th><th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Bakiye</th></tr></thead>
+                  <thead className="bg-gray-50"><tr><th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tarih</th><th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Belge No</th><th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tip</th><th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Açıklama</th><th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Tutar</th><th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Bakiye</th></tr></thead>
                   <tbody className="divide-y divide-gray-200 bg-white">
                     {ledgerData.map(tx => (
                       <tr key={tx.id} onClick={() => { setSelectedTx(tx); setShowTxDetailModal(true); }} className="hover:bg-gray-50 transition-colors cursor-pointer group">
                         <td className="px-6 py-4 text-sm text-gray-900 whitespace-nowrap group-hover:text-primary-600 font-medium">{new Date(tx.transaction_date).toLocaleDateString('tr-TR')}</td>
+                        <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">{tx.document_number || '-'}</td>
                         <td className="px-6 py-4 whitespace-nowrap"><span className={`px-2.5 py-1 rounded-full text-xs font-medium ${tx.type === 'sale' ? 'bg-blue-100 text-blue-800 border border-blue-200' : 'bg-green-100 text-green-800 border border-green-200'}`}>{tx.type === 'sale' ? 'Satış' : 'Tahsilat'}</span></td>
                         <td className="px-6 py-4 text-sm text-gray-500 truncate max-w-xs">{tx.description || '-'}</td>
                         <td className={`px-6 py-4 text-sm font-semibold text-right whitespace-nowrap ${tx.type === 'sale' ? 'text-gray-900' : 'text-green-600'}`}>{tx.type === 'sale' ? '+' : '-'}{Number(tx.amount).toLocaleString('tr-TR')} ₺</td>
@@ -462,6 +485,49 @@ export default function CustomerDetailPage() {
                     </div>
                   )}
 
+                  {txForm.type === 'sale' && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 border-t border-gray-100">
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-bold text-gray-500 uppercase px-1">Belge Numarası</label>
+                        <input 
+                          type="text" 
+                          placeholder="Fatura No vb." 
+                          value={txForm.document_number} 
+                          onChange={e => setTxForm({...txForm, document_number: e.target.value})} 
+                          className="w-full px-4 py-3 border border-gray-200 rounded-xl outline-none" 
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-bold text-gray-500 uppercase px-1">İrsaliye Numarası</label>
+                        <input 
+                          type="text" 
+                          placeholder="İrsaliye No" 
+                          value={txForm.waybill_number} 
+                          onChange={e => setTxForm({...txForm, waybill_number: e.target.value})} 
+                          className="w-full px-4 py-3 border border-gray-200 rounded-xl outline-none" 
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-bold text-gray-500 uppercase px-1">Sipariş Tarihi</label>
+                        <input 
+                          type="date" 
+                          value={txForm.order_date} 
+                          onChange={e => setTxForm({...txForm, order_date: e.target.value})} 
+                          className="w-full px-4 py-3 border border-gray-200 rounded-xl outline-none" 
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-bold text-gray-500 uppercase px-1">Sevk Tarihi</label>
+                        <input 
+                          type="date" 
+                          value={txForm.shipment_date} 
+                          onChange={e => setTxForm({...txForm, shipment_date: e.target.value})} 
+                          className="w-full px-4 py-3 border border-gray-200 rounded-xl outline-none" 
+                        />
+                      </div>
+                    </div>
+                  )}
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 border-t border-gray-100">
                     <div className="space-y-1.5"><label className="text-xs font-bold text-gray-500 uppercase px-1">İşlem Tarihi</label><input type="date" value={txForm.transaction_date} onChange={e => setTxForm({...txForm, transaction_date: e.target.value})} className="w-full px-4 py-3 border border-gray-200 rounded-xl outline-none" /></div>
                     <div className="space-y-1.5"><label className="text-xs font-bold text-gray-500 uppercase px-1">Genel Toplam (₺)</label><input type="number" step="any" value={txForm.amount} onChange={e => setTxForm({...txForm, amount: e.target.value})} className="w-full px-4 py-3 border border-primary-100 rounded-xl outline-none font-bold text-xl text-primary-900 bg-primary-50/30" disabled={txForm.type === 'sale'} /></div>
@@ -542,7 +608,7 @@ export default function CustomerDetailPage() {
       {showTxDetailModal && selectedTx && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center z-[130] p-4 animate-in fade-in duration-300">
           <Card className="w-full max-w-3xl shadow-2xl animate-in zoom-in duration-300 rounded-3xl overflow-hidden border-0">
-            <CardHeader className={`${selectedTx.type === 'sale' ? 'bg-blue-600' : 'bg-green-600'} text-white flex flex-row items-center justify-between py-6 px-8 border-0`}>
+            <CardHeader className={`${selectedTx.type === 'sale' ? 'bg-gradient-to-r from-primary-600 to-primary-700' : 'bg-gradient-to-r from-emerald-600 to-emerald-700'} text-white flex flex-row items-center justify-between py-6 px-8 border-0`}>
               <div className="flex items-center gap-4">
                 <div className="p-3 bg-white/20 rounded-2xl backdrop-blur-md">
                   {selectedTx.type === 'sale' ? <ShoppingCart className="h-6 w-6 text-white" /> : <CreditCard className="h-6 w-6 text-white" />}
@@ -557,11 +623,43 @@ export default function CustomerDetailPage() {
             <CardBody className="p-0 bg-white">
               <div className="grid grid-cols-3 divide-x divide-gray-100 bg-gray-50/50 border-b">
                 <div className="p-6 text-center"><p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">İşlem Tarihi</p><p className="text-sm font-bold text-gray-900 flex items-center justify-center gap-2"><Calendar className="h-4 w-4 text-primary-500" /> {new Date(selectedTx.transaction_date).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}</p></div>
-                <div className="p-6 text-center"><p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">İşlem Tipi</p><p className="text-sm font-bold text-gray-900 flex items-center justify-center gap-2">{selectedTx.type === 'sale' ? <Tag className="h-4 w-4 text-blue-500" /> : <Check className="h-4 w-4 text-green-500" />} {selectedTx.type === 'sale' ? 'Borçlandırma' : 'Alacaklandırma'}</p></div>
+                <div className="p-6 text-center"><p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">İşlem Tipi</p><p className="text-sm font-bold text-gray-900 flex items-center justify-center gap-2">{selectedTx.type === 'sale' ? <Tag className="h-4 w-4 text-primary-500" /> : <Check className="h-4 w-4 text-emerald-500" />} {selectedTx.type === 'sale' ? 'Borçlandırma' : 'Alacaklandırma'}</p></div>
                 <div className="p-6 text-center"><p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Ödeme Yöntemi</p><p className="text-sm font-bold text-gray-900 flex items-center justify-center gap-2"><CreditCard className="h-4 w-4 text-primary-500" /> {selectedTx.payment_method === 'cash' ? 'Nakit' : selectedTx.payment_method === 'credit_card' ? 'Kredi Kartı' : selectedTx.payment_method === 'cheque' ? 'Çek / Senet' : 'Tanımsız'}</p></div>
               </div>
 
               <div className="p-8">
+                {selectedTx.type === 'sale' && (selectedTx.document_number || selectedTx.waybill_number || selectedTx.order_date || selectedTx.shipment_date) && (
+                  <div className="mb-8 space-y-4">
+                    <h4 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em] flex items-center gap-2"><FileText className="h-4 w-4" /> Belge Bilgileri</h4>
+                    <div className="grid grid-cols-2 gap-4 bg-primary-50/50 p-6 rounded-2xl border border-primary-100">
+                      {selectedTx.document_number && (
+                        <div>
+                          <p className="text-[10px] font-black text-primary-400/80 uppercase tracking-widest mb-1">Belge No</p>
+                          <p className="text-sm font-bold text-primary-900">{selectedTx.document_number}</p>
+                        </div>
+                      )}
+                      {selectedTx.waybill_number && (
+                        <div>
+                          <p className="text-[10px] font-black text-primary-400/80 uppercase tracking-widest mb-1">İrsaliye No</p>
+                          <p className="text-sm font-bold text-primary-900">{selectedTx.waybill_number}</p>
+                        </div>
+                      )}
+                      {selectedTx.order_date && (
+                        <div>
+                          <p className="text-[10px] font-black text-primary-400/80 uppercase tracking-widest mb-1">Sipariş Tarihi</p>
+                          <p className="text-sm font-bold text-primary-900">{new Date(selectedTx.order_date).toLocaleDateString('tr-TR')}</p>
+                        </div>
+                      )}
+                      {selectedTx.shipment_date && (
+                        <div>
+                          <p className="text-[10px] font-black text-primary-400/80 uppercase tracking-widest mb-1">Sevk Tarihi</p>
+                          <p className="text-sm font-bold text-primary-900">{new Date(selectedTx.shipment_date).toLocaleDateString('tr-TR')}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
                 {selectedTx.type === 'sale' && selectedTx.customer_transaction_items && selectedTx.customer_transaction_items.length > 0 ? (
                   <div className="space-y-6">
                     <h4 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em] flex items-center gap-2"><Info className="h-4 w-4" /> Satılan Ürünler Detayı</h4>
@@ -577,7 +675,7 @@ export default function CustomerDetailPage() {
                         </thead>
                         <tbody className="divide-y divide-gray-50">
                           {selectedTx.customer_transaction_items.map((item) => (
-                            <tr key={item.id} className="hover:bg-gray-50/50 transition-colors">
+                            <tr key={item.id} className="hover:bg-primary-50/30 transition-colors">
                               <td className="px-6 py-4 text-sm font-bold text-gray-900">{item.product_name}</td>
                               <td className="px-6 py-4 text-sm font-medium text-gray-600 text-center">{item.quantity}</td>
                               <td className="px-6 py-4 text-sm font-medium text-gray-600 text-center">{item.unit_price.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺</td>
@@ -597,18 +695,18 @@ export default function CustomerDetailPage() {
                 )}
 
                 {selectedTx.description && selectedTx.type === 'sale' && (
-                  <div className="mt-8 p-6 bg-blue-50 rounded-2xl border border-blue-100/50">
-                    <h5 className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-2 flex items-center gap-2"><FileText className="h-3 w-3" /> İşlem Notu</h5>
-                    <p className="text-sm text-blue-900 font-medium leading-relaxed">{selectedTx.description}</p>
+                  <div className="mt-8 p-6 bg-primary-50 rounded-2xl border border-primary-100/50">
+                    <h5 className="text-[10px] font-black text-primary-400 uppercase tracking-widest mb-2 flex items-center gap-2"><FileText className="h-3 w-3" /> İşlem Notu</h5>
+                    <p className="text-sm text-primary-900 font-medium leading-relaxed">{selectedTx.description}</p>
                   </div>
                 )}
 
-                <div className="mt-10 flex items-center justify-between p-8 bg-gray-900 rounded-[2.5rem] text-white shadow-xl">
+                <div className="mt-10 flex items-center justify-between p-8 bg-gradient-to-br from-primary-800 to-primary-950 rounded-[2.5rem] text-white shadow-xl">
                   <div className="flex items-center gap-4">
-                    <div className="p-4 bg-white/10 rounded-3xl"><DollarSign className="h-8 w-8 text-primary-400" /></div>
-                    <div><p className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em] mb-1">İşlem Toplamı</p><p className="text-3xl font-black tracking-tight">{Number(selectedTx.amount).toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺</p></div>
+                    <div className="p-4 bg-white/10 rounded-3xl"><DollarSign className="h-8 w-8 text-primary-300" /></div>
+                    <div><p className="text-[10px] font-black text-white/50 uppercase tracking-[0.2em] mb-1">İşlem Toplamı</p><p className="text-3xl font-black tracking-tight">{Number(selectedTx.amount).toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺</p></div>
                   </div>
-                  <Button onClick={() => setShowTxDetailModal(false)} className="h-14 px-10 rounded-2xl font-black bg-white text-gray-900 hover:bg-gray-100 transition-all shadow-lg active:scale-95">KAPAT</Button>
+                  <Button onClick={() => setShowTxDetailModal(false)} className="h-14 px-10 rounded-2xl font-black bg-white text-primary-900 hover:bg-primary-50 transition-all shadow-lg active:scale-95 border-0">KAPAT</Button>
                 </div>
               </div>
             </CardBody>

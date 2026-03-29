@@ -36,6 +36,10 @@ export async function POST(request: Request) {
       description, 
       transaction_date, 
       payment_method,
+      document_number,
+      waybill_number,
+      shipment_date,
+      order_date,
       items // Array of { product_id, product_name, quantity, unit_price, total_price }
     } = body
 
@@ -60,7 +64,11 @@ export async function POST(request: Request) {
         amount,
         description,
         transaction_date,
-        payment_method: type === 'payment' ? payment_method : null
+        payment_method: type === 'payment' ? payment_method : null,
+        document_number,
+        waybill_number,
+        shipment_date,
+        order_date
       })
       .select()
       .single()
