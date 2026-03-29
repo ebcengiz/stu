@@ -1,9 +1,10 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Plus, Edit2, Trash2, Package, Layers } from 'lucide-react'
+import { Plus, Edit2, Trash2, Package, Layers, X, Search, ArrowRight, ExternalLink } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Card, CardBody } from '@/components/ui/Card'
+import { useRouter } from 'next/navigation'
 
 interface Category {
   id: string
@@ -14,12 +15,34 @@ interface Category {
   total_stock?: number
 }
 
+interface Product {
+  id: string
+  name: string
+  sku: string | null
+  barcode: string | null
+  unit: string
+  stock: Array<{
+    quantity: number
+    warehouses: {
+      name: string
+    }
+  }>
+}
+
 export default function CategoriesPage() {
+  const router = useRouter()
   const [categories, setCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
   const [editingCategory, setEditingCategory] = useState<Category | null>(null)
   const [formData, setFormData] = useState({ name: '', description: '' })
+
+  // Product List Modal State
+  const [selectedCategory, setSelectedCategory] = useState<Category | null>(null)
+  const [categoryProducts, setCategoryProducts] = useState<Product[]>([])
+  const [loadingProducts, setLoadingStock] = useState(false)
+  const [showProductsModal, setShowProductsModal] = useState(false)
+  const [productSearchTerm, setProductSearchTerm] = useState('')
 
   useEffect(() => {
     fetchCategories()
@@ -34,6 +57,22 @@ export default function CategoriesPage() {
       console.error('Error fetching categories:', error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const fetchCategoryProducts = async (category: Category) => {
+    setSelectedCategory(category)
+    setLoadingStock(true)
+    setShowProductsModal(true)
+    try {
+      const response = await fetch('/api/products')
+      const allProducts = await response.json()
+      const filtered = allProducts.filter((p: any) => p.category_id === category.id)
+      setCategoryProducts(filtered)
+    } catch (error) {
+      console.error('Error fetching category products:', error)
+    } finally {
+      setLoadingStock(false)
     }
   }
 
@@ -145,14 +184,14 @@ export default function CategoriesPage() {
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {categories.map((category) => (
-                <tr key={category.id} className="hover:bg-gray-50 transition-colors">
+                <tr key={category.id} onClick={() => fetchCategoryProducts(category)} className="hover:bg-gray-50 transition-colors cursor-pointer group">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
-                      <div className="flex-shrink-0 h-10 w-10 bg-primary-50 rounded-lg flex items-center justify-center text-primary-600">
+                      <div className="flex-shrink-0 h-10 w-10 bg-primary-50 rounded-lg flex items-center justify-center text-primary-600 group-hover:bg-primary-100 transition-colors">
                         <span className="font-bold text-lg">{category.name.charAt(0).toUpperCase()}</span>
                       </div>
                       <div className="ml-4">
-                        <div className="text-sm font-medium text-gray-900">{category.name}</div>
+                        <div className="text-sm font-medium text-gray-900 group-hover:text-primary-700 transition-colors">{category.name}</div>
                         <div className="text-xs text-gray-400">ID: {category.id.slice(0, 8)}...</div>
                       </div>
                     </div>
@@ -177,14 +216,14 @@ export default function CategoriesPage() {
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <div className="flex items-center justify-end gap-2">
                       <button
-                        onClick={() => handleEdit(category)}
+                        onClick={(e) => { e.stopPropagation(); handleEdit(category); }}
                         className="p-1.5 text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded-md transition-colors"
                         title="Düzenle"
                       >
                         <Edit2 className="h-4 w-4" />
                       </button>
                       <button
-                        onClick={() => handleDelete(category.id)}
+                        onClick={(e) => { e.stopPropagation(); handleDelete(category.id); }}
                         className="p-1.5 text-red-600 hover:text-red-900 hover:bg-red-50 rounded-md transition-colors"
                         title="Sil"
                       >
@@ -255,6 +294,128 @@ export default function CategoriesPage() {
               </div>
             </form>
           </div>
+        </div>
+      )}
+
+      {/* Products Modal */}
+      {showProductsModal && selectedCategory && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[60] p-4 animate-in fade-in duration-300">
+          <Card className="w-full max-w-4xl shadow-2xl animate-in zoom-in slide-in-from-bottom-8 duration-300 overflow-hidden border-0 rounded-2xl">
+            <CardBody className="p-0 flex flex-col max-h-[85vh]">
+              {/* Header */}
+              <div className="p-6 bg-gradient-to-r from-primary-600 to-primary-700 text-white flex justify-between items-center shrink-0">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-white/20 rounded-xl backdrop-blur-md">
+                    <Layers className="h-6 w-6 text-white" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold">{selectedCategory.name}</h2>
+                    <p className="text-xs text-primary-100 font-medium mt-0.5 uppercase tracking-wider">Kategorisindeki Ürünler</p>
+                  </div>
+                </div>
+                <button 
+                  onClick={() => setShowProductsModal(false)}
+                  className="p-2 hover:bg-white/10 rounded-full transition-all active:scale-90"
+                >
+                  <X className="h-6 w-6 text-white" />
+                </button>
+              </div>
+
+              {/* Toolbar */}
+              <div className="p-4 border-b bg-gray-50 flex items-center justify-between gap-4 shrink-0">
+                <div className="relative flex-1 max-w-md">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="Kategori içinde ara..."
+                    value={productSearchTerm}
+                    onChange={(e) => setProductSearchTerm(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 outline-none text-sm transition-all"
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold text-gray-400 uppercase">Toplam:</span>
+                  <span className="bg-primary-50 text-primary-700 px-3 py-1 rounded-lg text-xs font-bold border border-primary-100">
+                    {categoryProducts.length} Ürün
+                  </span>
+                </div>
+              </div>
+
+              {/* Content */}
+              <div className="flex-1 overflow-y-auto p-0">
+                {loadingProducts ? (
+                  <div className="flex flex-col items-center justify-center py-20 gap-4">
+                    <div className="animate-spin h-10 w-10 border-4 border-primary-500 border-t-transparent rounded-full" />
+                    <p className="text-sm font-bold text-gray-500">Ürünler listeleniyor...</p>
+                  </div>
+                ) : categoryProducts.length > 0 ? (
+                  <table className="min-w-full divide-y divide-gray-100">
+                    <thead className="bg-white sticky top-0 z-10 shadow-sm">
+                      <tr>
+                        <th className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Ürün Bilgisi</th>
+                        <th className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">SKU / Barkod</th>
+                        <th className="px-6 py-4 text-center text-[10px] font-black text-gray-400 uppercase tracking-widest">Stok Durumu</th>
+                        <th className="px-6 py-4 text-right text-[10px] font-black text-gray-400 uppercase tracking-widest">İşlemler</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-50 bg-white">
+                      {categoryProducts
+                        .filter(p => p.name.toLowerCase().includes(productSearchTerm.toLowerCase()) || p.sku?.toLowerCase().includes(productSearchTerm.toLowerCase()))
+                        .map((product) => {
+                          const totalStock = product.stock?.reduce((sum, s) => sum + (s.quantity || 0), 0) || 0;
+                          return (
+                            <tr key={product.id} className="hover:bg-gray-50/80 transition-colors group">
+                              <td className="px-6 py-4">
+                                <div className="font-bold text-gray-900 group-hover:text-primary-600 transition-colors">{product.name}</div>
+                              </td>
+                              <td className="px-6 py-4">
+                                <div className="text-xs font-mono text-gray-500 bg-gray-100 px-2 py-1 rounded inline-block">
+                                  {product.sku || '---'}
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 text-center">
+                                <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-black ${
+                                  totalStock <= 0 
+                                    ? 'bg-red-50 text-red-700 border border-red-100' 
+                                    : 'bg-emerald-50 text-emerald-700 border border-emerald-100'
+                                }`}>
+                                  {totalStock} {product.unit}
+                                </span>
+                              </td>
+                              <td className="px-6 py-4 text-right">
+                                <Button 
+                                  variant="outline" 
+                                  size="sm" 
+                                  className="h-8 rounded-lg text-[11px] font-black border-2"
+                                  onClick={() => router.push(`/dashboard/urunler`)}
+                                >
+                                  DETAY <ArrowRight className="ml-1 h-3 w-3" />
+                                </Button>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                    </tbody>
+                  </table>
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-20 text-center px-10">
+                    <div className="p-6 bg-gray-50 rounded-full mb-4">
+                      <Package className="h-12 w-12 text-gray-300" />
+                    </div>
+                    <h3 className="text-lg font-bold text-gray-900">Ürün Bulunamadı</h3>
+                    <p className="text-sm text-gray-500 mt-1">Bu kategoride henüz tanımlanmış bir ürün bulunmuyor.</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Footer */}
+              <div className="p-4 border-t bg-gray-50 shrink-0 flex justify-end">
+                <Button onClick={() => setShowProductsModal(false)} className="px-8 font-bold h-11 rounded-xl">
+                  Kapat
+                </Button>
+              </div>
+            </CardBody>
+          </Card>
         </div>
       )}
     </div>
