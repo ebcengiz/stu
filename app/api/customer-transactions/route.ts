@@ -75,6 +75,10 @@ export async function POST(request: Request) {
         product_name: item.product_name,
         quantity: item.quantity,
         unit_price: item.unit_price,
+        tax_rate: item.tax_rate || 0,
+        discount_rate: item.discount_rate || 0,
+        tax_amount: item.tax_amount || 0,
+        discount_amount: item.discount_amount || 0,
         total_price: item.total_price
       }))
 

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
-import { ArrowLeft, Building, CreditCard, FileText, ShoppingCart, Save, DollarSign, Plus, Search, Trash2, Package } from 'lucide-react'
+import { ArrowLeft, Building, CreditCard, FileText, ShoppingCart, Save, DollarSign, Plus, Search, Trash2, Package, X, Check, History, Users, User } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Card, CardHeader, CardBody, CardTitle } from '@/components/ui/Card'
 
@@ -11,6 +11,10 @@ interface Product {
   name: string
   sku: string | null
   unit: string
+  price: number | null
+  tax_rate: number | null
+  discount_rate: number | null
+  stock?: Array<{ quantity: number }>
 }
 
 interface Customer {
@@ -42,7 +46,18 @@ interface SelectedItem {
   product_name: string
   quantity: number
   unit_price: number
+  tax_rate: number
+  discount_rate: number
+  tax_amount: number
+  discount_amount: number
   total_price: number
+}
+
+interface PriceHistory {
+  price: number
+  date: string
+  customer_id: string
+  customer_name: string
 }
 
 export default function CustomerDetailPage() {
@@ -59,9 +74,22 @@ export default function CustomerDetailPage() {
   const [isEditing, setIsEditing] = useState(false)
   const [uploadingLogo, setUploadingLogo] = useState(false)
 
-  // New Product Modal in Sale
+  // Modals state
   const [showProductModal, setShowProductModal] = useState(false)
   const [newProductData, setNewProductData] = useState({ name: '', sku: '', unit: 'adet' })
+  const [showItemDetailModal, setShowItemDetailModal] = useState(false)
+  const [showHistoryModal, setShowHistoryModal] = useState(false)
+  
+  const [currentItem, setCurrentItem] = useState<Product | null>(null)
+  const [priceHistory, setPriceHistory] = useState<PriceHistory[]>([])
+  const [loadingHistory, setLoadingHistory] = useState(false)
+
+  const [itemFormData, setItemFormData] = useState({
+    quantity: 1,
+    unit_price: 0,
+    tax_rate: 20,
+    discount_rate: 0
+  })
 
   // Edit Form State
   const [formData, setFormData] = useState({
@@ -93,7 +121,7 @@ export default function CustomerDetailPage() {
     try {
       const response = await fetch('/api/customers')
       const data = await response.json()
-      const current = data.find((c: Customer) => c.id === customerId)
+      const current = Array.isArray(data) ? data.find((c: Customer) => c.id === customerId) : null
       if (current) {
         setCustomer(current)
         setFormData({
@@ -103,8 +131,6 @@ export default function CustomerDetailPage() {
           tax_number: current.tax_number || '', tax_office: current.tax_office || '',
           notes: current.notes || '', is_active: current.is_active
         })
-      } else {
-        router.push('/dashboard/musteriler')
       }
     } catch (error) { console.error(error) }
     finally { setLoading(false) }
@@ -114,7 +140,7 @@ export default function CustomerDetailPage() {
     try {
       const response = await fetch(`/api/customer-transactions?customer_id=${customerId}`)
       const data = await response.json()
-      setTransactions(data)
+      setTransactions(Array.isArray(data) ? data : [])
     } catch (error) { console.error(error) }
   }
 
@@ -122,7 +148,7 @@ export default function CustomerDetailPage() {
     try {
       const response = await fetch('/api/products')
       const data = await response.json()
-      setProducts(data)
+      setProducts(Array.isArray(data) ? data : [])
     } catch (error) { console.error(error) }
   }
 
@@ -137,38 +163,85 @@ export default function CustomerDetailPage() {
     finally { setUploadingLogo(false) }
   }
 
-  const addItemToSale = (productId: string) => {
+  const openItemDetailModal = (productId: string) => {
     const product = products.find(p => p.id === productId)
     if (!product) return
-    const newItem: SelectedItem = {
-      product_id: product.id,
-      product_name: product.name,
+    
+    setCurrentItem(product)
+    setItemFormData({
       quantity: 1,
-      unit_price: 0,
-      total_price: 0
+      unit_price: product.price || 0,
+      tax_rate: product.tax_rate || 20,
+      discount_rate: product.discount_rate || 0
+    })
+    setShowItemDetailModal(true)
+  }
+
+  const fetchPriceHistory = async () => {
+    if (!currentItem) return
+    setLoadingHistory(true)
+    setShowHistoryModal(true)
+    try {
+      const response = await fetch(`/api/products/${currentItem.id}/price-history`)
+      const data = await response.json()
+      setPriceHistory(Array.isArray(data) ? data : [])
+    } catch (error) {
+      console.error('History fetch error:', error)
+    } finally {
+      setLoadingHistory(false)
     }
-    setSelectedItems([...selectedItems, newItem])
+  }
+
+  const handleAddItemFromModal = () => {
+    if (!currentItem) return
+
+    const quantity = Number(itemFormData.quantity)
+    const unitPrice = Number(itemFormData.unit_price)
+    const taxRate = Number(itemFormData.tax_rate)
+    const discountRate = Number(itemFormData.discount_rate)
+
+    const baseAmount = unitPrice * quantity
+    const discountAmount = (baseAmount * discountRate) / 100
+    const subtotal = baseAmount - discountAmount
+    const taxAmount = (subtotal * taxRate) / 100
+    const totalPrice = subtotal + taxAmount
+
+    const newItem: SelectedItem = {
+      product_id: currentItem.id,
+      product_name: currentItem.name,
+      quantity,
+      unit_price: unitPrice,
+      tax_rate: taxRate,
+      discount_rate: discountRate,
+      tax_amount: taxAmount,
+      discount_amount: discountAmount,
+      total_price: totalPrice
+    }
+
+    const newItems = [...selectedItems, newItem]
+    setSelectedItems(newItems)
+    const total = newItems.reduce((sum, i) => sum + i.total_price, 0)
+    setTxForm(prev => ({ ...prev, amount: total.toFixed(2) }))
+    setShowItemDetailModal(false)
+    setCurrentItem(null)
   }
 
   const updateItem = (index: number, field: keyof SelectedItem, value: any) => {
     const newItems = [...selectedItems]
     const item = { ...newItems[index], [field]: value }
-    if (field === 'quantity' || field === 'unit_price') {
-      item.total_price = Number(item.quantity) * Number(item.unit_price)
-    }
-    newItems[index] = item
-    setSelectedItems(newItems)
-    
-    // Update total amount in txForm
+    const q = Number(item.quantity); const p = Number(item.unit_price); const tr = Number(item.tax_rate); const dr = Number(item.discount_rate)
+    const base = p * q; const disc = (base * dr) / 100; const subt = base - disc; const tax = (subt * tr) / 100
+    item.discount_amount = disc; item.tax_amount = tax; item.total_price = subt + tax
+    newItems[index] = item; setSelectedItems(newItems)
     const total = newItems.reduce((sum, i) => sum + i.total_price, 0)
-    setTxForm(prev => ({ ...prev, amount: total.toString() }))
+    setTxForm(prev => ({ ...prev, amount: total.toFixed(2) }))
   }
 
   const removeItem = (index: number) => {
     const newItems = selectedItems.filter((_, i) => i !== index)
     setSelectedItems(newItems)
     const total = newItems.reduce((sum, i) => sum + i.total_price, 0)
-    setTxForm(prev => ({ ...prev, amount: total.toString() }))
+    setTxForm(prev => ({ ...prev, amount: total.toFixed(2) }))
   }
 
   const handleCreateProduct = async (e: React.FormEvent) => {
@@ -182,36 +255,27 @@ export default function CustomerDetailPage() {
       if (!res.ok) throw new Error('Ürün eklenemedi')
       const newProd = await res.json()
       setProducts([...products, newProd])
-      addItemToSale(newProd.id)
+      openItemDetailModal(newProd.id)
       setShowProductModal(false)
       setNewProductData({ name: '', sku: '', unit: 'adet' })
     } catch (err: any) { alert(err.message) }
   }
 
   const handleAddTransaction = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setSaving(true)
+    e.preventDefault(); setSaving(true)
     try {
       const payload = {
-        customer_id: customerId,
-        type: txForm.type,
-        amount: parseFloat(txForm.amount),
-        description: txForm.description,
-        transaction_date: new Date(txForm.transaction_date).toISOString(),
+        customer_id: customerId, type: txForm.type, amount: parseFloat(txForm.amount),
+        description: txForm.description, transaction_date: new Date(txForm.transaction_date).toISOString(),
         payment_method: txForm.type === 'payment' ? txForm.payment_method : null,
         items: txForm.type === 'sale' ? selectedItems : []
       }
       const res = await fetch('/api/customer-transactions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
       })
       if (!res.ok) throw new Error('İşlem kaydedilemedi')
       alert('İşlem başarıyla eklendi!')
-      setTxForm({ ...txForm, amount: '', description: '' })
-      setSelectedItems([])
-      fetchTransactions()
-      setActiveTab('ledger')
+      setTxForm({ ...txForm, amount: '', description: '' }); setSelectedItems([]); fetchTransactions(); setActiveTab('ledger')
     } catch (err: any) { alert(err.message) }
     finally { setSaving(false) }
   }
@@ -239,11 +303,19 @@ export default function CustomerDetailPage() {
     return { ...tx, balance: totalBalance }
   }).reverse()
 
+  const currentModalBase = Number(itemFormData.unit_price) * Number(itemFormData.quantity)
+  const currentModalDiscount = (currentModalBase * Number(itemFormData.discount_rate)) / 100
+  const currentModalSubtotal = currentModalBase - currentModalDiscount
+  const currentModalTax = (currentModalSubtotal * Number(itemFormData.tax_rate)) / 100
+  const currentModalTotal = currentModalSubtotal + currentModalTax
+
+  const totalStock = currentItem?.stock?.reduce((sum, s) => sum + (s.quantity || 0), 0) || 0
+
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center gap-4 mb-6">
-        <button onClick={() => router.push('/dashboard/musteriler')} className="p-2 bg-white border border-gray-200 rounded-md text-gray-600 hover:bg-gray-50"><ArrowLeft className="h-5 w-5" /></button>
+        <button onClick={() => router.push('/dashboard/musteriler')} className="p-2 bg-white border border-gray-200 rounded-md text-gray-600 hover:bg-gray-50 transition-colors"><ArrowLeft className="h-5 w-5" /></button>
         <div className="flex items-center gap-4">
           {customer.company_logo ? <img src={customer.company_logo} className="h-16 w-16 rounded-full object-cover border-2 shadow-sm" /> : <div className="h-16 w-16 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 text-xl font-bold border-2 shadow-sm">{customer.company_name[0].toUpperCase()}</div>}
           <div><h1 className="text-2xl font-bold text-gray-900">{customer.company_name}</h1><p className="text-gray-500">{customer.contact_person}</p></div>
@@ -251,32 +323,30 @@ export default function CustomerDetailPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        {/* Sidebar */}
         <div className="space-y-2">
           <Card><CardBody className="p-2 space-y-1">
-            <button onClick={() => {setActiveTab('ledger'); setIsEditing(false)}} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium ${activeTab === 'ledger' ? 'bg-primary-50 text-primary-700' : 'text-gray-600'}`}><FileText className="h-5 w-5" />Hesap Ekstresi</button>
-            <button onClick={() => {setActiveTab('info'); setIsEditing(false)}} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium ${activeTab === 'info' ? 'bg-primary-50 text-primary-700' : 'text-gray-600'}`}><Building className="h-5 w-5" />Genel Bilgiler</button>
-            <button onClick={() => {setActiveTab('transaction'); setIsEditing(false)}} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium ${activeTab === 'transaction' ? 'bg-primary-50 text-primary-700' : 'text-gray-600'}`}><DollarSign className="h-5 w-5" />Yeni İşlem</button>
+            <button onClick={() => {setActiveTab('ledger'); setIsEditing(false)}} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all ${activeTab === 'ledger' ? 'bg-primary-50 text-primary-700 shadow-sm' : 'text-gray-600 hover:bg-gray-50'}`}><FileText className="h-5 w-5" />Hesap Ekstresi</button>
+            <button onClick={() => {setActiveTab('info'); setIsEditing(false)}} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all ${activeTab === 'info' ? 'bg-primary-50 text-primary-700 shadow-sm' : 'text-gray-600 hover:bg-gray-50'}`}><Building className="h-5 w-5" />Genel Bilgiler</button>
+            <button onClick={() => {setActiveTab('transaction'); setIsEditing(false)}} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all ${activeTab === 'transaction' ? 'bg-primary-50 text-primary-700 shadow-sm' : 'text-gray-600 hover:bg-gray-50'}`}><DollarSign className="h-5 w-5" />Yeni İşlem</button>
           </CardBody></Card>
-          <Card><CardBody className="p-4"><h3 className="text-xs font-semibold text-gray-500 uppercase mb-2">Güncel Bakiye</h3><div className="text-2xl font-bold text-gray-900">{totalBalance.toLocaleString('tr-TR')} ₺</div></CardBody></Card>
+          <Card className="bg-gradient-to-br from-primary-600 to-primary-700 text-white"><CardBody className="p-4"><h3 className="text-xs font-semibold text-primary-100 uppercase mb-2">Güncel Bakiye</h3><div className="text-2xl font-bold">{totalBalance.toLocaleString('tr-TR')} ₺</div></CardBody></Card>
         </div>
 
-        {/* Content */}
         <div className="md:col-span-3">
           {activeTab === 'ledger' && (
             <Card>
               <CardHeader className="border-b"><CardTitle>Hesap Ekstresi</CardTitle></CardHeader>
               <CardBody className="p-0">
                 <div className="overflow-x-auto"><table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50"><tr><th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tarih</th><th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tip</th><th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Açıklama</th><th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Tutar</th><th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Bakiye</th></tr></thead>
-                  <tbody className="divide-y divide-gray-200">
+                  <thead className="bg-gray-50"><tr><th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tarih</th><th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tip</th><th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Açıklama</th><th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Tutar</th><th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Bakiye</th></tr></thead>
+                  <tbody className="divide-y divide-gray-200 bg-white">
                     {ledgerData.map(tx => (
-                      <tr key={tx.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 text-sm">{new Date(tx.transaction_date).toLocaleDateString('tr-TR')}</td>
-                        <td className="px-6 py-4"><span className={`px-2 py-0.5 rounded-full text-xs font-medium ${tx.type === 'sale' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'}`}>{tx.type === 'sale' ? 'Satış' : 'Tahsilat'} {tx.payment_method && `(${tx.payment_method === 'cash' ? 'Nakit' : tx.payment_method === 'credit_card' ? 'K.Kartı' : 'Çek'})`}</span></td>
-                        <td className="px-6 py-4 text-sm text-gray-500">{tx.description}</td>
-                        <td className={`px-6 py-4 text-sm font-medium text-right ${tx.type === 'sale' ? '' : 'text-green-600'}`}>{tx.type === 'sale' ? '+' : '-'}{Number(tx.amount).toLocaleString('tr-TR')} ₺</td>
-                        <td className="px-6 py-4 text-sm font-medium text-right">{tx.balance.toLocaleString('tr-TR')} ₺</td>
+                      <tr key={tx.id} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-6 py-4 text-sm text-gray-900 whitespace-nowrap">{new Date(tx.transaction_date).toLocaleDateString('tr-TR')}</td>
+                        <td className="px-6 py-4 whitespace-nowrap"><span className={`px-2.5 py-1 rounded-full text-xs font-medium ${tx.type === 'sale' ? 'bg-blue-100 text-blue-800 border border-blue-200' : 'bg-green-100 text-green-800 border border-green-200'}`}>{tx.type === 'sale' ? 'Satış' : 'Tahsilat'} {tx.payment_method && `(${tx.payment_method === 'cash' ? 'Nakit' : tx.payment_method === 'credit_card' ? 'K.Kartı' : 'Çek'})`}</span></td>
+                        <td className="px-6 py-4 text-sm text-gray-500 truncate max-w-xs">{tx.description}</td>
+                        <td className={`px-6 py-4 text-sm font-semibold text-right whitespace-nowrap ${tx.type === 'sale' ? 'text-gray-900' : 'text-green-600'}`}>{tx.type === 'sale' ? '+' : '-'}{Number(tx.amount).toLocaleString('tr-TR')} ₺</td>
+                        <td className="px-6 py-4 text-sm font-bold text-right text-gray-900 whitespace-nowrap">{tx.balance.toLocaleString('tr-TR')} ₺</td>
                       </tr>
                     ))}
                   </tbody>
@@ -287,31 +357,28 @@ export default function CustomerDetailPage() {
 
           {activeTab === 'info' && (
             <Card>
-              <CardHeader className="border-b flex flex-row items-center justify-between"><CardTitle>Müşteri Bilgileri</CardTitle>{!isEditing && <Button onClick={() => setIsEditing(true)} size="sm" variant="outline"><Save className="mr-2 h-4 w-4" />Düzenle</Button>}</CardHeader>
+              <CardHeader className="border-b flex flex-row items-center justify-between py-4"><CardTitle>Müşteri Bilgileri</CardTitle>{!isEditing && <Button onClick={() => setIsEditing(true)} size="sm" variant="outline" className="h-9 px-4"><Save className="mr-2 h-4 w-4" />Bilgileri Düzenle</Button>}</CardHeader>
               <CardBody className="pt-6">
                 {!isEditing ? (
-                  <div className="grid grid-cols-2 gap-8">
-                    <div className="space-y-4"><div><h4 className="text-xs font-semibold text-gray-400 uppercase mb-1">Firma Ünvanı</h4><p>{customer.company_name}</p></div><div><h4 className="text-xs font-semibold text-gray-400 uppercase mb-1">Vergi Bilgileri</h4><p>{customer.tax_office} / {customer.tax_number}</p></div><div><h4 className="text-xs font-semibold text-gray-400 uppercase mb-1">Adres</h4><p>{customer.address}</p></div></div>
-                    <div className="space-y-4"><div><h4 className="text-xs font-semibold text-gray-400 uppercase mb-1">İletişim</h4><p>{customer.contact_person}</p></div><div><h4 className="text-xs font-semibold text-gray-400 uppercase mb-1">Telefon / E-Posta</h4><p>{customer.phone} / {customer.email}</p></div><div><h4 className="text-xs font-semibold text-gray-400 uppercase mb-1">Notlar</h4><p>{customer.notes}</p></div></div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="space-y-6"><div><h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Firma Ünvanı</h4><p className="text-gray-900 font-medium">{customer.company_name}</p></div><div><h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Vergi Bilgileri</h4><p className="text-gray-900">{customer.tax_office || '-'} / {customer.tax_number || '-'}</p></div><div><h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Adres</h4><p className="text-gray-600 leading-relaxed">{customer.address || 'Adres bilgisi girilmemiş'}</p></div></div>
+                    <div className="space-y-6"><div><h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">İletişim Kişisi</h4><p className="text-gray-900 font-medium">{customer.contact_person || '-'}</p></div><div><h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Telefon / E-Posta</h4><p className="text-gray-900">{customer.phone || '-'} / {customer.email || '-'}</p></div><div><h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Notlar</h4><p className="text-gray-600 italic leading-relaxed">{customer.notes || 'Herhangi bir not bulunmuyor'}</p></div></div>
                   </div>
                 ) : (
-                  <form onSubmit={handleUpdateCustomer} className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
+                  <form onSubmit={handleUpdateCustomer} className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="space-y-4">
-                        <input type="text" placeholder="Firma Ünvanı" value={formData.company_name} onChange={e => setFormData({...formData, company_name: e.target.value})} className="w-full px-3 py-2 border rounded-md" />
-                        <div className="flex items-center gap-2"><input type="file" onChange={handleLogoUpload} className="text-sm" />{uploadingLogo && <span className="text-xs">Yükleniyor...</span>}</div>
-                        <input type="text" placeholder="Vergi Dairesi" value={formData.tax_office} onChange={e => setFormData({...formData, tax_office: e.target.value})} className="w-full px-3 py-2 border rounded-md" />
-                        <input type="text" placeholder="Vergi No" value={formData.tax_number} onChange={e => setFormData({...formData, tax_number: e.target.value})} className="w-full px-3 py-2 border rounded-md" />
+                        <div className="space-y-1.5"><label className="text-xs font-semibold text-gray-500 uppercase px-1">Firma Ünvanı</label><input type="text" value={formData.company_name} onChange={e => setFormData({...formData, company_name: e.target.value})} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all" /></div>
+                        <div className="space-y-1.5"><label className="text-xs font-semibold text-gray-500 uppercase px-1">Vergi Dairesi</label><input type="text" value={formData.tax_office} onChange={e => setFormData({...formData, tax_office: e.target.value})} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg" /></div>
+                        <div className="space-y-1.5"><label className="text-xs font-semibold text-gray-500 uppercase px-1">Vergi No</label><input type="text" value={formData.tax_number} onChange={e => setFormData({...formData, tax_number: e.target.value})} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg" /></div>
                       </div>
                       <div className="space-y-4">
-                        <input type="text" placeholder="İletişim Kişisi" value={formData.contact_person} onChange={e => setFormData({...formData, contact_person: e.target.value})} className="w-full px-3 py-2 border rounded-md" />
-                        <input type="tel" placeholder="Telefon" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} className="w-full px-3 py-2 border rounded-md" />
-                        <input type="email" placeholder="E-Posta" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} className="w-full px-3 py-2 border rounded-md" />
-                        <textarea placeholder="Adres" value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})} className="w-full px-3 py-2 border rounded-md" rows={2} />
+                        <div className="space-y-1.5"><label className="text-xs font-semibold text-gray-500 uppercase px-1">İletişim Kişisi</label><input type="text" value={formData.contact_person} onChange={e => setFormData({...formData, contact_person: e.target.value})} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg" /></div>
+                        <div className="space-y-1.5"><label className="text-xs font-semibold text-gray-500 uppercase px-1">Telefon</label><input type="tel" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg" /></div>
+                        <div className="space-y-1.5"><label className="text-xs font-semibold text-gray-500 uppercase px-1">Adres</label><textarea value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg h-24 resize-none" /></div>
                       </div>
                     </div>
-                    <textarea placeholder="Notlar" value={formData.notes} onChange={e => setFormData({...formData, notes: e.target.value})} className="w-full px-3 py-2 border rounded-md" rows={3} />
-                    <div className="flex justify-end gap-2"><Button type="button" variant="outline" onClick={() => setIsEditing(false)}>Vazgeç</Button><Button type="submit">Kaydet</Button></div>
+                    <div className="flex justify-end gap-3 pt-4 border-t"><Button type="button" variant="outline" onClick={() => setIsEditing(false)}>Vazgeç</Button><Button type="submit" disabled={saving}>{saving ? 'Güncelleniyor...' : 'Kaydet'}</Button></div>
                   </form>
                 )}
               </CardBody>
@@ -320,59 +387,65 @@ export default function CustomerDetailPage() {
 
           {activeTab === 'transaction' && (
             <Card>
-              <CardHeader className="border-b"><CardTitle>Yeni İşlem</CardTitle></CardHeader>
+              <CardHeader className="border-b"><CardTitle>Yeni İşlem Kaydı</CardTitle></CardHeader>
               <CardBody className="pt-6">
-                <form onSubmit={handleAddTransaction} className="space-y-6">
-                  <div className="grid grid-cols-2 gap-4">
-                    <button type="button" onClick={() => setTxForm({...txForm, type: 'sale'})} className={`p-4 border-2 rounded-xl flex flex-col items-center ${txForm.type === 'sale' ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}`}><ShoppingCart className="h-6 w-6 mb-2" /><span className="font-semibold text-sm">Satış</span></button>
-                    <button type="button" onClick={() => setTxForm({...txForm, type: 'payment'})} className={`p-4 border-2 rounded-xl flex flex-col items-center ${txForm.type === 'payment' ? 'border-green-500 bg-green-50' : 'border-gray-200'}`}><CreditCard className="h-6 w-6 mb-2" /><span className="font-semibold text-sm">Tahsilat</span></button>
+                <form onSubmit={handleAddTransaction} className="space-y-8">
+                  <div className="grid grid-cols-2 gap-6">
+                    <button type="button" onClick={() => setTxForm({...txForm, type: 'sale'})} className={`p-6 border-2 rounded-2xl flex flex-col items-center transition-all ${txForm.type === 'sale' ? 'border-blue-500 bg-blue-50 text-blue-700 ring-4 ring-blue-50' : 'border-gray-100 text-gray-400'}`}><ShoppingCart className="h-8 w-8 mb-3" /><span className="font-bold text-lg">Satış</span></button>
+                    <button type="button" onClick={() => setTxForm({...txForm, type: 'payment'})} className={`p-6 border-2 rounded-2xl flex flex-col items-center transition-all ${txForm.type === 'payment' ? 'border-green-500 bg-green-50 text-green-700 ring-4 ring-green-50' : 'border-gray-100 text-gray-400'}`}><CreditCard className="h-8 w-8 mb-3" /><span className="font-bold text-lg">Tahsilat</span></button>
                   </div>
 
                   {txForm.type === 'sale' ? (
-                    <div className="space-y-4">
-                      <div className="flex justify-between items-center"><h4 className="font-semibold">Ürünler</h4><Button type="button" onClick={() => setShowProductModal(true)} size="sm" variant="outline"><Plus className="h-4 w-4 mr-1" />Yeni Ürün Ekle</Button></div>
-                      <div className="flex gap-2">
-                        <select className="flex-1 px-3 py-2 border rounded-md" onChange={(e) => { if(e.target.value) { addItemToSale(e.target.value); e.target.value = '' } }}>
-                          <option value="">Ürün Seçiniz...</option>
-                          {products.map(p => <option key={p.id} value={p.id}>{p.name} ({p.sku || 'SKU Yok'})</option>)}
-                        </select>
-                      </div>
+                    <div className="space-y-6">
+                      <div className="flex justify-between items-center"><h4 className="font-bold text-gray-900 flex items-center gap-2"><Package className="h-5 w-5 text-gray-400" />Satılacak Ürünler</h4><Button type="button" onClick={() => setShowProductModal(true)} size="sm" variant="outline"><Plus className="h-3 w-3 mr-1" />Hızlı Ürün Ekle</Button></div>
+                      <select className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl outline-none" onChange={(e) => { if(e.target.value) { openItemDetailModal(e.target.value); e.target.value = '' } }}>
+                        <option value="">Ürün seçin...</option>
+                        {products.map(p => <option key={p.id} value={p.id}>{p.name} {p.sku ? `(${p.sku})` : ''}</option>)}
+                      </select>
+
                       {selectedItems.length > 0 && (
-                        <table className="min-w-full divide-y border rounded-lg overflow-hidden">
-                          <thead className="bg-gray-50"><tr><th className="px-4 py-2 text-left text-xs">Ürün</th><th className="px-4 py-2 text-center text-xs">Miktar</th><th className="px-4 py-2 text-center text-xs">B.Fiyat</th><th className="px-4 py-2 text-right text-xs">Toplam</th><th className="px-4 py-2"></th></tr></thead>
-                          <tbody>
+                        <div className="border rounded-2xl overflow-hidden bg-white shadow-sm">
+                        <table className="min-w-full divide-y divide-gray-100">
+                          <thead className="bg-gray-50/80">
+                            <tr>
+                              <th className="px-5 py-3 text-left text-[10px] font-bold text-gray-500 uppercase">Ürün Bilgisi</th>
+                              <th className="px-5 py-3 text-center text-[10px] font-bold text-gray-500 uppercase">Miktar</th>
+                              <th className="px-5 py-3 text-center text-[10px] font-bold text-gray-500 uppercase">B.Fiyat</th>
+                              <th className="px-5 py-3 text-right text-[10px] font-bold text-gray-500 uppercase">Toplam</th>
+                              <th className="px-5 py-3 w-10"></th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-gray-50">
                             {selectedItems.map((item, idx) => (
-                              <tr key={idx}>
-                                <td className="px-4 py-2 text-sm">{item.product_name}</td>
-                                <td className="px-4 py-2"><input type="number" value={item.quantity} onChange={e => updateItem(idx, 'quantity', e.target.value)} className="w-20 px-2 py-1 border rounded text-center" /></td>
-                                <td className="px-4 py-2"><input type="number" step="0.01" value={item.unit_price} onChange={e => updateItem(idx, 'unit_price', e.target.value)} className="w-24 px-2 py-1 border rounded text-center" /></td>
-                                <td className="px-4 py-2 text-sm font-medium text-right">{item.total_price.toLocaleString('tr-TR')} ₺</td>
-                                <td className="px-4 py-2 text-right"><button onClick={() => removeItem(idx)} className="text-red-500"><Trash2 className="h-4 w-4" /></button></td>
+                              <tr key={idx} className="hover:bg-gray-50/50 transition-colors">
+                                <td className="px-5 py-4 text-sm font-medium text-gray-900">{item.product_name}</td>
+                                <td className="px-5 py-4"><input type="number" value={item.quantity} onChange={e => updateItem(idx, 'quantity', e.target.value)} className="w-16 mx-auto block px-2 py-1.5 border rounded-lg text-center text-sm font-semibold" /></td>
+                                <td className="px-5 py-4"><input type="number" value={item.unit_price} onChange={e => updateItem(idx, 'unit_price', e.target.value)} className="w-24 mx-auto block px-2 py-1.5 border rounded-lg text-center text-sm font-semibold" /></td>
+                                <td className="px-5 py-4 text-sm font-bold text-right text-gray-900">{item.total_price.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺</td>
+                                <td className="px-5 py-4 text-right"><button type="button" onClick={() => removeItem(idx)} className="p-2 text-gray-400 hover:text-red-500 transition-all"><Trash2 className="h-4 w-4" /></button></td>
                               </tr>
                             ))}
                           </tbody>
                         </table>
+                        </div>
                       )}
                     </div>
                   ) : (
-                    <div className="space-y-4">
-                      <h4 className="font-semibold">Ödeme Yöntemi</h4>
-                      <div className="grid grid-cols-3 gap-3">
-                        {['cash', 'credit_card', 'cheque'].map(m => (
-                          <button key={m} type="button" onClick={() => setTxForm({...txForm, payment_method: m as any})} className={`py-2 border rounded-lg text-sm font-medium ${txForm.payment_method === m ? 'bg-primary-600 text-white border-primary-600' : 'bg-white text-gray-600 border-gray-200'}`}>
-                            {m === 'cash' ? 'Nakit' : m === 'credit_card' ? 'Kredi Kartı' : 'Çek'}
-                          </button>
-                        ))}
-                      </div>
+                    <div className="grid grid-cols-3 gap-4">
+                      {['cash', 'credit_card', 'cheque'].map(m => (
+                        <button key={m} type="button" onClick={() => setTxForm({...txForm, payment_method: m as any})} className={`p-4 border-2 rounded-2xl flex flex-col items-center transition-all ${txForm.payment_method === m ? 'border-green-500 bg-green-50 text-green-700 shadow-md' : 'border-gray-50 bg-gray-50/50 text-gray-500'}`}>
+                          <span className="font-bold text-sm">{m === 'cash' ? 'Nakit' : m === 'credit_card' ? 'Kredi Kartı' : 'Çek / Senet'}</span>
+                        </button>
+                      ))}
                     </div>
                   )}
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div><label className="block text-xs font-medium mb-1">İşlem Tarihi</label><input type="date" value={txForm.transaction_date} onChange={e => setTxForm({...txForm, transaction_date: e.target.value})} className="w-full px-3 py-2 border rounded-md" /></div>
-                    <div><label className="block text-xs font-medium mb-1">Toplam Tutar (₺)</label><input type="number" step="0.01" value={txForm.amount} onChange={e => setTxForm({...txForm, amount: e.target.value})} className="w-full px-3 py-2 border rounded-md font-bold" disabled={txForm.type === 'sale'} /></div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 border-t border-gray-100">
+                    <div className="space-y-1.5"><label className="text-xs font-bold text-gray-500 uppercase px-1">İşlem Tarihi</label><input type="date" value={txForm.transaction_date} onChange={e => setTxForm({...txForm, transaction_date: e.target.value})} className="w-full px-4 py-3 border border-gray-200 rounded-xl outline-none" /></div>
+                    <div className="space-y-1.5"><label className="text-xs font-bold text-gray-500 uppercase px-1">Genel Toplam (₺)</label><input type="number" step="any" value={txForm.amount} onChange={e => setTxForm({...txForm, amount: e.target.value})} className="w-full px-4 py-3 border border-primary-100 rounded-xl outline-none font-bold text-xl text-primary-900 bg-primary-50/30" disabled={txForm.type === 'sale'} /></div>
                   </div>
-                  <textarea placeholder="İşlem açıklaması..." value={txForm.description} onChange={e => setTxForm({...txForm, description: e.target.value})} className="w-full px-3 py-2 border rounded-md" rows={2} />
-                  <div className="flex justify-end"><Button type="submit" disabled={saving || (txForm.type === 'sale' && selectedItems.length === 0)}>{saving ? 'Kaydediliyor...' : 'İşlemi Tamamla'}</Button></div>
+                  <textarea placeholder="İşlem açıklaması (isteğe bağlı)..." value={txForm.description} onChange={e => setTxForm({...txForm, description: e.target.value})} className="w-full px-4 py-3 border border-gray-200 rounded-xl outline-none h-24 resize-none shadow-sm" />
+                  <div className="flex justify-end pt-4"><Button type="submit" size="lg" disabled={saving || (txForm.type === 'sale' && selectedItems.length === 0)} className="h-14 px-12 text-lg font-bold rounded-2xl shadow-lg transition-all">{saving ? 'Kaydediliyor...' : 'İşlemi Tamamla'}</Button></div>
                 </form>
               </CardBody>
             </Card>
@@ -380,17 +453,150 @@ export default function CustomerDetailPage() {
         </div>
       </div>
 
-      {/* New Product Modal */}
+      {/* Item Detail Modal (Main enhancement requested) */}
+      {showItemDetailModal && currentItem && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[100] p-4 animate-in fade-in duration-300">
+          <Card className="w-full max-w-lg shadow-2xl animate-in zoom-in slide-in-from-bottom-8 duration-300 overflow-hidden border-0">
+            <CardHeader className="bg-gradient-to-r from-primary-600 to-primary-700 text-white flex flex-row items-center justify-between py-5 px-6 border-0">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-white/10 rounded-2xl backdrop-blur-md"><Package className="h-6 w-6 text-white" /></div>
+                <div>
+                  <CardTitle className="text-xl text-white font-bold">{currentItem.name}</CardTitle>
+                  <div className="flex items-center gap-3 mt-0.5">
+                    <p className="text-xs text-primary-100/80 font-medium tracking-wide">{currentItem.sku || 'SKU YOK'}</p>
+                    <span className="w-1 h-1 bg-white/30 rounded-full" />
+                    <p className="text-xs text-white font-bold flex items-center gap-1"><History className="h-3 w-3" /> Stok: {totalStock} {currentItem.unit}</p>
+                  </div>
+                </div>
+              </div>
+              <button onClick={() => setShowItemDetailModal(false)} className="p-2 hover:bg-white/10 rounded-full transition-all active:scale-90"><X className="h-6 w-6 text-white" /></button>
+            </CardHeader>
+            <CardBody className="p-8">
+              <div className="grid grid-cols-2 gap-8">
+                <div className="space-y-6">
+                  <div className="space-y-2">
+                    <label className="block text-xs font-black text-gray-400 uppercase tracking-widest px-1">Birim Fiyat (₺)</label>
+                    <div className="relative"><DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" /><input type="number" step="any" value={itemFormData.unit_price} onChange={e => setItemFormData({...itemFormData, unit_price: Number(e.target.value)})} className="w-full pl-10 pr-4 py-3 border-2 border-gray-100 rounded-2xl focus:border-primary-500 focus:ring-4 focus:ring-primary-50/50 focus:outline-none font-bold text-gray-900 transition-all" /></div>
+                    <button type="button" onClick={fetchPriceHistory} className="flex items-center gap-1.5 text-[11px] font-bold text-primary-600 hover:text-primary-700 hover:underline px-1 transition-all"><History className="h-3 w-3" /> Önceki Fiyatlar</button>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="block text-xs font-black text-gray-400 uppercase tracking-widest px-1">Miktar ({currentItem.unit})</label>
+                    <div className="relative"><Package className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" /><input type="number" step="any" value={itemFormData.quantity} onChange={e => setItemFormData({...itemFormData, quantity: Number(e.target.value)})} className="w-full pl-10 pr-4 py-3 border-2 border-gray-100 rounded-2xl focus:border-primary-500 focus:ring-4 focus:ring-primary-50/50 focus:outline-none font-bold text-gray-900 transition-all" /></div>
+                  </div>
+                </div>
+                <div className="space-y-6">
+                  <div className="space-y-2">
+                    <label className="block text-xs font-black text-gray-400 uppercase tracking-widest px-1">KDV Oranı (%)</label>
+                    <div className="relative flex items-center"><span className="absolute left-4 font-bold text-gray-400">%</span><input type="number" min="0" max="100" value={itemFormData.tax_rate} onChange={e => setItemFormData({...itemFormData, tax_rate: Number(e.target.value)})} className="w-full pl-10 pr-4 py-3 border-2 border-gray-100 rounded-2xl focus:border-primary-500 focus:ring-4 focus:ring-primary-50/50 focus:outline-none font-bold text-gray-900 transition-all" /></div>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="block text-xs font-black text-gray-400 uppercase tracking-widest px-1">İskonto (%)</label>
+                    <div className="relative flex items-center"><span className="absolute left-4 font-bold text-gray-400">%</span><input type="number" min="0" max="100" value={itemFormData.discount_rate} onChange={e => setItemFormData({...itemFormData, discount_rate: Number(e.target.value)})} className="w-full pl-10 pr-4 py-3 border-2 border-gray-100 rounded-2xl focus:border-primary-500 focus:ring-4 focus:ring-primary-50/50 focus:outline-none font-bold text-gray-900 transition-all" /></div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-10 bg-gray-50/80 border border-gray-100 rounded-3xl p-6 space-y-3 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-24 h-24 bg-primary-500/5 rounded-full -mr-12 -mt-12" />
+                <div className="flex justify-between text-sm text-gray-500 font-medium"><span>Ara Toplam (KDV'siz):</span><span className="text-gray-900">{currentModalBase.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺</span></div>
+                {currentModalDiscount > 0 && <div className="flex justify-between text-sm text-red-600 font-bold"><span>İskonto (%{itemFormData.discount_rate}):</span><span>-{currentModalDiscount.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺</span></div>}
+                <div className="flex justify-between text-sm text-gray-500 font-medium"><span>Hesaplanan KDV (%{itemFormData.tax_rate}):</span><span className="text-gray-900">+{currentModalTax.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺</span></div>
+                <div className="pt-4 mt-2 border-t border-dashed border-gray-200 flex justify-between items-center">
+                  <span className="font-black text-gray-900 uppercase tracking-wider text-xs">GENEL TOPLAM:</span>
+                  <span className="text-3xl font-black text-primary-600 tracking-tight">{currentModalTotal.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺</span>
+                </div>
+              </div>
+
+              <div className="flex gap-4 mt-10">
+                <Button type="button" variant="outline" onClick={() => setShowItemDetailModal(false)} className="flex-1 h-14 rounded-2xl font-bold border-2 text-gray-500">Vazgeç</Button>
+                <Button type="button" onClick={handleAddItemFromModal} className="flex-[1.5] h-14 rounded-2xl font-bold text-lg bg-primary-600 hover:bg-primary-700 shadow-lg shadow-primary-100 transition-all active:scale-95"><Check className="h-5 w-5 mr-2" />Listeye Ekle</Button>
+              </div>
+            </CardBody>
+          </Card>
+        </div>
+      )}
+
+      {/* Price History Modal (Nested) */}
+      {showHistoryModal && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center z-[120] p-4 animate-in fade-in duration-300">
+          <Card className="w-full max-w-2xl shadow-2xl animate-in zoom-in duration-300 rounded-3xl overflow-hidden border-0">
+            <CardHeader className="bg-gray-900 text-white flex flex-row items-center justify-between py-5 px-8 border-0">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-white/10 rounded-2xl"><History className="h-6 w-6 text-primary-400" /></div>
+                <div>
+                  <CardTitle className="text-xl font-bold">Fiyat Geçmişi</CardTitle>
+                  <p className="text-xs text-gray-400 font-medium">{currentItem?.name} — Satış Kayıtları</p>
+                </div>
+              </div>
+              <button onClick={() => setShowHistoryModal(false)} className="p-2 hover:bg-white/10 rounded-full transition-all"><X className="h-6 w-6 text-gray-400" /></button>
+            </CardHeader>
+            <CardBody className="p-0 bg-gray-50">
+              <div className="p-8 max-h-[60vh] overflow-y-auto">
+                {loadingHistory ? (
+                  <div className="flex flex-col items-center justify-center py-12 space-y-4">
+                    <div className="animate-spin h-10 w-10 border-4 border-primary-500 border-t-transparent rounded-full" />
+                    <p className="text-sm font-bold text-gray-500">Geçmiş veriler çekiliyor...</p>
+                  </div>
+                ) : priceHistory.length === 0 ? (
+                  <div className="text-center py-12 space-y-3">
+                    <History className="h-12 w-12 text-gray-200 mx-auto" />
+                    <p className="text-gray-500 font-bold">Bu ürün için henüz bir satış kaydı bulunamadı.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-8">
+                    {/* Bu Müşteriye Satışlar */}
+                    <div className="space-y-4">
+                      <h4 className="flex items-center gap-2 text-sm font-black text-gray-900 uppercase tracking-widest"><User className="h-4 w-4 text-blue-600" /> Bu Müşteriye Satışlar</h4>
+                      <div className="space-y-3">
+                        {priceHistory.filter(h => h.customer_id === customerId).length > 0 ? (
+                          priceHistory.filter(h => h.customer_id === customerId).map((h, i) => (
+                            <div key={i} className="flex items-center justify-between p-4 bg-white border border-blue-100 rounded-2xl shadow-sm hover:shadow-md transition-all">
+                              <div><p className="text-xs font-bold text-gray-400 uppercase">{new Date(h.date).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}</p><p className="text-sm font-bold text-blue-900 mt-0.5">Müşteriniz: {h.customer_name}</p></div>
+                              <div className="text-right"><p className="text-lg font-black text-blue-600">{h.price.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺</p></div>
+                            </div>
+                          ))
+                        ) : (
+                          <div className="p-4 bg-gray-100 rounded-2xl text-center text-xs font-bold text-gray-400">Bu müşteriye henüz hiç satış yapılmamış.</div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Diğer Müşterilere Satışlar */}
+                    <div className="space-y-4">
+                      <h4 className="flex items-center gap-2 text-sm font-black text-gray-900 uppercase tracking-widest"><Users className="h-4 w-4 text-purple-600" /> Diğer Müşterilere Satışlar</h4>
+                      <div className="space-y-3">
+                        {priceHistory.filter(h => h.customer_id !== customerId).length > 0 ? (
+                          priceHistory.filter(h => h.customer_id !== customerId).map((h, i) => (
+                            <div key={i} className="flex items-center justify-between p-4 bg-white border border-gray-100 rounded-2xl shadow-sm hover:shadow-md transition-all">
+                              <div className="flex-1 min-w-0 pr-4"><p className="text-xs font-bold text-gray-400 uppercase">{new Date(h.date).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}</p><p className="text-sm font-bold text-gray-900 mt-0.5 truncate">{h.customer_name}</p></div>
+                              <div className="text-right whitespace-nowrap"><p className="text-lg font-black text-purple-600">{h.price.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺</p></div>
+                            </div>
+                          ))
+                        ) : (
+                          <div className="p-4 bg-gray-100 rounded-2xl text-center text-xs font-bold text-gray-400">Diğer müşterilere henüz satış yapılmamış.</div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+              <div className="p-6 bg-white border-t flex justify-end"><Button onClick={() => setShowHistoryModal(false)} className="px-8 h-12 rounded-xl font-bold bg-gray-900 hover:bg-black">Anladım</Button></div>
+            </CardBody>
+          </Card>
+        </div>
+      )}
+
+      {/* Quick New Product Modal */}
       {showProductModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60] p-4">
-          <Card className="w-full max-w-md shadow-2xl animate-in zoom-in duration-200">
-            <CardHeader className="border-b"><CardTitle>Hızlı Ürün Ekle</CardTitle></CardHeader>
-            <CardBody className="pt-6">
-              <form onSubmit={handleCreateProduct} className="space-y-4">
-                <input type="text" required placeholder="Ürün Adı" value={newProductData.name} onChange={e => setNewProductData({...newProductData, name: e.target.value})} className="w-full px-3 py-2 border rounded-md" />
-                <input type="text" placeholder="SKU / Barkod" value={newProductData.sku} onChange={e => setNewProductData({...newProductData, sku: e.target.value})} className="w-full px-3 py-2 border rounded-md" />
-                <select value={newProductData.unit} onChange={e => setNewProductData({...newProductData, unit: e.target.value})} className="w-full px-3 py-2 border rounded-md"><option value="adet">Adet</option><option value="kg">KG</option><option value="litre">Litre</option><option value="metre">Metre</option></select>
-                <div className="flex justify-end gap-2 pt-2"><Button type="button" variant="outline" onClick={() => setShowProductModal(false)}>İptal</Button><Button type="submit">Ürünü Ekle</Button></div>
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[110] p-4 animate-in fade-in duration-200">
+          <Card className="w-full max-w-md shadow-2xl animate-in zoom-in duration-300 rounded-3xl overflow-hidden border-0">
+            <CardHeader className="bg-gray-50 border-b py-5 px-6"><CardTitle className="text-xl font-bold text-gray-900">Hızlı Ürün Tanımla</CardTitle></CardHeader>
+            <CardBody className="p-8">
+              <form onSubmit={handleCreateProduct} className="space-y-6">
+                <div className="space-y-2"><label className="block text-xs font-bold text-gray-400 uppercase tracking-wider px-1">Ürün Adı *</label><input type="text" required placeholder="Örn: iPhone 15 Pro Max" value={newProductData.name} onChange={e => setNewProductData({...newProductData, name: e.target.value})} className="w-full px-4 py-3 border border-gray-200 rounded-xl outline-none font-medium" /></div>
+                <div className="space-y-2"><label className="block text-xs font-bold text-gray-400 uppercase tracking-wider px-1">SKU / Barkod</label><input type="text" placeholder="Örn: IP15-PRO-BLK" value={newProductData.sku} onChange={e => setNewProductData({...newProductData, sku: e.target.value})} className="w-full px-4 py-3 border border-gray-200 rounded-xl outline-none font-medium" /></div>
+                <div className="space-y-2"><label className="block text-xs font-bold text-gray-400 uppercase tracking-wider px-1">Birim</label><select value={newProductData.unit} onChange={e => setNewProductData({...newProductData, unit: e.target.value})} className="w-full px-4 py-3 border border-gray-200 rounded-xl outline-none appearance-none bg-white font-medium"><option value="adet">Adet</option><option value="kg">Kilogram (KG)</option><option value="litre">Litre (L)</option><option value="metre">Metre (m)</option><option value="paket">Paket</option></select></div>
+                <div className="flex gap-3 pt-4"><Button type="button" variant="outline" onClick={() => setShowProductModal(false)} className="flex-1 h-12 font-bold">Vazgeç</Button><Button type="submit" className="flex-1 h-12 font-bold">Ürünü Kaydet</Button></div>
               </form>
             </CardBody>
           </Card>
