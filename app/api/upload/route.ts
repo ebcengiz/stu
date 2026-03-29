@@ -56,8 +56,11 @@ export async function POST(request: Request) {
       })
 
     if (uploadError) {
-      console.error('Storage upload error:', uploadError)
-      throw new Error(`Storage error: ${uploadError.message}`)
+      console.error('Storage upload error details:', uploadError)
+      return NextResponse.json({ 
+        error: `Depolama hatası: ${uploadError.message}`,
+        details: uploadError
+      }, { status: 500 })
     }
 
     // 4. Public URL'i al
@@ -66,10 +69,17 @@ export async function POST(request: Request) {
       .from('logos')
       .getPublicUrl(fileName)
 
+    if (!publicUrlData.publicUrl) {
+      throw new Error('Public URL oluşturulamadı')
+    }
+
     return NextResponse.json({ url: publicUrlData.publicUrl })
     
   } catch (error: any) {
-    console.error('Upload API Error:', error)
-    return NextResponse.json({ error: error.message || 'Dosya yüklenirken bir hata oluştu' }, { status: 500 })
+    console.error('Upload API General Error:', error)
+    return NextResponse.json({ 
+      error: error.message || 'Dosya yüklenirken bir hata oluştu',
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    }, { status: 500 })
   }
 }

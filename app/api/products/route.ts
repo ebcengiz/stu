@@ -20,6 +20,7 @@ export async function GET() {
         currency,
         unit,
         min_stock_level,
+        image_url,
         is_active,
         category_id,
         tenant_id,
