@@ -304,10 +304,15 @@ function ProductsPageContent() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newCategoryData),
       })
-      if (!res.ok) throw new Error('Kategori eklenemedi')
-      const newCat = await res.json()
+      
+      const data = await res.json()
+      
+      if (!res.ok) {
+        throw new Error(data.error || 'Kategori eklenemedi')
+      }
+
       await fetchCategories()
-      setFormData(prev => ({ ...prev, category_id: newCat.id }))
+      setFormData(prev => ({ ...prev, category_id: data.id }))
       setShowNewCategoryModal(false)
       setNewCategoryData({ name: '', description: '' })
       toast.success('Yeni kategori eklendi ve seçildi')
@@ -467,8 +472,8 @@ function ProductsPageContent() {
 
       {/* Product Add/Edit Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-[2rem] shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden border-0">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-[8px] flex items-center justify-center z-[9999] p-4 animate-in fade-in duration-300">
+          <div className="bg-white rounded-[2rem] shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden border-0 animate-in zoom-in-95 duration-200">
             <div className="px-8 py-6 border-b flex justify-between items-center bg-gray-50/50">
               <div className="flex items-center gap-4">
                 <div className="p-3 bg-white rounded-2xl shadow-sm border border-gray-100"><Package className="h-6 w-6 text-primary-500" /></div>

@@ -51,7 +51,9 @@ export async function POST(request: Request) {
     const body = await request.json()
 
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) throw new Error('Unauthorized')
+    if (!user) {
+      return NextResponse.json({ error: 'Oturum açılmamış' }, { status: 401 })
+    }
 
     const { data: profile } = await supabase
       .from('profiles')
@@ -59,26 +61,48 @@ export async function POST(request: Request) {
       .eq('id', user.id)
       .single()
 
-    if (!profile) throw new Error('Profile not found')
+    if (!profile) {
+      return NextResponse.json({ error: 'Profil bulunamadı' }, { status: 404 })
+    }
 
-    // Remove undefined values and empty strings from insert data
-    const cleanData = Object.fromEntries(
-      Object.entries(body).filter(([_, v]) => v !== undefined && v !== '')
-    )
+    // Prepare clean data
+    const insertData = {
+      name: body.name?.trim(),
+      description: body.description?.trim() || null,
+      tenant_id: profile.tenant_id
+    }
 
-    const { data: category, error } = await supabase
+    if (!insertData.name) {
+      return NextResponse.json({ error: 'Kategori adı gereklidir' }, { status: 400 })
+    }
+
+    // Try to insert
+    const { data: category, error: dbError } = await supabase
       .from('categories')
-      .insert({
-        ...cleanData,
-        tenant_id: profile.tenant_id,
-      })
+      .insert(insertData)
       .select()
-      .single()
+      .maybeSingle()
 
-    if (error) throw error
+    if (dbError) {
+      console.error('Supabase category insert error:', dbError)
+      // Provide more specific error message if possible
+      let errorMessage = `Veritabanı hatası: ${dbError.message}`
+      if (dbError.code === '23505') errorMessage = 'Bu isimde bir kategori zaten mevcut.'
+      if (dbError.code === '42501') errorMessage = 'Bu işlemi yapmaya yetkiniz yok (RLS Politikası).'
+      
+      return NextResponse.json({ error: errorMessage, details: dbError }, { status: 500 })
+    }
+
+    if (!category) {
+      return NextResponse.json({ error: 'Kategori oluşturuldu ancak veri geri alınamadı.' }, { status: 500 })
+    }
 
     return NextResponse.json(category)
   } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    console.error('Category POST API General Error:', error)
+    return NextResponse.json(
+      { error: error.message || 'Kategori eklenirken beklenmedik bir hata oluştu' }, 
+      { status: 500 }
+    )
   }
 }
