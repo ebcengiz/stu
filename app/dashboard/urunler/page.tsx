@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { Plus, Search, Edit2, Trash2, X, ScanBarcode, Filter, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react'
+import { useState, useEffect, Suspense } from 'react'
+import { Plus, Search, Edit2, Trash2, X, ScanBarcode, Filter } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Card, CardHeader, CardBody, CardTitle } from '@/components/ui/Card'
 import { useRouter, useSearchParams } from 'next/navigation'
@@ -71,7 +71,7 @@ function calculateTotalStock(stockRecords?: Array<{ warehouse_id?: string; quant
   return Array.from(uniqueStockByWarehouse.values()).reduce((sum, qty) => sum + qty, 0)
 }
 
-export default function ProductsPage() {
+function ProductsPageContent() {
   const [products, setProducts] = useState<Product[]>([])
   const [categories, setCategories] = useState<Category[]>([])
   const [warehouses, setWarehouses] = useState<Warehouse[]>([])
@@ -403,5 +403,13 @@ export default function ProductsPage() {
         </div>
       )}
     </div>
+  )
+}
+
+export default function ProductsPage() {
+  return (
+    <Suspense fallback={<div>Yükleniyor...</div>}>
+      <ProductsPageContent />
+    </Suspense>
   )
 }

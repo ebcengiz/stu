@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
-import { ArrowLeft, Building, CreditCard, FileText, ShoppingCart, Save, DollarSign, Plus, Search, Trash2, Package, X, Check, History, Users, User } from 'lucide-react'
+import { ArrowLeft, Building, CreditCard, FileText, ShoppingCart, Save, DollarSign, Plus, Search, Trash2, Package, X, Check, History, Users, User, Info, Calendar, Tag } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Card, CardHeader, CardBody, CardTitle } from '@/components/ui/Card'
 
@@ -31,6 +31,16 @@ interface Customer {
   is_active: boolean
 }
 
+interface TransactionItem {
+  id: string
+  product_name: string
+  quantity: number
+  unit_price: number
+  tax_rate: number
+  discount_rate: number
+  total_price: number
+}
+
 interface Transaction {
   id: string
   type: 'sale' | 'payment'
@@ -39,6 +49,7 @@ interface Transaction {
   transaction_date: string
   payment_method?: 'cash' | 'credit_card' | 'cheque'
   created_at: string
+  customer_transaction_items?: TransactionItem[]
 }
 
 interface SelectedItem {
@@ -79,8 +90,10 @@ export default function CustomerDetailPage() {
   const [newProductData, setNewProductData] = useState({ name: '', sku: '', unit: 'adet' })
   const [showItemDetailModal, setShowItemDetailModal] = useState(false)
   const [showHistoryModal, setShowHistoryModal] = useState(false)
+  const [showTxDetailModal, setShowTxDetailModal] = useState(false)
   
   const [currentItem, setCurrentItem] = useState<Product | null>(null)
+  const [selectedTx, setSelectedTx] = useState<Transaction | null>(null)
   const [priceHistory, setPriceHistory] = useState<PriceHistory[]>([])
   const [loadingHistory, setLoadingHistory] = useState(false)
 
@@ -341,14 +354,15 @@ export default function CustomerDetailPage() {
                   <thead className="bg-gray-50"><tr><th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tarih</th><th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tip</th><th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Açıklama</th><th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Tutar</th><th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Bakiye</th></tr></thead>
                   <tbody className="divide-y divide-gray-200 bg-white">
                     {ledgerData.map(tx => (
-                      <tr key={tx.id} className="hover:bg-gray-50 transition-colors">
-                        <td className="px-6 py-4 text-sm text-gray-900 whitespace-nowrap">{new Date(tx.transaction_date).toLocaleDateString('tr-TR')}</td>
-                        <td className="px-6 py-4 whitespace-nowrap"><span className={`px-2.5 py-1 rounded-full text-xs font-medium ${tx.type === 'sale' ? 'bg-blue-100 text-blue-800 border border-blue-200' : 'bg-green-100 text-green-800 border border-green-200'}`}>{tx.type === 'sale' ? 'Satış' : 'Tahsilat'} {tx.payment_method && `(${tx.payment_method === 'cash' ? 'Nakit' : tx.payment_method === 'credit_card' ? 'K.Kartı' : 'Çek'})`}</span></td>
-                        <td className="px-6 py-4 text-sm text-gray-500 truncate max-w-xs">{tx.description}</td>
+                      <tr key={tx.id} onClick={() => { setSelectedTx(tx); setShowTxDetailModal(true); }} className="hover:bg-gray-50 transition-colors cursor-pointer group">
+                        <td className="px-6 py-4 text-sm text-gray-900 whitespace-nowrap group-hover:text-primary-600 font-medium">{new Date(tx.transaction_date).toLocaleDateString('tr-TR')}</td>
+                        <td className="px-6 py-4 whitespace-nowrap"><span className={`px-2.5 py-1 rounded-full text-xs font-medium ${tx.type === 'sale' ? 'bg-blue-100 text-blue-800 border border-blue-200' : 'bg-green-100 text-green-800 border border-green-200'}`}>{tx.type === 'sale' ? 'Satış' : 'Tahsilat'}</span></td>
+                        <td className="px-6 py-4 text-sm text-gray-500 truncate max-w-xs">{tx.description || '-'}</td>
                         <td className={`px-6 py-4 text-sm font-semibold text-right whitespace-nowrap ${tx.type === 'sale' ? 'text-gray-900' : 'text-green-600'}`}>{tx.type === 'sale' ? '+' : '-'}{Number(tx.amount).toLocaleString('tr-TR')} ₺</td>
                         <td className="px-6 py-4 text-sm font-bold text-right text-gray-900 whitespace-nowrap">{tx.balance.toLocaleString('tr-TR')} ₺</td>
                       </tr>
                     ))}
+                    {ledgerData.length === 0 && <tr><td colSpan={5} className="px-6 py-12 text-center text-gray-500 italic">Henüz bir işlem kaydı bulunmuyor.</td></tr>}
                   </tbody>
                 </table></div>
               </CardBody>
@@ -369,16 +383,16 @@ export default function CustomerDetailPage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="space-y-4">
                         <div className="space-y-1.5"><label className="text-xs font-semibold text-gray-500 uppercase px-1">Firma Ünvanı</label><input type="text" value={formData.company_name} onChange={e => setFormData({...formData, company_name: e.target.value})} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all" /></div>
-                        <div className="space-y-1.5"><label className="text-xs font-semibold text-gray-500 uppercase px-1">Vergi Dairesi</label><input type="text" value={formData.tax_office} onChange={e => setFormData({...formData, tax_office: e.target.value})} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg" /></div>
-                        <div className="space-y-1.5"><label className="text-xs font-semibold text-gray-500 uppercase px-1">Vergi No</label><input type="text" value={formData.tax_number} onChange={e => setFormData({...formData, tax_number: e.target.value})} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg" /></div>
+                        <div className="space-y-1.5"><label className="text-xs font-semibold text-gray-500 uppercase px-1">Firma Logosu</label><div className="flex items-center gap-4"><input type="file" onChange={handleLogoUpload} className="text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100 transition-all cursor-pointer" />{uploadingLogo && <span className="text-xs text-primary-600 animate-pulse font-medium">Yükleniyor...</span>}</div></div>
+                        <div className="grid grid-cols-2 gap-4"><div className="space-y-1.5"><label className="text-xs font-semibold text-gray-500 uppercase px-1">Vergi Dairesi</label><input type="text" value={formData.tax_office} onChange={e => setFormData({...formData, tax_office: e.target.value})} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none" /></div><div className="space-y-1.5"><label className="text-xs font-semibold text-gray-500 uppercase px-1">Vergi No</label><input type="text" value={formData.tax_number} onChange={e => setFormData({...formData, tax_number: e.target.value})} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none" /></div></div>
                       </div>
                       <div className="space-y-4">
                         <div className="space-y-1.5"><label className="text-xs font-semibold text-gray-500 uppercase px-1">İletişim Kişisi</label><input type="text" value={formData.contact_person} onChange={e => setFormData({...formData, contact_person: e.target.value})} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg" /></div>
-                        <div className="space-y-1.5"><label className="text-xs font-semibold text-gray-500 uppercase px-1">Telefon</label><input type="tel" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg" /></div>
+                        <div className="grid grid-cols-2 gap-4"><div className="space-y-1.5"><label className="text-xs font-semibold text-gray-500 uppercase px-1">Telefon</label><input type="tel" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg" /></div><div className="space-y-1.5"><label className="text-xs font-semibold text-gray-500 uppercase px-1">E-Posta</label><input type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg" /></div></div>
                         <div className="space-y-1.5"><label className="text-xs font-semibold text-gray-500 uppercase px-1">Adres</label><textarea value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg h-24 resize-none" /></div>
                       </div>
                     </div>
-                    <div className="flex justify-end gap-3 pt-4 border-t"><Button type="button" variant="outline" onClick={() => setIsEditing(false)}>Vazgeç</Button><Button type="submit" disabled={saving}>{saving ? 'Güncelleniyor...' : 'Kaydet'}</Button></div>
+                    <div className="flex justify-end gap-3 pt-4 border-t"><Button type="button" variant="outline" onClick={() => setIsEditing(false)}>Vazgeç</Button><Button type="submit" disabled={saving}>{saving ? 'Güncelleniyor...' : 'Değişiklikleri Kaydet'}</Button></div>
                   </form>
                 )}
               </CardBody>
@@ -391,14 +405,14 @@ export default function CustomerDetailPage() {
               <CardBody className="pt-6">
                 <form onSubmit={handleAddTransaction} className="space-y-8">
                   <div className="grid grid-cols-2 gap-6">
-                    <button type="button" onClick={() => setTxForm({...txForm, type: 'sale'})} className={`p-6 border-2 rounded-2xl flex flex-col items-center transition-all ${txForm.type === 'sale' ? 'border-blue-500 bg-blue-50 text-blue-700 ring-4 ring-blue-50' : 'border-gray-100 text-gray-400'}`}><ShoppingCart className="h-8 w-8 mb-3" /><span className="font-bold text-lg">Satış</span></button>
-                    <button type="button" onClick={() => setTxForm({...txForm, type: 'payment'})} className={`p-6 border-2 rounded-2xl flex flex-col items-center transition-all ${txForm.type === 'payment' ? 'border-green-500 bg-green-50 text-green-700 ring-4 ring-green-50' : 'border-gray-100 text-gray-400'}`}><CreditCard className="h-8 w-8 mb-3" /><span className="font-bold text-lg">Tahsilat</span></button>
+                    <button type="button" onClick={() => setTxForm({...txForm, type: 'sale'})} className={`p-6 border-2 rounded-2xl flex flex-col items-center transition-all ${txForm.type === 'sale' ? 'border-blue-500 bg-blue-50 text-blue-700 ring-4 ring-blue-50' : 'border-gray-100 text-gray-400 hover:border-gray-300'}`}><ShoppingCart className="h-8 w-8 mb-3" /><span className="font-bold text-lg">Satış</span></button>
+                    <button type="button" onClick={() => setTxForm({...txForm, type: 'payment'})} className={`p-6 border-2 rounded-2xl flex flex-col items-center transition-all ${txForm.type === 'payment' ? 'border-green-500 bg-green-50 text-green-700 ring-4 ring-green-50' : 'border-gray-100 text-gray-400 hover:border-gray-300'}`}><CreditCard className="h-8 w-8 mb-3" /><span className="font-bold text-lg">Tahsilat</span></button>
                   </div>
 
                   {txForm.type === 'sale' ? (
                     <div className="space-y-6">
-                      <div className="flex justify-between items-center"><h4 className="font-bold text-gray-900 flex items-center gap-2"><Package className="h-5 w-5 text-gray-400" />Satılacak Ürünler</h4><Button type="button" onClick={() => setShowProductModal(true)} size="sm" variant="outline"><Plus className="h-3 w-3 mr-1" />Hızlı Ürün Ekle</Button></div>
-                      <select className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl outline-none" onChange={(e) => { if(e.target.value) { openItemDetailModal(e.target.value); e.target.value = '' } }}>
+                      <div className="flex justify-between items-center"><h4 className="font-bold text-gray-900 flex items-center gap-2"><Package className="h-5 w-5 text-gray-400" />Satılacak Ürünler</h4><Button type="button" onClick={() => setShowProductModal(true)} size="sm" variant="outline" className="h-8 text-xs"><Plus className="h-3 w-3 mr-1" />Hızlı Ürün Ekle</Button></div>
+                      <select className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl outline-none focus:ring-4 focus:ring-primary-50 transition-all appearance-none cursor-pointer" onChange={(e) => { if(e.target.value) { openItemDetailModal(e.target.value); e.target.value = '' } }}>
                         <option value="">Ürün seçin...</option>
                         {products.map(p => <option key={p.id} value={p.id}>{p.name} {p.sku ? `(${p.sku})` : ''}</option>)}
                       </select>
@@ -431,12 +445,20 @@ export default function CustomerDetailPage() {
                       )}
                     </div>
                   ) : (
-                    <div className="grid grid-cols-3 gap-4">
-                      {['cash', 'credit_card', 'cheque'].map(m => (
-                        <button key={m} type="button" onClick={() => setTxForm({...txForm, payment_method: m as any})} className={`p-4 border-2 rounded-2xl flex flex-col items-center transition-all ${txForm.payment_method === m ? 'border-green-500 bg-green-50 text-green-700 shadow-md' : 'border-gray-50 bg-gray-50/50 text-gray-500'}`}>
-                          <span className="font-bold text-sm">{m === 'cash' ? 'Nakit' : m === 'credit_card' ? 'Kredi Kartı' : 'Çek / Senet'}</span>
-                        </button>
-                      ))}
+                    <div className="space-y-6">
+                      <h4 className="font-bold text-gray-900 flex items-center gap-2"><CreditCard className="h-5 w-5 text-gray-400" />Ödeme Yöntemi</h4>
+                      <div className="grid grid-cols-3 gap-4">
+                        {[
+                          { id: 'cash', label: 'Nakit', icon: DollarSign, color: 'green' },
+                          { id: 'credit_card', label: 'Kredi Kartı', icon: CreditCard, color: 'blue' },
+                          { id: 'cheque', label: 'Çek / Senet', icon: FileText, color: 'amber' }
+                        ].map(m => (
+                          <button key={m.id} type="button" onClick={() => setTxForm({...txForm, payment_method: m.id as any})} className={`p-4 border-2 rounded-2xl flex flex-col items-center transition-all ${txForm.payment_method === m.id ? `border-${m.color}-500 bg-${m.color}-50 text-${m.color}-700 shadow-md` : 'border-gray-50 bg-gray-50/50 text-gray-500 hover:border-gray-200'}`}>
+                            <m.icon className={`h-6 w-6 mb-2 ${txForm.payment_method === m.id ? `text-${m.color}-600` : 'text-gray-400'}`} />
+                            <span className="font-bold text-sm">{m.label}</span>
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   )}
 
@@ -444,8 +466,8 @@ export default function CustomerDetailPage() {
                     <div className="space-y-1.5"><label className="text-xs font-bold text-gray-500 uppercase px-1">İşlem Tarihi</label><input type="date" value={txForm.transaction_date} onChange={e => setTxForm({...txForm, transaction_date: e.target.value})} className="w-full px-4 py-3 border border-gray-200 rounded-xl outline-none" /></div>
                     <div className="space-y-1.5"><label className="text-xs font-bold text-gray-500 uppercase px-1">Genel Toplam (₺)</label><input type="number" step="any" value={txForm.amount} onChange={e => setTxForm({...txForm, amount: e.target.value})} className="w-full px-4 py-3 border border-primary-100 rounded-xl outline-none font-bold text-xl text-primary-900 bg-primary-50/30" disabled={txForm.type === 'sale'} /></div>
                   </div>
-                  <textarea placeholder="İşlem açıklaması (isteğe bağlı)..." value={txForm.description} onChange={e => setTxForm({...txForm, description: e.target.value})} className="w-full px-4 py-3 border border-gray-200 rounded-xl outline-none h-24 resize-none shadow-sm" />
-                  <div className="flex justify-end pt-4"><Button type="submit" size="lg" disabled={saving || (txForm.type === 'sale' && selectedItems.length === 0)} className="h-14 px-12 text-lg font-bold rounded-2xl shadow-lg transition-all">{saving ? 'Kaydediliyor...' : 'İşlemi Tamamla'}</Button></div>
+                  <textarea placeholder="İşlem açıklaması veya notlar..." value={txForm.description} onChange={e => setTxForm({...txForm, description: e.target.value})} className="w-full px-4 py-3 border border-gray-200 rounded-xl outline-none h-24 resize-none shadow-sm" />
+                  <div className="flex justify-end pt-4"><Button type="submit" size="lg" disabled={saving || (txForm.type === 'sale' && selectedItems.length === 0)} className="h-14 px-12 text-lg font-bold rounded-2xl shadow-lg transition-all active:scale-95">{saving ? 'Kaydediliyor...' : 'İşlemi Tamamla'}</Button></div>
                 </form>
               </CardBody>
             </Card>
@@ -453,7 +475,7 @@ export default function CustomerDetailPage() {
         </div>
       </div>
 
-      {/* Item Detail Modal (Main enhancement requested) */}
+      {/* Item Detail Modal */}
       {showItemDetailModal && currentItem && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[100] p-4 animate-in fade-in duration-300">
           <Card className="w-full max-w-lg shadow-2xl animate-in zoom-in slide-in-from-bottom-8 duration-300 overflow-hidden border-0">
@@ -476,22 +498,22 @@ export default function CustomerDetailPage() {
                 <div className="space-y-6">
                   <div className="space-y-2">
                     <label className="block text-xs font-black text-gray-400 uppercase tracking-widest px-1">Birim Fiyat (₺)</label>
-                    <div className="relative"><DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" /><input type="number" step="any" value={itemFormData.unit_price} onChange={e => setItemFormData({...itemFormData, unit_price: Number(e.target.value)})} className="w-full pl-10 pr-4 py-3 border-2 border-gray-100 rounded-2xl focus:border-primary-500 focus:ring-4 focus:ring-primary-50/50 focus:outline-none font-bold text-gray-900 transition-all" /></div>
+                    <div className="relative"><DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" /><input type="number" step="any" value={itemFormData.unit_price} onChange={e => setItemFormData({...itemFormData, unit_price: Number(e.target.value)})} className="w-full pl-10 pr-4 py-3 border-2 border-gray-100 rounded-2xl focus:border-primary-500 focus:ring-4 focus:ring-primary-50 focus:outline-none font-bold text-gray-900 transition-all" /></div>
                     <button type="button" onClick={fetchPriceHistory} className="flex items-center gap-1.5 text-[11px] font-bold text-primary-600 hover:text-primary-700 hover:underline px-1 transition-all"><History className="h-3 w-3" /> Önceki Fiyatlar</button>
                   </div>
                   <div className="space-y-2">
                     <label className="block text-xs font-black text-gray-400 uppercase tracking-widest px-1">Miktar ({currentItem.unit})</label>
-                    <div className="relative"><Package className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" /><input type="number" step="any" value={itemFormData.quantity} onChange={e => setItemFormData({...itemFormData, quantity: Number(e.target.value)})} className="w-full pl-10 pr-4 py-3 border-2 border-gray-100 rounded-2xl focus:border-primary-500 focus:ring-4 focus:ring-primary-50/50 focus:outline-none font-bold text-gray-900 transition-all" /></div>
+                    <div className="relative"><Package className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" /><input type="number" step="any" value={itemFormData.quantity} onChange={e => setItemFormData({...itemFormData, quantity: Number(e.target.value)})} className="w-full pl-10 pr-4 py-3 border-2 border-gray-100 rounded-2xl focus:border-primary-500 focus:ring-4 focus:ring-primary-50 focus:outline-none font-bold text-gray-900 transition-all" /></div>
                   </div>
                 </div>
                 <div className="space-y-6">
                   <div className="space-y-2">
                     <label className="block text-xs font-black text-gray-400 uppercase tracking-widest px-1">KDV Oranı (%)</label>
-                    <div className="relative flex items-center"><span className="absolute left-4 font-bold text-gray-400">%</span><input type="number" min="0" max="100" value={itemFormData.tax_rate} onChange={e => setItemFormData({...itemFormData, tax_rate: Number(e.target.value)})} className="w-full pl-10 pr-4 py-3 border-2 border-gray-100 rounded-2xl focus:border-primary-500 focus:ring-4 focus:ring-primary-50/50 focus:outline-none font-bold text-gray-900 transition-all" /></div>
+                    <div className="relative flex items-center"><span className="absolute left-4 font-bold text-gray-400">%</span><input type="number" min="0" max="100" value={itemFormData.tax_rate} onChange={e => setItemFormData({...itemFormData, tax_rate: Number(e.target.value)})} className="w-full pl-10 pr-4 py-3 border-2 border-gray-100 rounded-2xl focus:border-primary-500 focus:ring-4 focus:ring-primary-50 focus:outline-none font-bold text-gray-900 transition-all" /></div>
                   </div>
                   <div className="space-y-2">
                     <label className="block text-xs font-black text-gray-400 uppercase tracking-widest px-1">İskonto (%)</label>
-                    <div className="relative flex items-center"><span className="absolute left-4 font-bold text-gray-400">%</span><input type="number" min="0" max="100" value={itemFormData.discount_rate} onChange={e => setItemFormData({...itemFormData, discount_rate: Number(e.target.value)})} className="w-full pl-10 pr-4 py-3 border-2 border-gray-100 rounded-2xl focus:border-primary-500 focus:ring-4 focus:ring-primary-50/50 focus:outline-none font-bold text-gray-900 transition-all" /></div>
+                    <div className="relative flex items-center"><span className="absolute left-4 font-bold text-gray-400">%</span><input type="number" min="0" max="100" value={itemFormData.discount_rate} onChange={e => setItemFormData({...itemFormData, discount_rate: Number(e.target.value)})} className="w-full pl-10 pr-4 py-3 border-2 border-gray-100 rounded-2xl focus:border-primary-500 focus:ring-4 focus:ring-primary-50 focus:outline-none font-bold text-gray-900 transition-all" /></div>
                   </div>
                 </div>
               </div>
@@ -510,6 +532,84 @@ export default function CustomerDetailPage() {
               <div className="flex gap-4 mt-10">
                 <Button type="button" variant="outline" onClick={() => setShowItemDetailModal(false)} className="flex-1 h-14 rounded-2xl font-bold border-2 text-gray-500">Vazgeç</Button>
                 <Button type="button" onClick={handleAddItemFromModal} className="flex-[1.5] h-14 rounded-2xl font-bold text-lg bg-primary-600 hover:bg-primary-700 shadow-lg shadow-primary-100 transition-all active:scale-95"><Check className="h-5 w-5 mr-2" />Listeye Ekle</Button>
+              </div>
+            </CardBody>
+          </Card>
+        </div>
+      )}
+
+      {/* Transaction Detail Modal (NEW FEATURE) */}
+      {showTxDetailModal && selectedTx && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center z-[130] p-4 animate-in fade-in duration-300">
+          <Card className="w-full max-w-3xl shadow-2xl animate-in zoom-in duration-300 rounded-3xl overflow-hidden border-0">
+            <CardHeader className={`${selectedTx.type === 'sale' ? 'bg-blue-600' : 'bg-green-600'} text-white flex flex-row items-center justify-between py-6 px-8 border-0`}>
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-white/20 rounded-2xl backdrop-blur-md">
+                  {selectedTx.type === 'sale' ? <ShoppingCart className="h-6 w-6 text-white" /> : <CreditCard className="h-6 w-6 text-white" />}
+                </div>
+                <div>
+                  <CardTitle className="text-2xl text-white font-black">{selectedTx.type === 'sale' ? 'Satış İşlemi' : 'Tahsilat İşlemi'}</CardTitle>
+                  <p className="text-xs text-white/80 font-bold tracking-widest uppercase mt-1">İşlem ID: #{selectedTx.id.slice(0,8)}</p>
+                </div>
+              </div>
+              <button onClick={() => setShowTxDetailModal(false)} className="p-2 hover:bg-white/10 rounded-full transition-all"><X className="h-7 w-7 text-white" /></button>
+            </CardHeader>
+            <CardBody className="p-0 bg-white">
+              <div className="grid grid-cols-3 divide-x divide-gray-100 bg-gray-50/50 border-b">
+                <div className="p-6 text-center"><p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">İşlem Tarihi</p><p className="text-sm font-bold text-gray-900 flex items-center justify-center gap-2"><Calendar className="h-4 w-4 text-primary-500" /> {new Date(selectedTx.transaction_date).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}</p></div>
+                <div className="p-6 text-center"><p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">İşlem Tipi</p><p className="text-sm font-bold text-gray-900 flex items-center justify-center gap-2">{selectedTx.type === 'sale' ? <Tag className="h-4 w-4 text-blue-500" /> : <Check className="h-4 w-4 text-green-500" />} {selectedTx.type === 'sale' ? 'Borçlandırma' : 'Alacaklandırma'}</p></div>
+                <div className="p-6 text-center"><p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Ödeme Yöntemi</p><p className="text-sm font-bold text-gray-900 flex items-center justify-center gap-2"><CreditCard className="h-4 w-4 text-primary-500" /> {selectedTx.payment_method === 'cash' ? 'Nakit' : selectedTx.payment_method === 'credit_card' ? 'Kredi Kartı' : selectedTx.payment_method === 'cheque' ? 'Çek / Senet' : 'Tanımsız'}</p></div>
+              </div>
+
+              <div className="p-8">
+                {selectedTx.type === 'sale' && selectedTx.customer_transaction_items && selectedTx.customer_transaction_items.length > 0 ? (
+                  <div className="space-y-6">
+                    <h4 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em] flex items-center gap-2"><Info className="h-4 w-4" /> Satılan Ürünler Detayı</h4>
+                    <div className="border border-gray-100 rounded-2xl overflow-hidden shadow-sm">
+                      <table className="min-w-full divide-y divide-gray-100">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th className="px-6 py-4 text-left text-[10px] font-black text-gray-500 uppercase tracking-widest">Ürün Adı</th>
+                            <th className="px-6 py-4 text-center text-[10px] font-black text-gray-500 uppercase tracking-widest">Miktar</th>
+                            <th className="px-6 py-4 text-center text-[10px] font-black text-gray-500 uppercase tracking-widest">Birim Fiyat</th>
+                            <th className="px-6 py-4 text-right text-[10px] font-black text-gray-500 uppercase tracking-widest">Toplam</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-50">
+                          {selectedTx.customer_transaction_items.map((item) => (
+                            <tr key={item.id} className="hover:bg-gray-50/50 transition-colors">
+                              <td className="px-6 py-4 text-sm font-bold text-gray-900">{item.product_name}</td>
+                              <td className="px-6 py-4 text-sm font-medium text-gray-600 text-center">{item.quantity}</td>
+                              <td className="px-6 py-4 text-sm font-medium text-gray-600 text-center">{item.unit_price.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺</td>
+                              <td className="px-6 py-4 text-sm font-black text-gray-900 text-right">{item.total_price.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="bg-gray-50 rounded-2xl p-8 border border-dashed border-gray-200 text-center">
+                    <Info className="h-8 w-8 text-gray-300 mx-auto mb-3" />
+                    <p className="text-gray-500 font-bold">Bu işlem bir tahsilat kaydıdır ve ürün detayı içermez.</p>
+                    {selectedTx.description && <p className="text-xs text-gray-400 mt-2 font-medium">Açıklama: {selectedTx.description}</p>}
+                  </div>
+                )}
+
+                {selectedTx.description && selectedTx.type === 'sale' && (
+                  <div className="mt-8 p-6 bg-blue-50 rounded-2xl border border-blue-100/50">
+                    <h5 className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-2 flex items-center gap-2"><FileText className="h-3 w-3" /> İşlem Notu</h5>
+                    <p className="text-sm text-blue-900 font-medium leading-relaxed">{selectedTx.description}</p>
+                  </div>
+                )}
+
+                <div className="mt-10 flex items-center justify-between p-8 bg-gray-900 rounded-[2.5rem] text-white shadow-xl">
+                  <div className="flex items-center gap-4">
+                    <div className="p-4 bg-white/10 rounded-3xl"><DollarSign className="h-8 w-8 text-primary-400" /></div>
+                    <div><p className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em] mb-1">İşlem Toplamı</p><p className="text-3xl font-black tracking-tight">{Number(selectedTx.amount).toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺</p></div>
+                  </div>
+                  <Button onClick={() => setShowTxDetailModal(false)} className="h-14 px-10 rounded-2xl font-black bg-white text-gray-900 hover:bg-gray-100 transition-all shadow-lg active:scale-95">KAPAT</Button>
+                </div>
               </div>
             </CardBody>
           </Card>
@@ -544,7 +644,6 @@ export default function CustomerDetailPage() {
                   </div>
                 ) : (
                   <div className="space-y-8">
-                    {/* Bu Müşteriye Satışlar */}
                     <div className="space-y-4">
                       <h4 className="flex items-center gap-2 text-sm font-black text-gray-900 uppercase tracking-widest"><User className="h-4 w-4 text-blue-600" /> Bu Müşteriye Satışlar</h4>
                       <div className="space-y-3">
@@ -561,7 +660,6 @@ export default function CustomerDetailPage() {
                       </div>
                     </div>
 
-                    {/* Diğer Müşterilere Satışlar */}
                     <div className="space-y-4">
                       <h4 className="flex items-center gap-2 text-sm font-black text-gray-900 uppercase tracking-widest"><Users className="h-4 w-4 text-purple-600" /> Diğer Müşterilere Satışlar</h4>
                       <div className="space-y-3">

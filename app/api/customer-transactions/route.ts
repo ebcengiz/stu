@@ -13,7 +13,7 @@ export async function GET(request: Request) {
 
     const { data: transactions, error } = await supabase
       .from('customer_transactions')
-      .select('*')
+      .select('*, customer_transaction_items(*)')
       .eq('customer_id', customer_id)
       .order('transaction_date', { ascending: false })
 
