@@ -13,7 +13,7 @@ export async function GET(request: Request) {
 
     const { data: transactions, error } = await supabase
       .from('customer_transactions')
-      .select('*')
+      .select('*, customer_transaction_items(*)')
       .eq('customer_id', customer_id)
       .order('transaction_date', { ascending: false })
 
@@ -36,6 +36,10 @@ export async function POST(request: Request) {
       description, 
       transaction_date, 
       payment_method,
+      document_number,
+      waybill_number,
+      shipment_date,
+      order_date,
       items // Array of { product_id, product_name, quantity, unit_price, total_price }
     } = body
 
@@ -60,7 +64,11 @@ export async function POST(request: Request) {
         amount,
         description,
         transaction_date,
-        payment_method: type === 'payment' ? payment_method : null
+        payment_method: type === 'payment' ? payment_method : null,
+        document_number,
+        waybill_number,
+        shipment_date,
+        order_date
       })
       .select()
       .single()
@@ -75,6 +83,10 @@ export async function POST(request: Request) {
         product_name: item.product_name,
         quantity: item.quantity,
         unit_price: item.unit_price,
+        tax_rate: item.tax_rate || 0,
+        discount_rate: item.discount_rate || 0,
+        tax_amount: item.tax_amount || 0,
+        discount_amount: item.discount_amount || 0,
         total_price: item.total_price
       }))
 

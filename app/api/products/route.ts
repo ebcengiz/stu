@@ -15,6 +15,8 @@ export async function GET() {
         description,
         price,
         purchase_price,
+        tax_rate,
+        discount_rate,
         currency,
         unit,
         min_stock_level,

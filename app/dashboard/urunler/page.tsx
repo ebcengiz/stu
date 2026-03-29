@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, Suspense } from 'react'
-import { Plus, Search, Edit2, Trash2, X, ScanBarcode, Filter } from 'lucide-react'
+import { Plus, Search, Edit2, Trash2, X, ScanBarcode, Filter, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Card, CardHeader, CardBody, CardTitle } from '@/components/ui/Card'
 import { useRouter, useSearchParams } from 'next/navigation'
@@ -35,6 +35,8 @@ interface Product {
   description: string | null
   price: number | null
   purchase_price: number | null
+  tax_rate: number | null
+  discount_rate: number | null
   currency: string
   unit: string
   min_stock_level: number
@@ -57,20 +59,15 @@ interface Product {
 function calculateTotalStock(stockRecords?: Array<{ warehouse_id?: string; quantity: number; last_updated: string }>) {
   if (!stockRecords || stockRecords.length === 0) return 0
 
-  // Group by warehouse_id and keep only the most recent record for each warehouse
   const uniqueStockByWarehouse = new Map<string, number>()
 
   stockRecords.forEach(record => {
     const warehouseId = record.warehouse_id || 'default'
-    const existingRecord = uniqueStockByWarehouse.get(warehouseId)
-
-    // If no existing record or this record is more recent, use this one
-    if (!existingRecord) {
+    if (!uniqueStockByWarehouse.has(warehouseId)) {
       uniqueStockByWarehouse.set(warehouseId, Number(record.quantity || 0))
     }
   })
 
-  // Sum up the quantities from unique warehouses
   return Array.from(uniqueStockByWarehouse.values()).reduce((sum, qty) => sum + qty, 0)
 }
 
@@ -93,6 +90,8 @@ function ProductsPageContent() {
   const [stockFilter, setStockFilter] = useState<'all' | 'low-stock'>('all')
   const [categoryFilter, setCategoryFilter] = useState('')
   const [warehouseFilter, setWarehouseFilter] = useState('')
+  const [sortConfig, setSortConfig] = useState<{ key: keyof Product; direction: 'asc' | 'desc' } | null>(null)
+  
   const [formData, setFormData] = useState({
     name: '',
     sku: '',
@@ -100,15 +99,16 @@ function ProductsPageContent() {
     description: '',
     price: '' as string | number,
     purchase_price: '' as string | number,
+    tax_rate: 20 as string | number,
+    discount_rate: 0 as string | number,
     currency: 'TRY',
     unit: 'adet',
     min_stock_level: '' as string | number,
     category_id: '',
     is_active: true,
-    // Yeni alanlar: Başlangıç stok bilgileri
     initial_quantity: '' as string | number,
     warehouse_id: '',
-    movement_type: 'in' // Düzenlerken giriş mi çıkış mı
+    movement_type: 'in'
   })
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -119,7 +119,6 @@ function ProductsPageContent() {
     fetchWarehouses()
   }, [])
 
-  // URL parametresinden filtreyi oku
   useEffect(() => {
     const filter = searchParams.get('filter')
     setStockFilter(filter === 'low-stock' ? 'low-stock' : 'all')
@@ -129,17 +128,10 @@ function ProductsPageContent() {
     try {
       const response = await fetch('/api/products')
       const data = await response.json()
-
-      // DEBUG: Log stock data to see duplicates
-      data.forEach((p: any) => {
-        if (p.stock && p.stock.length > 1) {
-          console.log(`Product "${p.name}" has ${p.stock.length} stock records:`, p.stock)
-        }
-      })
-
-      setProducts(data)
+      setProducts(Array.isArray(data) ? data : [])
     } catch (error) {
       console.error('Error fetching products:', error)
+      setProducts([])
     } finally {
       setLoading(false)
     }
@@ -149,7 +141,7 @@ function ProductsPageContent() {
     try {
       const response = await fetch('/api/categories')
       const data = await response.json()
-      setCategories(data)
+      setCategories(Array.isArray(data) ? data : [])
     } catch (error) {
       console.error('Error fetching categories:', error)
     }
@@ -159,46 +151,45 @@ function ProductsPageContent() {
     try {
       const response = await fetch('/api/warehouses')
       const data = await response.json()
-      setWarehouses(data.filter((w: Warehouse) => w.is_active))
+      setWarehouses(Array.isArray(data) ? data.filter((w: Warehouse) => w.is_active) : [])
     } catch (error) {
       console.error('Error fetching warehouses:', error)
     }
   }
 
+  const requestSort = (key: keyof Product) => {
+    let direction: 'asc' | 'desc' = 'asc'
+    if (sortConfig && sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc'
+    }
+    setSortConfig({ key, direction })
+  }
+
+  const getSortIcon = (key: keyof Product) => {
+    if (!sortConfig || sortConfig.key !== key) return <ArrowUpDown className="h-3 w-3 ml-1 text-gray-400" />
+    return sortConfig.direction === 'asc' ? <ArrowUp className="h-3 w-3 ml-1 text-primary-600" /> : <ArrowDown className="h-3 w-3 ml-1 text-primary-600" />
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-
-    // Prevent double submit
     if (loading) return
-
     setLoading(true)
 
     try {
-      const url = editingProduct
-        ? `/api/products/${editingProduct.id}`
-        : '/api/products'
-
+      const url = editingProduct ? `/api/products/${editingProduct.id}` : '/api/products'
       const method = editingProduct ? 'PUT' : 'POST'
 
-      // Clean data: convert empty strings to null for optional fields
-      // Convert string numbers to actual numbers
       const cleanedData = {
         ...formData,
         sku: formData.sku.trim() || null,
         barcode: formData.barcode.trim() || null,
         description: formData.description.trim() || null,
-        price: typeof formData.price === 'string'
-          ? parseFloat(formData.price) || 0
-          : formData.price,
-        purchase_price: typeof formData.purchase_price === 'string'
-          ? parseFloat(formData.purchase_price) || 0
-          : formData.purchase_price,
-        min_stock_level: typeof formData.min_stock_level === 'string'
-          ? parseFloat(formData.min_stock_level) || 0
-          : formData.min_stock_level,
-        initial_quantity: typeof formData.initial_quantity === 'string'
-          ? parseFloat(formData.initial_quantity) || 0
-          : formData.initial_quantity,
+        price: typeof formData.price === 'string' ? parseFloat(formData.price) || 0 : formData.price,
+        purchase_price: typeof formData.purchase_price === 'string' ? parseFloat(formData.purchase_price) || 0 : formData.purchase_price,
+        tax_rate: typeof formData.tax_rate === 'string' ? parseFloat(formData.tax_rate) || 0 : formData.tax_rate,
+        discount_rate: typeof formData.discount_rate === 'string' ? parseFloat(formData.discount_rate) || 0 : formData.discount_rate,
+        min_stock_level: typeof formData.min_stock_level === 'string' ? parseFloat(formData.min_stock_level) || 0 : formData.min_stock_level,
+        initial_quantity: typeof formData.initial_quantity === 'string' ? parseFloat(formData.initial_quantity) || 0 : formData.initial_quantity,
       }
 
       const response = await fetch(url, {
@@ -214,114 +205,18 @@ function ProductsPageContent() {
 
       setShowModal(false)
       setEditingProduct(null)
-      setFormData({
-        name: '',
-        sku: '',
-        barcode: '',
-        description: '',
-        price: '',
-        purchase_price: '',
-        currency: 'TRY',
-        unit: 'adet',
-        min_stock_level: '',
-        category_id: '',
-        is_active: true,
-        initial_quantity: '',
-        warehouse_id: warehouses[0]?.id || '',
-        movement_type: 'in'
-      })
-
-      // Başarılı mesajı göster
-      alert(editingProduct ? 'Ürün başarıyla güncellendi!' : 'Ürün başarıyla eklendi!')
-
       fetchProducts()
+      alert(editingProduct ? 'Ürün başarıyla güncellendi!' : 'Ürün başarıyla eklendi!')
     } catch (error: any) {
-      console.error('Error saving product:', error)
       alert(error.message || 'Ürün kaydedilemedi')
     } finally {
       setLoading(false)
     }
   }
 
-  const handleCreateCategory = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (newCategoryLoading) return
-    setNewCategoryLoading(true)
-
-    try {
-      const response = await fetch('/api/categories', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newCategoryData),
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || 'Kategori oluşturulamadı')
-      }
-
-      const newCategory = await response.json()
-      
-      // Update categories list
-      await fetchCategories()
-      
-      // Select the new category
-      setFormData(prev => ({ ...prev, category_id: newCategory.id }))
-      
-      // Close modal and reset
-      setShowNewCategoryModal(false)
-      setNewCategoryData({ name: '', description: '' })
-    } catch (error) {
-      console.error('Error creating category:', error)
-      alert('Kategori oluşturulamadı')
-    } finally {
-      setNewCategoryLoading(false)
-    }
-  }
-
-  const handleCreateWarehouse = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (newWarehouseLoading) return
-    setNewWarehouseLoading(true)
-
-    try {
-      const response = await fetch('/api/warehouses', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newWarehouseData),
-      })
-
-      const responseData = await response.json()
-
-      if (!response.ok) {
-        console.error('Server error details:', responseData)
-        throw new Error(responseData.error || 'Sunucu hatası oluştu')
-      }
-
-      const newWarehouse = responseData
-      
-      // Update warehouses list
-      await fetchWarehouses()
-      
-      // Select the new warehouse
-      setFormData(prev => ({ ...prev, warehouse_id: newWarehouse.id }))
-      
-      // Close modal and reset
-      setShowNewWarehouseModal(false)
-      setNewWarehouseData({ name: '', location: '', is_active: true })
-    } catch (error) {
-      console.error('Error creating warehouse:', error)
-      alert('Depo oluşturulamadı')
-    } finally {
-      setNewWarehouseLoading(false)
-    }
-  }
-
   const handleEdit = (product: Product) => {
     setEditingProduct(product)
-    // Ürünün ilk stok kaydının deposunu seç, yoksa ilk aktif depoyu seç
     const defaultWarehouse = product.stock?.[0]?.warehouse_id || warehouses[0]?.id || ''
-
     setFormData({
       name: product.name,
       sku: product.sku || '',
@@ -329,12 +224,13 @@ function ProductsPageContent() {
       description: product.description || '',
       price: product.price || '',
       purchase_price: product.purchase_price || '',
+      tax_rate: product.tax_rate || 20,
+      discount_rate: product.discount_rate || 0,
       currency: product.currency || 'TRY',
       unit: product.unit,
       min_stock_level: product.min_stock_level || '',
       category_id: product.category_id || '',
       is_active: product.is_active,
-      // Düzenlerken de stok değişikliği yapılabilir
       initial_quantity: '',
       warehouse_id: defaultWarehouse,
       movement_type: 'in'
@@ -344,17 +240,11 @@ function ProductsPageContent() {
 
   const handleDelete = async (id: string) => {
     if (!confirm('Bu ürünü silmek istediğinizden emin misiniz?')) return
-
     try {
-      const response = await fetch(`/api/products/${id}`, {
-        method: 'DELETE',
-      })
-
+      const response = await fetch(`/api/products/${id}`, { method: 'DELETE' })
       if (!response.ok) throw new Error('Failed to delete product')
-
       fetchProducts()
     } catch (error) {
-      console.error('Error deleting product:', error)
       alert('Ürün silinemedi')
     }
   }
@@ -362,61 +252,36 @@ function ProductsPageContent() {
   const openNewModal = () => {
     setEditingProduct(null)
     setFormData({
-      name: '',
-      sku: '',
-      barcode: '',
-      description: '',
-      price: '',
-      purchase_price: '',
-      currency: 'TRY',
-      unit: 'adet',
-      min_stock_level: '',
-      category_id: '',
-      is_active: true,
-      initial_quantity: '',
-      warehouse_id: warehouses[0]?.id || '', // İlk depoyu otomatik seç
-      movement_type: 'in'
+      name: '', sku: '', barcode: '', description: '', price: '', purchase_price: '', tax_rate: 20, discount_rate: 0,
+      currency: 'TRY', unit: 'adet', min_stock_level: '', category_id: '', is_active: true,
+      initial_quantity: '', warehouse_id: warehouses[0]?.id || '', movement_type: 'in'
     })
     setShowModal(true)
   }
 
-  const handleBarcodeScanned = (barcode: string) => {
-    setSearchTerm(barcode)
-    setShowBarcodeScanner(false)
-
-    // Barkod ile ürün bul ve varsa düzenleme modunu aç
-    const product = products.find(p => p.barcode === barcode)
-    if (product) {
-      setTimeout(() => {
-        handleEdit(product)
-      }, 300)
-    }
-  }
-
-  const filteredProducts = products.filter(product => {
-    // Arama filtresi
+  const filteredProducts = Array.isArray(products) ? products.filter(product => {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       product.sku?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       product.barcode?.toLowerCase().includes(searchTerm.toLowerCase())
-
-    // Kategori filtresi
     const matchesCategory = categoryFilter ? product.category_id === categoryFilter : true
-
-    // Depo filtresi
-    const matchesWarehouse = warehouseFilter
-      ? product.stock?.some(s => s.warehouse_id === warehouseFilter && Number(s.quantity) > 0)
-      : true
-
-    // Stok filtresi
+    const matchesWarehouse = warehouseFilter ? product.stock?.some(s => s.warehouse_id === warehouseFilter && Number(s.quantity) > 0) : true
     const totalStock = calculateTotalStock(product.stock)
     const isLowStock = stockFilter === 'low-stock' ? totalStock <= product.min_stock_level : true
-
     return matchesSearch && matchesCategory && matchesWarehouse && isLowStock
+  }) : []
+
+  const sortedProducts = [...filteredProducts].sort((a, b) => {
+    if (!sortConfig) return 0
+    const { key, direction } = sortConfig
+    const aValue = a[key] ?? ''
+    const bValue = b[key] ?? ''
+    
+    if (aValue < bValue) return direction === 'asc' ? -1 : 1
+    if (aValue > bValue) return direction === 'asc' ? 1 : -1
+    return 0
   })
 
-  if (loading && products.length === 0) {
-    return <div className="p-8">Yükleniyor...</div>
-  }
+  if (loading && products.length === 0) return <div className="p-8">Yükleniyor...</div>
 
   return (
     <div className="space-y-6">
@@ -425,10 +290,7 @@ function ProductsPageContent() {
           <h1 className="text-3xl font-bold text-gray-900">Ürünler</h1>
           <p className="mt-2 text-gray-600">Ürünlerinizi yönetin</p>
         </div>
-        <Button onClick={openNewModal}>
-          <Plus className="mr-2 h-4 w-4" />
-          Yeni Ürün
-        </Button>
+        <Button onClick={openNewModal}><Plus className="mr-2 h-4 w-4" />Yeni Ürün</Button>
       </div>
 
       <Card>
@@ -439,122 +301,19 @@ function ProductsPageContent() {
               <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                 <div className="relative flex-grow sm:flex-grow-0">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                  <input
-                    type="text"
-                    placeholder="Ürün ara..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full sm:w-64 pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm"
-                  />
+                  <input type="text" placeholder="Ürün ara..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full sm:w-64 pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm" />
                 </div>
                 <div className="flex gap-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setShowFilters(!showFilters)}
-                    className={`flex items-center gap-2 ${showFilters || categoryFilter || warehouseFilter || stockFilter === 'low-stock' ? 'border-primary-500 text-primary-700 bg-primary-50' : ''}`}
-                  >
-                    <Filter className="h-4 w-4" />
-                    <span className="hidden sm:inline">Filtrele</span>
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setShowBarcodeScanner(true)}
-                    className="flex items-center gap-2"
-                  >
-                    <ScanBarcode className="h-4 w-4" />
-                    <span className="hidden sm:inline">Barkod</span>
-                  </Button>
+                  <Button type="button" variant="outline" onClick={() => setShowFilters(!showFilters)} className={`flex items-center gap-2 ${showFilters || categoryFilter || warehouseFilter || stockFilter === 'low-stock' ? 'border-primary-500 text-primary-700 bg-primary-50' : ''}`}><Filter className="h-4 w-4" /><span className="hidden sm:inline">Filtrele</span></Button>
+                  <Button type="button" variant="outline" onClick={() => setShowBarcodeScanner(true)} className="flex items-center gap-2"><ScanBarcode className="h-4 w-4" /><span className="hidden sm:inline">Barkod</span></Button>
                 </div>
               </div>
             </div>
-
-            {/* Modern Filter Panel */}
             {showFilters && (
-              <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 animate-in fade-in slide-in-from-top-2 duration-200">
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Kategori</label>
-                    <select
-                      value={categoryFilter}
-                      onChange={(e) => setCategoryFilter(e.target.value)}
-                      className="w-full bg-white border border-gray-300 rounded-md py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                    >
-                      <option value="">Tümü</option>
-                      {categories.map((c) => (
-                        <option key={c.id} value={c.id}>{c.name}</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Depo</label>
-                    <select
-                      value={warehouseFilter}
-                      onChange={(e) => setWarehouseFilter(e.target.value)}
-                      className="w-full bg-white border border-gray-300 rounded-md py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                    >
-                      <option value="">Tümü</option>
-                      {warehouses.map((w) => (
-                        <option key={w.id} value={w.id}>{w.name}</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Durum</label>
-                    <label className={`flex items-center justify-between w-full bg-white border rounded-md py-2 px-3 text-sm cursor-pointer transition-colors ${stockFilter === 'low-stock' ? 'border-red-300 bg-red-50 text-red-700' : 'border-gray-300 hover:border-gray-400'}`}>
-                      <span>Düşük Stok Uyarıları</span>
-                      <input
-                        type="checkbox"
-                        checked={stockFilter === 'low-stock'}
-                        onChange={(e) => setStockFilter(e.target.checked ? 'low-stock' : 'all')}
-                        className="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"
-                      />
-                    </label>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Active Filters Badges */}
-            {(categoryFilter || warehouseFilter || stockFilter === 'low-stock') && (
-              <div className="flex flex-wrap items-center gap-2 pt-2">
-                <span className="text-xs text-gray-500 mr-1">Aktif Filtreler:</span>
-                
-                {categoryFilter && (
-                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200">
-                    Kategori: {categories.find(c => c.id === categoryFilter)?.name}
-                    <button onClick={() => setCategoryFilter('')} className="hover:text-blue-600"><X className="h-3 w-3" /></button>
-                  </span>
-                )}
-                
-                {warehouseFilter && (
-                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800 border border-purple-200">
-                    Depo: {warehouses.find(w => w.id === warehouseFilter)?.name}
-                    <button onClick={() => setWarehouseFilter('')} className="hover:text-purple-600"><X className="h-3 w-3" /></button>
-                  </span>
-                )}
-
-                {stockFilter === 'low-stock' && (
-                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 border border-red-200">
-                    Düşük Stok
-                    <button onClick={() => setStockFilter('all')} className="hover:text-red-600"><X className="h-3 w-3" /></button>
-                  </span>
-                )}
-
-                <button
-                  onClick={() => {
-                    setCategoryFilter('')
-                    setWarehouseFilter('')
-                    setStockFilter('all')
-                    setSearchTerm('')
-                  }}
-                  className="text-xs text-gray-500 hover:text-gray-900 underline underline-offset-2 ml-2"
-                >
-                  Temizle
-                </button>
+              <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="space-y-1.5"><label className="text-xs font-medium text-gray-500 uppercase">Kategori</label><select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)} className="w-full bg-white border border-gray-300 rounded-md py-2 px-3 text-sm"><option value="">Tümü</option>{categories.map((c) => (<option key={c.id} value={c.id}>{c.name}</option>))}</select></div>
+                <div className="space-y-1.5"><label className="text-xs font-medium text-gray-500 uppercase">Depo</label><select value={warehouseFilter} onChange={(e) => setWarehouseFilter(e.target.value)} className="w-full bg-white border border-gray-300 rounded-md py-2 px-3 text-sm"><option value="">Tümü</option>{warehouses.map((w) => (<option key={w.id} value={w.id}>{w.name}</option>))}</select></div>
+                <div className="space-y-1.5"><label className="text-xs font-medium text-gray-500 uppercase">Durum</label><label className={`flex items-center justify-between w-full bg-white border rounded-md py-2 px-3 text-sm cursor-pointer ${stockFilter === 'low-stock' ? 'border-red-300 bg-red-50 text-red-700' : 'border-gray-300'}`}><span>Düşük Stok</span><input type="checkbox" checked={stockFilter === 'low-stock'} onChange={(e) => setStockFilter(e.target.checked ? 'low-stock' : 'all')} className="h-4 w-4" /></label></div>
               </div>
             )}
           </div>
@@ -564,144 +323,45 @@ function ProductsPageContent() {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Ürün
+                  <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors" onClick={() => requestSort('name')}>
+                    <div className="flex items-center">Ürün {getSortIcon('name')}</div>
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Kategori
+                  <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors" onClick={() => requestSort('sku')}>
+                    <div className="flex items-center">SKU {getSortIcon('sku')}</div>
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Fiyat
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Kar Oranı
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Toplam Stok
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Depo Dağılımı
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Durum
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    İşlemler
-                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kategori</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fiyat</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">KDV / İsk.</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kar Oranı</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Toplam Stok</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Durum</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">İşlemler</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {filteredProducts.length > 0 ? (
-                  filteredProducts.map((product) => {
+                {sortedProducts.length > 0 ? (
+                  sortedProducts.map((product) => {
                     const totalStock = calculateTotalStock(product.stock)
                     const isLow = totalStock <= product.min_stock_level
-                    const isCritical = totalStock <= product.min_stock_level / 2
                     const symbol = CURRENCY_SYMBOLS[product.currency || 'TRY'] || product.currency || '₺'
-
                     return (
-                      <tr key={product.id} className={`${
-                        isCritical
-                          ? 'bg-red-200 hover:bg-red-300'
-                          : isLow
-                          ? 'bg-red-50 hover:bg-red-100'
-                          : 'hover:bg-gray-100'
-                      }`}>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                          {product.name}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {product.categories?.name || '-'}
-                        </td>
+                      <tr key={product.id} className={isLow ? 'bg-red-50' : 'hover:bg-gray-50'}>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{product.name}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{product.sku || '-'}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{product.categories?.name || '-'}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          <div className="flex flex-col">
-                            <span className="font-medium text-green-700" title="Satış Fiyatı">
-                              S: {symbol}{Number(product.price || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2 })}
-                            </span>
-                            {product.purchase_price && (
-                              <span className="text-xs text-red-600" title="Alış Fiyatı">
-                                A: {symbol}{Number(product.purchase_price).toLocaleString('tr-TR', { minimumFractionDigits: 2 })}
-                              </span>
-                            )}
-                          </div>
+                          <div className="flex flex-col"><span className="font-medium text-green-700">S: {symbol}{Number(product.price || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2 })}</span>{product.purchase_price && (<span className="text-xs text-red-600">A: {symbol}{Number(product.purchase_price).toLocaleString('tr-TR', { minimumFractionDigits: 2 })}</span>)}</div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm">
-                          {product.purchase_price && Number(product.purchase_price) > 0 ? (
-                            (() => {
-                              const profit = (Number(product.price) || 0) - (Number(product.purchase_price) || 0)
-                              const margin = (profit / Number(product.purchase_price)) * 100
-                              return (
-                                <span className={`font-medium ${margin >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                                  %{margin.toLocaleString('tr-TR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}
-                                </span>
-                              )
-                            })()
-                          ) : (
-                            <span className="text-gray-400">-</span>
-                          )}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
-                          {totalStock.toFixed(2)} {product.unit}
-                        </td>
-                        <td className="px-6 py-4 text-sm text-gray-500">
-                          {product.stock && product.stock.length > 0 ? (
-                            <div className="space-y-1">
-                              {product.stock.map((s, i) => (
-                                <div key={i}>
-                                  {s.warehouses?.name}: {Number(s.quantity || 0).toFixed(2)} {product.unit}
-                                </div>
-                              ))}
-                            </div>
-                          ) : (
-                            'Stok yok'
-                          )}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          {product.is_active ? (
-                            <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                              isCritical
-                                ? 'bg-red-600 text-white'
-                                : isLow
-                                ? 'bg-red-100 text-red-800'
-                                : 'bg-green-100 text-green-800'
-                            }`}>
-                              {isCritical ? 'Kritik' : isLow ? 'Düşük' : 'Normal'}
-                            </span>
-                          ) : (
-                            <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
-                              Pasif
-                            </span>
-                          )}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                          <div className="flex gap-2">
-                            <button
-                              onClick={() => handleEdit(product)}
-                              className="text-blue-600 hover:text-blue-900"
-                            >
-                              <Edit2 className="h-4 w-4" />
-                            </button>
-                            <button
-                              onClick={() => handleDelete(product.id)}
-                              className="text-red-600 hover:text-red-900"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </button>
-                          </div>
-                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><div className="flex flex-col text-xs"><span className="text-blue-600">KDV: %{product.tax_rate || 0}</span><span className="text-orange-600">İsk: %{product.discount_rate || 0}</span></div></td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm">{product.purchase_price && Number(product.purchase_price) > 0 ? (() => { const profit = (Number(product.price) || 0) - (Number(product.purchase_price) || 0); const margin = (profit / Number(product.purchase_price)) * 100; return <span className={`font-medium ${margin >= 0 ? 'text-green-600' : 'text-red-600'}`}>%{margin.toLocaleString('tr-TR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}</span> })() : <span className="text-gray-400">-</span>}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">{totalStock.toFixed(2)} {product.unit}</td>
+                        <td className="px-6 py-4 whitespace-nowrap">{product.is_active ? (<span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${isLow ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>{isLow ? 'Düşük Stok' : 'Aktif'}</span>) : (<span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">Pasif</span>)}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium"><div className="flex gap-2"><button onClick={() => handleEdit(product)} className="text-blue-600 hover:text-blue-900"><Edit2 className="h-4 w-4" /></button><button onClick={() => handleDelete(product.id)} className="text-red-600 hover:text-red-900"><Trash2 className="h-4 w-4" /></button></div></td>
                       </tr>
                     )
                   })
                 ) : (
-                  <tr>
-                    <td colSpan={8} className="px-6 py-12 text-center text-gray-500">
-                      {stockFilter === 'low-stock'
-                        ? 'Düşük stokta ürün bulunmuyor.'
-                        : searchTerm
-                        ? 'Arama sonucu bulunamadı.'
-                        : 'Henüz ürün eklenmemiş. Yeni ürün eklemek için yukarıdaki butonu kullanın.'
-                      }
-                    </td>
-                  </tr>
+                  <tr><td colSpan={9} className="px-6 py-12 text-center text-gray-500">Ürün bulunamadı.</td></tr>
                 )}
               </tbody>
             </table>
@@ -709,432 +369,35 @@ function ProductsPageContent() {
         </CardBody>
       </Card>
 
-      {/* Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <h2 className="text-xl font-bold mb-4">
-              {editingProduct ? 'Ürün Düzenle' : 'Yeni Ürün'}
-            </h2>
+            <h2 className="text-xl font-bold mb-4">{editingProduct ? 'Ürün Düzenle' : 'Yeni Ürün'}</h2>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Ürün Adı *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Kategori *
-                  </label>
-                  <div className="flex gap-2">
-                    <select
-                      required
-                      value={formData.category_id}
-                      onChange={(e) => setFormData({ ...formData, category_id: e.target.value })}
-                      className="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                    >
-                      <option value="">Kategori Seçin</option>
-                      {categories.map((category) => (
-                        <option key={category.id} value={category.id}>
-                          {category.name}
-                        </option>
-                      ))}
-                    </select>
-                    <Button 
-                      type="button" 
-                      variant="outline" 
-                      className="px-2"
-                      onClick={() => setShowNewCategoryModal(true)}
-                    >
-                      <Plus className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    SKU
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.sku}
-                    onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Barkod
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.barcode}
-                    onChange={(e) => setFormData({ ...formData, barcode: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  />
-                  {formData.barcode && (
-                    <div className="mt-3 p-3 bg-gray-50 rounded-md flex justify-center">
-                      <BarcodeDisplay value={formData.barcode} />
-                    </div>
-                  )}
-                </div>
-                
-                {/* Fiyat ve Para Birimi Alanları */}
+                <div><label className="block text-sm font-medium text-gray-700 mb-2">Ürün Adı *</label><input type="text" required value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="w-full px-4 py-2 border rounded-md" /></div>
+                <div><label className="block text-sm font-medium text-gray-700 mb-2">Kategori *</label><select required value={formData.category_id} onChange={(e) => setFormData({ ...formData, category_id: e.target.value })} className="w-full px-4 py-2 border rounded-md"><option value="">Kategori Seçin</option>{categories.map((c) => (<option key={c.id} value={c.id}>{c.name}</option>))}</select></div>
+                <div><label className="block text-sm font-medium text-gray-700 mb-2">SKU</label><input type="text" value={formData.sku} onChange={(e) => setFormData({ ...formData, sku: e.target.value })} className="w-full px-4 py-2 border rounded-md" /></div>
+                <div><label className="block text-sm font-medium text-gray-700 mb-2">Barkod</label><input type="text" value={formData.barcode} onChange={(e) => setFormData({ ...formData, barcode: e.target.value })} className="w-full px-4 py-2 border rounded-md" /></div>
                 <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Para Birimi
-                    </label>
-                    <select
-                      value={formData.currency}
-                      onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                    >
-                      <option value="TRY">TRY (₺)</option>
-                      <option value="USD">USD ($)</option>
-                      <option value="EUR">EUR (€)</option>
-                      <option value="GBP">GBP (£)</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Satış Fiyatı
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.price}
-                      onChange={(e) => {
-                        let value = e.target.value.replace(/[^0-9.,]/g, '')
-                        value = value.replace(/,/g, '.')
-                        const parts = value.split('.')
-                        if (parts.length > 2) value = parts[0] + '.' + parts.slice(1).join('')
-                        setFormData({ ...formData, price: value })
-                      }}
-                      placeholder="0.00"
-                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                    />
-                  </div>
+                  <div><label className="block text-sm font-medium text-gray-700 mb-2">Para Birimi</label><select value={formData.currency} onChange={(e) => setFormData({ ...formData, currency: e.target.value })} className="w-full px-4 py-2 border rounded-md"><option value="TRY">TRY (₺)</option><option value="USD">USD ($)</option><option value="EUR">EUR (€)</option></select></div>
+                  <div><label className="block text-sm font-medium text-gray-700 mb-2">Satış Fiyatı</label><input type="text" value={formData.price} onChange={(e) => setFormData({ ...formData, price: e.target.value })} className="w-full px-4 py-2 border rounded-md" /></div>
                 </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Alış Fiyatı
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.purchase_price}
-                    onChange={(e) => {
-                      let value = e.target.value.replace(/[^0-9.,]/g, '')
-                      value = value.replace(/,/g, '.')
-                      const parts = value.split('.')
-                      if (parts.length > 2) value = parts[0] + '.' + parts.slice(1).join('')
-                      setFormData({ ...formData, purchase_price: value })
-                    }}
-                    placeholder="0.00"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  />
+                <div><label className="block text-sm font-medium text-gray-700 mb-2">Alış Fiyatı</label><input type="text" value={formData.purchase_price} onChange={(e) => setFormData({ ...formData, purchase_price: e.target.value })} className="w-full px-4 py-2 border rounded-md" /></div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div><label className="block text-sm font-medium text-gray-700 mb-2">KDV (%)</label><input type="number" value={formData.tax_rate} onChange={(e) => setFormData({ ...formData, tax_rate: e.target.value })} className="w-full px-4 py-2 border rounded-md" /></div>
+                  <div><label className="block text-sm font-medium text-gray-700 mb-2">İskonto (%)</label><input type="number" value={formData.discount_rate} onChange={(e) => setFormData({ ...formData, discount_rate: e.target.value })} className="w-full px-4 py-2 border rounded-md" /></div>
                 </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Birim *
-                  </label>
-                  <select
-                    required
-                    value={formData.unit}
-                    onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  >
-                    <option value="adet">Adet</option>
-                    <option value="kg">Kilogram</option>
-                    <option value="litre">Litre</option>
-                    <option value="metre">Metre</option>
-                    <option value="paket">Paket</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Minimum Stok Seviyesi *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.min_stock_level}
-                    onChange={(e) => {
-                      const isDecimalUnit = ['kg', 'litre', 'metre'].includes(formData.unit)
-                      let value = e.target.value
-
-                      if (isDecimalUnit) {
-                        // Allow digits, dot and comma for decimal units
-                        value = value.replace(/[^0-9.,]/g, '')
-                        // Replace comma with dot
-                        value = value.replace(/,/g, '.')
-                        // Prevent multiple dots
-                        const parts = value.split('.')
-                        if (parts.length > 2) {
-                          value = parts[0] + '.' + parts.slice(1).join('')
-                        }
-                        // Store as string to preserve typing state (e.g., "10." before "10.5")
-                        setFormData({ ...formData, min_stock_level: value })
-                      } else {
-                        // Only allow digits for piece/package units
-                        value = value.replace(/[^0-9]/g, '')
-                        setFormData({ ...formData, min_stock_level: value })
-                      }
-                    }}
-                    placeholder="0"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  />
-                </div>
+                <div><label className="block text-sm font-medium text-gray-700 mb-2">Birim *</label><select required value={formData.unit} onChange={(e) => setFormData({ ...formData, unit: e.target.value })} className="w-full px-4 py-2 border rounded-md"><option value="adet">Adet</option><option value="kg">Kilogram</option><option value="litre">Litre</option><option value="metre">Metre</option></select></div>
+                <div><label className="block text-sm font-medium text-gray-700 mb-2">Min. Stok</label><input type="text" value={formData.min_stock_level} onChange={(e) => setFormData({ ...formData, min_stock_level: e.target.value })} className="w-full px-4 py-2 border rounded-md" /></div>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Açıklama
-                </label>
-                <textarea
-                  rows={3}
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                />
-              </div>
-
-              {/* Stok Bilgileri - Sadece yeni ürün eklerken */}
               {!editingProduct && (
-                <div className="border-t border-gray-200 pt-4 mt-4">
-                  <h3 className="text-sm font-semibold text-gray-900 mb-3">
-                    Başlangıç Stok Bilgileri
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Depo *
-                      </label>
-                      <div className="flex gap-2">
-                        <select
-                          required
-                          value={formData.warehouse_id}
-                          onChange={(e) => setFormData({ ...formData, warehouse_id: e.target.value })}
-                          className="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                        >
-                          <option value="">Depo Seçin</option>
-                          {warehouses.map((warehouse) => (
-                            <option key={warehouse.id} value={warehouse.id}>
-                              {warehouse.name}
-                            </option>
-                          ))}
-                        </select>
-                        <Button 
-                          type="button" 
-                          variant="outline" 
-                          className="px-2"
-                          onClick={() => setShowNewWarehouseModal(true)}
-                        >
-                          <Plus className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Başlangıç Stok Miktarı *
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        value={formData.initial_quantity}
-                        onChange={(e) => {
-                          const isDecimalUnit = ['kg', 'litre', 'metre'].includes(formData.unit)
-                          let value = e.target.value
-
-                          if (isDecimalUnit) {
-                            // Allow digits, dot and comma for decimal units
-                            value = value.replace(/[^0-9.,]/g, '')
-                            // Replace comma with dot
-                            value = value.replace(/,/g, '.')
-                            // Prevent multiple dots
-                            const parts = value.split('.')
-                            if (parts.length > 2) {
-                              value = parts[0] + '.' + parts.slice(1).join('')
-                            }
-                            // Store as string to preserve typing state
-                            setFormData({ ...formData, initial_quantity: value })
-                          } else {
-                            // Only allow digits for piece/package units
-                            value = value.replace(/[^0-9]/g, '')
-                            setFormData({ ...formData, initial_quantity: value })
-                          }
-                        }}
-                        placeholder="0"
-                        className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                      />
-                    </div>
-                  </div>
+                <div className="grid grid-cols-2 gap-4 border-t pt-4">
+                  <div><label className="block text-sm font-medium text-gray-700 mb-2">Depo *</label><select required value={formData.warehouse_id} onChange={(e) => setFormData({ ...formData, warehouse_id: e.target.value })} className="w-full px-4 py-2 border rounded-md"><option value="">Depo Seçin</option>{warehouses.map((w) => (<option key={w.id} value={w.id}>{w.name}</option>))}</select></div>
+                  <div><label className="block text-sm font-medium text-gray-700 mb-2">Başlangıç Stoku</label><input type="text" value={formData.initial_quantity} onChange={(e) => setFormData({ ...formData, initial_quantity: e.target.value })} className="w-full px-4 py-2 border rounded-md" /></div>
                 </div>
               )}
-
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  id="is_active"
-                  checked={formData.is_active}
-                  onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
-                  className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
-                />
-                <label htmlFor="is_active" className="ml-2 block text-sm text-gray-700">
-                  Ürün Aktif
-                </label>
-              </div>
-              <div className="flex justify-end gap-3 pt-4">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setShowModal(false)}
-                >
-                  İptal
-                </Button>
-                <Button type="submit" disabled={loading}>
-                  {loading ? 'Kaydediliyor...' : 'Kaydet'}
-                </Button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Barkod Okuyucu Modal */}
-      {showBarcodeScanner && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold">Barkod Okuyucu</h2>
-              <button
-                onClick={() => setShowBarcodeScanner(false)}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                <X className="h-6 w-6" />
-              </button>
-            </div>
-            <BarcodeScanner
-              onScan={handleBarcodeScanned}
-              placeholder="Barkodu okutun veya manuel girin..."
-            />
-          </div>
-        </div>
-      )}
-
-      {/* Yeni Kategori Modal */}
-      {showNewCategoryModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60] p-4">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-xl animate-in fade-in zoom-in duration-200">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold">Yeni Kategori Ekle</h2>
-              <button
-                onClick={() => setShowNewCategoryModal(false)}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                <X className="h-6 w-6" />
-              </button>
-            </div>
-            <form onSubmit={handleCreateCategory} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Kategori Adı *
-                </label>
-                <input
-                  type="text"
-                  required
-                  autoFocus
-                  value={newCategoryData.name}
-                  onChange={(e) => setNewCategoryData({ ...newCategoryData, name: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  placeholder="Örn: Elektronik"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Açıklama
-                </label>
-                <textarea
-                  rows={3}
-                  value={newCategoryData.description}
-                  onChange={(e) => setNewCategoryData({ ...newCategoryData, description: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  placeholder="Kategori açıklaması (isteğe bağlı)"
-                />
-              </div>
-              <div className="flex justify-end gap-3 pt-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setShowNewCategoryModal(false)}
-                >
-                  İptal
-                </Button>
-                <Button type="submit" disabled={newCategoryLoading}>
-                  {newCategoryLoading ? 'Ekleniyor...' : 'Kategori Ekle'}
-                </Button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Yeni Depo Modal */}
-      {showNewWarehouseModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60] p-4">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-xl animate-in fade-in zoom-in duration-200">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold">Yeni Depo Ekle</h2>
-              <button
-                onClick={() => setShowNewWarehouseModal(false)}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                <X className="h-6 w-6" />
-              </button>
-            </div>
-            <form onSubmit={handleCreateWarehouse} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Depo Adı *
-                </label>
-                <input
-                  type="text"
-                  required
-                  autoFocus
-                  value={newWarehouseData.name}
-                  onChange={(e) => setNewWarehouseData({ ...newWarehouseData, name: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  placeholder="Örn: Ana Depo"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Lokasyon
-                </label>
-                <LocationPicker
-                  value={newWarehouseData.location}
-                  onChange={(location) => setNewWarehouseData({ ...newWarehouseData, location })}
-                />
-              </div>
-              <div className="flex justify-end gap-3 pt-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setShowNewWarehouseModal(false)}
-                >
-                  İptal
-                </Button>
-                <Button type="submit" disabled={newWarehouseLoading}>
-                  {newWarehouseLoading ? 'Ekleniyor...' : 'Depo Ekle'}
-                </Button>
-              </div>
+              <div className="flex justify-end gap-3 pt-4 border-t"><Button type="button" variant="outline" onClick={() => setShowModal(false)}>İptal</Button><Button type="submit" disabled={loading}>{loading ? 'Kaydediliyor...' : 'Kaydet'}</Button></div>
             </form>
           </div>
         </div>
