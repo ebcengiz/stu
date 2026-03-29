@@ -295,6 +295,52 @@ function ProductsPageContent() {
     setShowModal(true)
   }
 
+  const handleCreateCategory = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setNewCategoryLoading(true)
+    try {
+      const res = await fetch('/api/categories', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newCategoryData),
+      })
+      if (!res.ok) throw new Error('Kategori eklenemedi')
+      const newCat = await res.json()
+      await fetchCategories()
+      setFormData(prev => ({ ...prev, category_id: newCat.id }))
+      setShowNewCategoryModal(false)
+      setNewCategoryData({ name: '', description: '' })
+      toast.success('Yeni kategori eklendi ve seçildi')
+    } catch (err: any) {
+      toast.error(err.message)
+    } finally {
+      setNewCategoryLoading(false)
+    }
+  }
+
+  const handleCreateWarehouse = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setNewWarehouseLoading(true)
+    try {
+      const res = await fetch('/api/warehouses', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newWarehouseData),
+      })
+      if (!res.ok) throw new Error('Depo eklenemedi')
+      const newWh = await res.json()
+      await fetchWarehouses()
+      setFormData(prev => ({ ...prev, warehouse_id: newWh.id }))
+      setShowNewWarehouseModal(false)
+      setNewWarehouseData({ name: '', location: '', is_active: true })
+      toast.success('Yeni depo eklendi ve seçildi')
+    } catch (err: any) {
+      toast.error(err.message)
+    } finally {
+      setNewWarehouseLoading(false)
+    }
+  }
+
   const filteredProducts = Array.isArray(products) ? products.filter(product => {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       product.sku?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -356,7 +402,7 @@ function ProductsPageContent() {
         </CardHeader>
         <CardBody className="p-0">
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-100">
+            <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50/50">
                 <tr>
                   <th className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest cursor-pointer hover:text-primary-600 transition-colors" onClick={() => requestSort('name')}>
@@ -464,12 +510,37 @@ function ProductsPageContent() {
                 </div>
 
                 {/* Right Side: Form Fields */}
-                <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-1.5 md:col-span-2"><label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Ürün Adı *</label><input type="text" required value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="w-full px-5 py-4 border-2 border-gray-100 rounded-2xl focus:border-primary-500 focus:ring-4 focus:ring-primary-50 outline-none font-bold text-gray-900 transition-all" placeholder="Örn: iPhone 15 Pro Max" /></div>
-                  <div className="space-y-1.5"><label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Kategori *</label><select required value={formData.category_id} onChange={(e) => setFormData({ ...formData, category_id: e.target.value })} className="w-full px-5 py-4 border-2 border-gray-100 rounded-2xl focus:border-primary-500 focus:ring-4 focus:ring-primary-50 outline-none font-bold text-gray-900 transition-all bg-white shadow-sm">{categories.map((c) => (<option key={c.id} value={c.id}>{c.name}</option>))}</select></div>
-                  <div className="space-y-1.5"><label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">SKU (Stok Kodu)</label><input type="text" value={formData.sku} onChange={(e) => setFormData({ ...formData, sku: e.target.value })} className="w-full px-5 py-4 border-2 border-gray-100 rounded-2xl focus:border-primary-500 focus:ring-4 focus:ring-primary-50 outline-none font-bold text-gray-900 transition-all uppercase" placeholder="ABC-123" /></div>
-                  <div className="space-y-1.5"><label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Barkod No</label><input type="text" value={formData.barcode} onChange={(e) => setFormData({ ...formData, barcode: e.target.value })} className="w-full px-5 py-4 border-2 border-gray-100 rounded-2xl focus:border-primary-500 focus:ring-4 focus:ring-primary-50 outline-none font-bold text-gray-900 transition-all" placeholder="8690000000000" /></div>
-                  <div className="space-y-1.5"><label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Birim</label><select required value={formData.unit} onChange={(e) => setFormData({ ...formData, unit: e.target.value })} className="w-full px-5 py-4 border-2 border-gray-100 rounded-2xl focus:border-primary-500 focus:ring-4 focus:ring-primary-50 outline-none font-bold text-gray-900 transition-all bg-white shadow-sm"><option value="adet">Adet</option><option value="kg">Kilogram</option><option value="litre">Litre</option><option value="metre">Metre</option><option value="paket">Paket</option></select></div>
+                <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                  <div className="space-y-1.5 md:col-span-2">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Ürün Adı *</label>
+                    <input type="text" required value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="w-full px-5 py-3.5 border-2 border-gray-100 rounded-2xl focus:border-primary-500 focus:ring-4 focus:ring-primary-50 outline-none font-bold text-gray-900 transition-all" placeholder="Örn: iPhone 15 Pro Max" />
+                  </div>
+                  
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Kategori *</label>
+                    <div className="flex gap-2">
+                      <select required value={formData.category_id} onChange={(e) => setFormData({ ...formData, category_id: e.target.value })} className="flex-1 px-4 py-3.5 border-2 border-gray-100 rounded-2xl focus:border-primary-500 focus:ring-4 focus:ring-primary-50 outline-none font-bold text-gray-900 transition-all bg-white shadow-sm appearance-none">
+                        <option value="">Seçiniz</option>
+                        {categories.map((c) => (<option key={c.id} value={c.id}>{c.name}</option>))}
+                      </select>
+                      <button type="button" onClick={() => setShowNewCategoryModal(true)} className="flex-shrink-0 h-[52px] w-[52px] flex items-center justify-center bg-primary-50 text-primary-600 rounded-2xl hover:bg-primary-100 transition-all active:scale-95 border-2 border-primary-100" title="Yeni Kategori Ekle"><Plus className="h-5 w-5" /></button>
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">SKU (Stok Kodu)</label>
+                    <input type="text" value={formData.sku} onChange={(e) => setFormData({ ...formData, sku: e.target.value })} className="w-full px-5 py-3.5 border-2 border-gray-100 rounded-2xl focus:border-primary-500 focus:ring-4 focus:ring-primary-50 outline-none font-bold text-gray-900 transition-all uppercase" placeholder="ABC-123" />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Barkod No</label>
+                    <input type="text" value={formData.barcode} onChange={(e) => setFormData({ ...formData, barcode: e.target.value })} className="w-full px-5 py-3.5 border-2 border-gray-100 rounded-2xl focus:border-primary-500 focus:ring-4 focus:ring-primary-50 outline-none font-bold text-gray-900 transition-all" placeholder="8690000000000" />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Birim</label>
+                    <select required value={formData.unit} onChange={(e) => setFormData({ ...formData, unit: e.target.value })} className="w-full px-5 py-3.5 border-2 border-gray-100 rounded-2xl focus:border-primary-500 focus:ring-4 focus:ring-primary-50 outline-none font-bold text-gray-900 transition-all bg-white shadow-sm appearance-none"><option value="adet">Adet</option><option value="kg">Kilogram</option><option value="litre">Litre</option><option value="metre">Metre</option><option value="paket">Paket</option></select>
+                  </div>
                 </div>
               </div>
 
@@ -492,7 +563,16 @@ function ProductsPageContent() {
                   
                   {!editingProduct && (
                     <>
-                      <div className="space-y-1.5"><label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Başlangıç Deposu *</label><select required value={formData.warehouse_id} onChange={(e) => setFormData({ ...formData, warehouse_id: e.target.value })} className="w-full px-4 py-3 border-2 border-gray-100 rounded-xl focus:border-primary-500 outline-none font-bold text-gray-900 bg-white">{warehouses.map((w) => (<option key={w.id} value={w.id}>{w.name}</option>))}</select></div>
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Başlangıç Deposu *</label>
+                        <div className="flex gap-2">
+                          <select required value={formData.warehouse_id} onChange={(e) => setFormData({ ...formData, warehouse_id: e.target.value })} className="flex-1 px-4 py-3 border-2 border-gray-100 rounded-xl focus:border-primary-500 outline-none font-bold text-gray-900 bg-white">
+                            <option value="">Seçiniz</option>
+                            {warehouses.map((w) => (<option key={w.id} value={w.id}>{w.name}</option>))}
+                          </select>
+                          <button type="button" onClick={() => setShowNewWarehouseModal(true)} className="p-3 bg-primary-50 text-primary-600 rounded-xl hover:bg-primary-100 transition-all active:scale-95 border-2 border-primary-100" title="Yeni Depo Ekle"><Plus className="h-5 w-5" /></button>
+                        </div>
+                      </div>
                       <div className="space-y-1.5"><label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Başlangıç Miktarı</label><input type="text" value={formData.initial_quantity} onFocus={() => setFormData({...formData, initial_quantity: '' as any})} onChange={(e) => setFormData({ ...formData, initial_quantity: e.target.value })} className="w-full px-4 py-3 border-2 border-gray-100 rounded-xl focus:border-primary-500 outline-none font-bold text-gray-900" /></div>
                     </>
                   )}
@@ -505,6 +585,96 @@ function ProductsPageContent() {
                 <Button type="button" variant="outline" onClick={() => setShowModal(false)} className="px-10 h-14 rounded-2xl font-bold text-gray-500 border-2">Vazgeç</Button>
                 <Button type="submit" disabled={loading} className="px-14 h-14 rounded-2xl font-black text-lg shadow-xl shadow-primary-100 transition-all active:scale-95">
                   {loading ? <Loader2 className="h-6 w-6 animate-spin" /> : (editingProduct ? 'GÜNCELLE' : 'ÜRÜNÜ KAYDET')}
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* New Category Modal */}
+      {showNewCategoryModal && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-[100] p-4 animate-in fade-in duration-300">
+          <div className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-md overflow-hidden border-0 animate-in zoom-in-95 duration-200">
+            <div className="px-8 py-7 border-b flex justify-between items-center bg-gray-50/50">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 bg-primary-100 rounded-xl"><Layers className="h-5 w-5 text-primary-600" /></div>
+                <h3 className="text-base font-black text-gray-800 uppercase tracking-widest">Yeni Kategori</h3>
+              </div>
+              <button onClick={() => setShowNewCategoryModal(false)} className="p-2 hover:bg-gray-200 rounded-full transition-all active:scale-90"><X className="h-5 w-5 text-gray-400" /></button>
+            </div>
+            <form onSubmit={handleCreateCategory} className="p-8 space-y-8">
+              <div className="space-y-3">
+                <label className="block text-[11px] font-black text-gray-400 uppercase tracking-[0.15em] px-1">Kategori İsmi *</label>
+                <input 
+                  type="text" 
+                  required 
+                  value={newCategoryData.name} 
+                  onFocus={(e) => e.target.select()}
+                  onChange={(e) => setNewCategoryData({...newCategoryData, name: e.target.value})} 
+                  className="w-full px-5 py-4 border-2 border-gray-100 rounded-2xl focus:border-primary-500 focus:ring-4 focus:ring-primary-50 outline-none font-bold text-gray-900 transition-all placeholder:text-gray-300" 
+                  placeholder="Örn: Elektronik Ürünler" 
+                />
+              </div>
+              <div className="space-y-3">
+                <label className="block text-[11px] font-black text-gray-400 uppercase tracking-[0.15em] px-1">Açıklama (Opsiyonel)</label>
+                <textarea 
+                  rows={3} 
+                  value={newCategoryData.description} 
+                  onChange={(e) => setNewCategoryData({...newCategoryData, description: e.target.value})} 
+                  className="w-full px-5 py-4 border-2 border-gray-100 rounded-2xl focus:border-primary-500 focus:ring-4 focus:ring-primary-50 outline-none font-bold text-gray-900 transition-all placeholder:text-gray-300" 
+                  placeholder="Kategori hakkında kısa bir not..." 
+                />
+              </div>
+              <div className="flex gap-4 pt-4">
+                <Button type="button" variant="outline" onClick={() => setShowNewCategoryModal(false)} className="flex-1 h-14 rounded-2xl font-bold text-gray-500 border-2">İptal</Button>
+                <Button type="submit" disabled={newCategoryLoading} className="flex-[1.5] h-14 rounded-2xl font-black text-lg shadow-xl shadow-primary-100 transition-all active:scale-95">
+                  {newCategoryLoading ? <Loader2 className="h-6 w-6 animate-spin" /> : 'KAYDET'}
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* New Warehouse Modal */}
+      {showNewWarehouseModal && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-[100] p-4 animate-in fade-in duration-300">
+          <div className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-md overflow-hidden border-0 animate-in zoom-in-95 duration-200">
+            <div className="px-8 py-7 border-b flex justify-between items-center bg-gray-50/50">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 bg-primary-100 rounded-xl"><Warehouse className="h-5 w-5 text-primary-600" /></div>
+                <h3 className="text-base font-black text-gray-800 uppercase tracking-widest">Yeni Depo</h3>
+              </div>
+              <button onClick={() => setShowNewWarehouseModal(false)} className="p-2 hover:bg-gray-200 rounded-full transition-all active:scale-90"><X className="h-5 w-5 text-gray-400" /></button>
+            </div>
+            <form onSubmit={handleCreateWarehouse} className="p-8 space-y-8">
+              <div className="space-y-3">
+                <label className="block text-[11px] font-black text-gray-400 uppercase tracking-[0.15em] px-1">Depo İsmi *</label>
+                <input 
+                  type="text" 
+                  required 
+                  value={newWarehouseData.name} 
+                  onFocus={(e) => e.target.select()}
+                  onChange={(e) => setNewWarehouseData({...newWarehouseData, name: e.target.value})} 
+                  className="w-full px-5 py-4 border-2 border-gray-100 rounded-2xl focus:border-primary-500 focus:ring-4 focus:ring-primary-50 outline-none font-bold text-gray-900 transition-all placeholder:text-gray-300" 
+                  placeholder="Örn: Kuzey Lojistik Merkezi" 
+                />
+              </div>
+              <div className="space-y-3">
+                <label className="block text-[11px] font-black text-gray-400 uppercase tracking-[0.15em] px-1">Depo Konumu</label>
+                <input 
+                  type="text" 
+                  value={newWarehouseData.location} 
+                  onChange={(e) => setNewWarehouseData({...newWarehouseData, location: e.target.value})} 
+                  className="w-full px-5 py-4 border-2 border-gray-100 rounded-2xl focus:border-primary-500 focus:ring-4 focus:ring-primary-50 outline-none font-bold text-gray-900 transition-all placeholder:text-gray-300" 
+                  placeholder="Şehir, Semt veya Detaylı Adres" 
+                />
+              </div>
+              <div className="flex gap-4 pt-4">
+                <Button type="button" variant="outline" onClick={() => setShowNewWarehouseModal(false)} className="flex-1 h-14 rounded-2xl font-bold text-gray-500 border-2">İptal</Button>
+                <Button type="submit" disabled={newWarehouseLoading} className="flex-[1.5] h-14 rounded-2xl font-black text-lg shadow-xl shadow-primary-100 transition-all active:scale-95">
+                  {newWarehouseLoading ? <Loader2 className="h-6 w-6 animate-spin" /> : 'KAYDET'}
                 </Button>
               </div>
             </form>
