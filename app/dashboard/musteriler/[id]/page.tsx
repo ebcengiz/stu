@@ -5,6 +5,7 @@ import { useRouter, useParams } from 'next/navigation'
 import { ArrowLeft, Building, CreditCard, FileText, ShoppingCart, Save, DollarSign, Plus, Search, Trash2, Package, X, Check, History, Users, User, Info, Calendar, Tag } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Card, CardHeader, CardBody, CardTitle } from '@/components/ui/Card'
+import { toast } from 'react-hot-toast'
 
 interface Product {
   id: string
@@ -221,7 +222,8 @@ export default function CustomerDetailPage() {
     try {
       const res = await fetch('/api/upload', { method: 'POST', body: uploadData })
       const data = await res.json(); setFormData(prev => ({ ...prev, company_logo: data.url }))
-    } catch (err) { alert('Yükleme başarısız') }
+      toast.success('Logo başarıyla yüklendi')
+    } catch (err) { toast.error('Yükleme başarısız') }
     finally { setUploadingLogo(false) }
   }
 
@@ -324,7 +326,8 @@ export default function CustomerDetailPage() {
       openItemDetailModal(newProd.id)
       setShowProductModal(false)
       setNewProductData({ name: '', sku: '', unit: 'adet' })
-    } catch (err: any) { alert(err.message) }
+      toast.success('Ürün başarıyla oluşturuldu')
+    } catch (err: any) { toast.error(err.message) }
   }
 
   const handleAddTransaction = async (e: React.FormEvent) => {
@@ -347,7 +350,7 @@ export default function CustomerDetailPage() {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
       })
       if (!res.ok) throw new Error('İşlem kaydedilemedi')
-      alert('İşlem başarıyla eklendi!')
+      toast.success('İşlem başarıyla eklendi!')
       setTxForm({ 
         ...txForm, 
         amount: '', 
@@ -362,7 +365,7 @@ export default function CustomerDetailPage() {
         amount: '', due_date: new Date().toISOString().split('T')[0], bank: '', serial_number: ''
       });
       setSelectedItems([]); fetchTransactions(); setActiveTab('ledger')
-    } catch (err: any) { alert(err.message) }
+    } catch (err: any) { toast.error(err.message) }
     finally { setSaving(false) }
   }
 
@@ -374,8 +377,8 @@ export default function CustomerDetailPage() {
         method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(cleanedData),
       })
       if (!res.ok) throw new Error('Güncellenemedi')
-      alert('Güncellendi!'); setIsEditing(false); fetchCustomerData()
-    } catch (err: any) { alert(err.message) }
+      toast.success('Müşteri bilgileri güncellendi!'); setIsEditing(false); fetchCustomerData()
+    } catch (err: any) { toast.error(err.message) }
     finally { setSaving(false) }
   }
 
@@ -598,8 +601,22 @@ export default function CustomerDetailPage() {
                   )}
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 border-t border-gray-100">
-                    <div className="space-y-1.5"><label className="text-xs font-bold text-gray-500 uppercase px-1">İşlem Tarihi</label><input type="date" value={txForm.transaction_date} onChange={e => setTxForm({...txForm, transaction_date: e.target.value})} className="w-full px-4 py-3 border border-gray-200 rounded-xl outline-none" /></div>
-                    <div className="space-y-1.5"><label className="text-xs font-bold text-gray-500 uppercase px-1">Genel Toplam (₺)</label><input type="number" step="any" value={txForm.amount} onChange={e => setTxForm({...txForm, amount: e.target.value})} className="w-full px-4 py-3 border border-primary-100 rounded-xl outline-none font-bold text-xl text-primary-900 bg-primary-50/30" disabled={txForm.type === 'sale'} /></div>
+                    <div className="space-y-2">
+                      <label className="block text-xs font-black text-gray-400 uppercase tracking-widest px-1">İşlem Tarihi</label>
+                      <input type="date" value={txForm.transaction_date} onChange={e => setTxForm({...txForm, transaction_date: e.target.value})} className="w-full px-4 py-3 border-2 border-gray-100 rounded-2xl focus:border-primary-500 focus:ring-4 focus:ring-primary-50 outline-none font-bold text-gray-900 transition-all" />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="block text-xs font-black text-gray-400 uppercase tracking-widest px-1">Genel Toplam (₺)</label>
+                      <input 
+                        type="number" 
+                        step="any" 
+                        value={txForm.amount} 
+                        onFocus={() => setTxForm({...txForm, amount: '' as any})}
+                        onChange={e => setTxForm({...txForm, amount: e.target.value})} 
+                        className="w-full px-4 py-3 border-2 border-primary-100 rounded-2xl focus:border-primary-500 focus:ring-4 focus:ring-primary-50 outline-none font-black text-xl text-primary-900 bg-primary-50/30 transition-all" 
+                        disabled={txForm.type === 'sale'} 
+                      />
+                    </div>
                   </div>
                   <textarea placeholder="İşlem açıklaması veya notlar..." value={txForm.description} onChange={e => setTxForm({...txForm, description: e.target.value})} className="w-full px-4 py-3 border border-gray-200 rounded-xl outline-none h-24 resize-none shadow-sm" />
                   <div className="flex justify-end pt-4"><Button type="submit" size="lg" disabled={saving || (txForm.type === 'sale' && selectedItems.length === 0)} className="h-14 px-12 text-lg font-bold rounded-2xl shadow-lg transition-all active:scale-95">{saving ? 'Kaydediliyor...' : 'İşlemi Tamamla'}</Button></div>
@@ -633,42 +650,91 @@ export default function CustomerDetailPage() {
                 <div className="space-y-6">
                   <div className="space-y-2">
                     <label className="block text-xs font-black text-gray-400 uppercase tracking-widest px-1">Birim Fiyat (₺)</label>
-                    <div className="relative"><DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" /><input type="number" step="any" value={itemFormData.unit_price} onChange={e => setItemFormData({...itemFormData, unit_price: Number(e.target.value)})} className="w-full pl-10 pr-4 py-3 border-2 border-gray-100 rounded-2xl focus:border-primary-500 focus:ring-4 focus:ring-primary-50 focus:outline-none font-bold text-gray-900 transition-all" /></div>
+                    <div className="relative">
+                      <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <input 
+                        type="number" 
+                        step="any" 
+                        value={itemFormData.unit_price} 
+                        onFocus={() => setItemFormData({...itemFormData, unit_price: '' as any})}
+                        onChange={e => setItemFormData({...itemFormData, unit_price: Number(e.target.value)})} 
+                        className="w-full pl-10 pr-4 py-3 border-2 border-gray-100 rounded-2xl focus:border-primary-500 focus:ring-4 focus:ring-primary-50 focus:outline-none font-bold text-gray-900 transition-all" 
+                      />
+                    </div>
                     <button type="button" onClick={fetchPriceHistory} className="flex items-center gap-1.5 text-[11px] font-bold text-primary-600 hover:text-primary-700 hover:underline px-1 transition-all"><History className="h-3 w-3" /> Önceki Fiyatlar</button>
                   </div>
                   <div className="space-y-2">
                     <label className="block text-xs font-black text-gray-400 uppercase tracking-widest px-1">Miktar ({currentItem.unit})</label>
-                    <div className="relative"><Package className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" /><input type="number" step="any" value={itemFormData.quantity} onChange={e => setItemFormData({...itemFormData, quantity: Number(e.target.value)})} className="w-full pl-10 pr-4 py-3 border-2 border-gray-100 rounded-2xl focus:border-primary-500 focus:ring-4 focus:ring-primary-50 focus:outline-none font-bold text-gray-900 transition-all" /></div>
+                    <div className="relative">
+                      <Package className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <input 
+                        type="number" 
+                        step="any" 
+                        value={itemFormData.quantity} 
+                        onFocus={() => setItemFormData({...itemFormData, quantity: '' as any})}
+                        onChange={e => setItemFormData({...itemFormData, quantity: Number(e.target.value)})} 
+                        className="w-full pl-10 pr-4 py-3 border-2 border-gray-100 rounded-2xl focus:border-primary-500 focus:ring-4 focus:ring-primary-50 focus:outline-none font-bold text-gray-900 transition-all" 
+                      />
+                    </div>
                   </div>
                 </div>
                 <div className="space-y-6">
                   <div className="space-y-2">
                     <label className="block text-xs font-black text-gray-400 uppercase tracking-widest px-1">KDV Oranı (%)</label>
-                    <div className="relative flex items-center"><span className="absolute left-4 font-bold text-gray-400">%</span><input type="number" min="0" max="100" value={itemFormData.tax_rate} onChange={e => setItemFormData({...itemFormData, tax_rate: Number(e.target.value)})} className="w-full pl-10 pr-4 py-3 border-2 border-gray-100 rounded-2xl focus:border-primary-500 focus:ring-4 focus:ring-primary-50 focus:outline-none font-bold text-gray-900 transition-all" /></div>
+                    <div className="relative flex items-center">
+                      <span className="absolute left-4 font-bold text-gray-400">%</span>
+                      <input 
+                        type="number" 
+                        min="0" 
+                        max="100" 
+                        value={itemFormData.tax_rate} 
+                        onFocus={() => setItemFormData({...itemFormData, tax_rate: '' as any})}
+                        onChange={e => setItemFormData({...itemFormData, tax_rate: Number(e.target.value)})} 
+                        className="w-full pl-10 pr-4 py-3 border-2 border-gray-100 rounded-2xl focus:border-primary-500 focus:ring-4 focus:ring-primary-50 focus:outline-none font-bold text-gray-900 transition-all" 
+                      />
+                    </div>
                   </div>
                   <div className="space-y-2">
                     <label className="block text-xs font-black text-gray-400 uppercase tracking-widest px-1">İskonto (%)</label>
-                    <div className="relative flex items-center"><span className="absolute left-4 font-bold text-gray-400">%</span><input type="number" min="0" max="100" value={itemFormData.discount_rate} onChange={e => setItemFormData({...itemFormData, discount_rate: Number(e.target.value)})} className="w-full pl-10 pr-4 py-3 border-2 border-gray-100 rounded-2xl focus:border-primary-500 focus:ring-4 focus:ring-primary-50 focus:outline-none font-bold text-gray-900 transition-all" /></div>
+                    <div className="relative flex items-center">
+                      <span className="absolute left-4 font-bold text-gray-400">%</span>
+                      <input 
+                        type="number" 
+                        min="0" 
+                        max="100" 
+                        value={itemFormData.discount_rate} 
+                        onFocus={() => setItemFormData({...itemFormData, discount_rate: '' as any})}
+                        onChange={e => setItemFormData({...itemFormData, discount_rate: Number(e.target.value)})} 
+                        className="w-full pl-10 pr-4 py-3 border-2 border-gray-100 rounded-2xl focus:border-primary-500 focus:ring-4 focus:ring-primary-50 focus:outline-none font-bold text-gray-900 transition-all" 
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
 
               <div className="space-y-2 mt-6">
                 <label className="block text-xs font-black text-gray-400 uppercase tracking-widest px-1">Çıkış Yapılacak Depo *</label>
-                <select 
-                  value={itemFormData.warehouse_id} 
-                  onChange={e => setItemFormData({...itemFormData, warehouse_id: e.target.value})}
-                  className="w-full px-4 py-3 border-2 border-gray-100 rounded-2xl focus:border-primary-500 focus:ring-4 focus:ring-primary-50 outline-none font-bold text-gray-900 transition-all bg-white"
-                >
-                  {warehouses.map(w => {
-                    const warehouseStock = currentItem.stock?.find(s => s.warehouse_id === w.id)?.quantity || 0
-                    return (
-                      <option key={w.id} value={w.id}>
-                        {w.name} (Mevcut Stok: {warehouseStock} {currentItem.unit})
-                      </option>
-                    )
-                  })}
-                </select>
+                <div className="relative group">
+                  <Building className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-primary-500 transition-colors pointer-events-none" />
+                  <select 
+                    value={itemFormData.warehouse_id} 
+                    onChange={e => setItemFormData({...itemFormData, warehouse_id: e.target.value})}
+                    className="w-full pl-10 pr-10 py-3.5 border-2 border-gray-100 rounded-2xl focus:border-primary-500 focus:ring-4 focus:ring-primary-50 outline-none font-bold text-gray-900 transition-all bg-white appearance-none cursor-pointer"
+                  >
+                    {warehouses.map(w => {
+                      const warehouseStock = currentItem.stock?.find(s => s.warehouse_id === w.id)?.quantity || 0
+                      const isNegative = warehouseStock < 0
+                      return (
+                        <option key={w.id} value={w.id} className={isNegative ? "text-red-600" : "text-gray-900"}>
+                          {w.name} {isNegative ? `(Stok: ${warehouseStock} - KRİTİK)` : `(Stok: ${warehouseStock} ${currentItem.unit})`}
+                        </option>
+                      )
+                    })}
+                  </select>
+                  <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                  </div>
+                </div>
               </div>
 
               <div className="mt-10 bg-gray-50/80 border border-gray-100 rounded-3xl p-6 space-y-3 relative overflow-hidden">

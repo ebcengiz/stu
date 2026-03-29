@@ -57,6 +57,15 @@ export async function POST(request: Request) {
 
     if (!profile) throw new Error('Profile not found')
 
+    // Get customer name for stock movement notes
+    const { data: customer } = await supabase
+      .from('customers')
+      .select('company_name')
+      .eq('id', customer_id)
+      .single()
+
+    const customerName = customer?.company_name || 'Bilinmeyen Müşteri'
+
     // 1. Create the main transaction
     const { data: transaction, error: txError } = await supabase
       .from('customer_transactions')
@@ -112,7 +121,7 @@ export async function POST(request: Request) {
             movement_type: 'out',
             quantity: item.quantity,
             reference_no: document_number || transaction.id,
-            notes: `Müşteri Satışı - ${transaction.id}`
+            notes: `Müşteri Satışı - ${customerName}`
           })
           if (movementError) console.error('Stock movement error:', movementError)
         }

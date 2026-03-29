@@ -205,7 +205,7 @@ export default function StockMovementsPage() {
                     Miktar
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Referans
+                    Belge No
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Notlar
@@ -340,7 +340,7 @@ export default function StockMovementsPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Referans No
+                  Belge No
                 </label>
                 <input
                   type="text"
