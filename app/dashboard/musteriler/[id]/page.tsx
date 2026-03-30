@@ -5,6 +5,7 @@ import { useRouter, useParams } from 'next/navigation'
 import { ArrowLeft, Building, CreditCard, FileText, ShoppingCart, Save, DollarSign, Plus, Search, Trash2, Package, X, Check, History, Users, User, Info, Calendar, Tag } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Card, CardHeader, CardBody, CardTitle } from '@/components/ui/Card'
+import { toast } from 'react-hot-toast'
 
 interface Product {
   id: string
@@ -14,7 +15,15 @@ interface Product {
   price: number | null
   tax_rate: number | null
   discount_rate: number | null
-  stock?: Array<{ quantity: number }>
+  stock?: Array<{
+    id: string
+    quantity: number
+    warehouse_id: string
+    warehouses: {
+      id: string
+      name: string
+    }
+  }>
 }
 
 interface Customer {
@@ -52,6 +61,9 @@ interface Transaction {
   waybill_number?: string
   shipment_date?: string
   order_date?: string
+  cheque_due_date?: string | null
+  cheque_bank?: string | null
+  cheque_serial_number?: string | null
   created_at: string
   customer_transaction_items?: TransactionItem[]
 }
@@ -59,6 +71,8 @@ interface Transaction {
 interface SelectedItem {
   product_id: string
   product_name: string
+  warehouse_id: string
+  warehouse_name: string
   quantity: number
   unit_price: number
   tax_rate: number
@@ -66,6 +80,11 @@ interface SelectedItem {
   tax_amount: number
   discount_amount: number
   total_price: number
+}
+
+interface Warehouse {
+  id: string
+  name: string
 }
 
 interface PriceHistory {
@@ -84,6 +103,7 @@ export default function CustomerDetailPage() {
   const [customer, setCustomer] = useState<Customer | null>(null)
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [products, setProducts] = useState<Product[]>([])
+  const [warehouses, setWarehouses] = useState<Warehouse[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
@@ -95,6 +115,7 @@ export default function CustomerDetailPage() {
   const [showItemDetailModal, setShowItemDetailModal] = useState(false)
   const [showHistoryModal, setShowHistoryModal] = useState(false)
   const [showTxDetailModal, setShowTxDetailModal] = useState(false)
+  const [showChequeModal, setShowChequeModal] = useState(false)
   
   const [currentItem, setCurrentItem] = useState<Product | null>(null)
   const [selectedTx, setSelectedTx] = useState<Transaction | null>(null)
@@ -105,7 +126,16 @@ export default function CustomerDetailPage() {
     quantity: 1,
     unit_price: 0,
     tax_rate: 20,
-    discount_rate: 0
+    discount_rate: 0,
+    warehouse_id: ''
+  })
+
+  // Cheque Data State
+  const [chequeData, setChequeData] = useState({
+    amount: '',
+    due_date: new Date().toISOString().split('T')[0],
+    bank: '',
+    serial_number: ''
   })
 
   // Edit Form State
@@ -135,6 +165,7 @@ export default function CustomerDetailPage() {
       fetchCustomerData()
       fetchTransactions()
       fetchProducts()
+      fetchWarehouses()
     }
   }, [customerId])
 
@@ -173,6 +204,17 @@ export default function CustomerDetailPage() {
     } catch (error) { console.error(error) }
   }
 
+  const fetchWarehouses = async () => {
+    try {
+      const response = await fetch('/api/warehouses')
+      const data = await response.json()
+      setWarehouses(Array.isArray(data) ? data : [])
+      if (Array.isArray(data) && data.length > 0) {
+        setItemFormData(prev => ({ ...prev, warehouse_id: data[0].id }))
+      }
+    } catch (error) { console.error(error) }
+  }
+
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]; if (!file) return
     setUploadingLogo(true)
@@ -180,7 +222,8 @@ export default function CustomerDetailPage() {
     try {
       const res = await fetch('/api/upload', { method: 'POST', body: uploadData })
       const data = await res.json(); setFormData(prev => ({ ...prev, company_logo: data.url }))
-    } catch (err) { alert('Yükleme başarısız') }
+      toast.success('Logo başarıyla yüklendi')
+    } catch (err) { toast.error('Yükleme başarısız') }
     finally { setUploadingLogo(false) }
   }
 
@@ -193,7 +236,8 @@ export default function CustomerDetailPage() {
       quantity: 1,
       unit_price: product.price || 0,
       tax_rate: product.tax_rate || 20,
-      discount_rate: product.discount_rate || 0
+      discount_rate: product.discount_rate || 0,
+      warehouse_id: warehouses[0]?.id || ''
     })
     setShowItemDetailModal(true)
   }
@@ -227,9 +271,13 @@ export default function CustomerDetailPage() {
     const taxAmount = (subtotal * taxRate) / 100
     const totalPrice = subtotal + taxAmount
 
+    const warehouse = warehouses.find(w => w.id === itemFormData.warehouse_id)
+
     const newItem: SelectedItem = {
       product_id: currentItem.id,
       product_name: currentItem.name,
+      warehouse_id: itemFormData.warehouse_id,
+      warehouse_name: warehouse?.name || 'Bilinmeyen Depo',
       quantity,
       unit_price: unitPrice,
       tax_rate: taxRate,
@@ -279,7 +327,8 @@ export default function CustomerDetailPage() {
       openItemDetailModal(newProd.id)
       setShowProductModal(false)
       setNewProductData({ name: '', sku: '', unit: 'adet' })
-    } catch (err: any) { alert(err.message) }
+      toast.success('Ürün başarıyla oluşturuldu')
+    } catch (err: any) { toast.error(err.message) }
   }
 
   const handleAddTransaction = async (e: React.FormEvent) => {
@@ -293,13 +342,16 @@ export default function CustomerDetailPage() {
         waybill_number: txForm.type === 'sale' ? txForm.waybill_number : null,
         shipment_date: txForm.type === 'sale' ? new Date(txForm.shipment_date).toISOString() : null,
         order_date: txForm.type === 'sale' ? new Date(txForm.order_date).toISOString() : null,
+        cheque_due_date: txForm.type === 'payment' && txForm.payment_method === 'cheque' ? new Date(chequeData.due_date).toISOString() : null,
+        cheque_bank: txForm.type === 'payment' && txForm.payment_method === 'cheque' ? chequeData.bank : null,
+        cheque_serial_number: txForm.type === 'payment' && txForm.payment_method === 'cheque' ? chequeData.serial_number : null,
         items: txForm.type === 'sale' ? selectedItems : []
       }
       const res = await fetch('/api/customer-transactions', {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
       })
       if (!res.ok) throw new Error('İşlem kaydedilemedi')
-      alert('İşlem başarıyla eklendi!')
+      toast.success('İşlem başarıyla eklendi!')
       setTxForm({ 
         ...txForm, 
         amount: '', 
@@ -310,8 +362,11 @@ export default function CustomerDetailPage() {
         shipment_date: new Date().toISOString().split('T')[0],
         order_date: new Date().toISOString().split('T')[0]
       }); 
+      setChequeData({
+        amount: '', due_date: new Date().toISOString().split('T')[0], bank: '', serial_number: ''
+      });
       setSelectedItems([]); fetchTransactions(); setActiveTab('ledger')
-    } catch (err: any) { alert(err.message) }
+    } catch (err: any) { toast.error(err.message) }
     finally { setSaving(false) }
   }
 
@@ -323,8 +378,8 @@ export default function CustomerDetailPage() {
         method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(cleanedData),
       })
       if (!res.ok) throw new Error('Güncellenemedi')
-      alert('Güncellendi!'); setIsEditing(false); fetchCustomerData()
-    } catch (err: any) { alert(err.message) }
+      toast.success('Müşteri bilgileri güncellendi!'); setIsEditing(false); fetchCustomerData()
+    } catch (err: any) { toast.error(err.message) }
     finally { setSaving(false) }
   }
 
@@ -446,6 +501,7 @@ export default function CustomerDetailPage() {
                           <thead className="bg-gray-50/80">
                             <tr>
                               <th className="px-5 py-3 text-left text-[10px] font-bold text-gray-500 uppercase">Ürün Bilgisi</th>
+                              <th className="px-5 py-3 text-left text-[10px] font-bold text-gray-500 uppercase">Depo</th>
                               <th className="px-5 py-3 text-center text-[10px] font-bold text-gray-500 uppercase">Miktar</th>
                               <th className="px-5 py-3 text-center text-[10px] font-bold text-gray-500 uppercase">B.Fiyat</th>
                               <th className="px-5 py-3 text-right text-[10px] font-bold text-gray-500 uppercase">Toplam</th>
@@ -456,6 +512,7 @@ export default function CustomerDetailPage() {
                             {selectedItems.map((item, idx) => (
                               <tr key={idx} className="hover:bg-gray-50/50 transition-colors">
                                 <td className="px-5 py-4 text-sm font-medium text-gray-900">{item.product_name}</td>
+                                <td className="px-5 py-4 text-xs font-bold text-primary-600">{item.warehouse_name}</td>
                                 <td className="px-5 py-4"><input type="number" value={item.quantity} onChange={e => updateItem(idx, 'quantity', e.target.value)} className="w-16 mx-auto block px-2 py-1.5 border rounded-lg text-center text-sm font-semibold" /></td>
                                 <td className="px-5 py-4"><input type="number" value={item.unit_price} onChange={e => updateItem(idx, 'unit_price', e.target.value)} className="w-24 mx-auto block px-2 py-1.5 border rounded-lg text-center text-sm font-semibold" /></td>
                                 <td className="px-5 py-4 text-sm font-bold text-right text-gray-900">{item.total_price.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺</td>
@@ -476,12 +533,28 @@ export default function CustomerDetailPage() {
                           { id: 'credit_card', label: 'Kredi Kartı', icon: CreditCard, color: 'blue' },
                           { id: 'cheque', label: 'Çek / Senet', icon: FileText, color: 'amber' }
                         ].map(m => (
-                          <button key={m.id} type="button" onClick={() => setTxForm({...txForm, payment_method: m.id as any})} className={`p-4 border-2 rounded-2xl flex flex-col items-center transition-all ${txForm.payment_method === m.id ? `border-${m.color}-500 bg-${m.color}-50 text-${m.color}-700 shadow-md` : 'border-gray-50 bg-gray-50/50 text-gray-500 hover:border-gray-200'}`}>
+                          <button key={m.id} type="button" onClick={() => { setTxForm({...txForm, payment_method: m.id as any}); if (m.id === 'cheque') setShowChequeModal(true); }} className={`p-4 border-2 rounded-2xl flex flex-col items-center transition-all ${txForm.payment_method === m.id ? `border-${m.color}-500 bg-${m.color}-50 text-${m.color}-700 shadow-md` : 'border-gray-50 bg-gray-50/50 text-gray-500 hover:border-gray-200'}`}>
                             <m.icon className={`h-6 w-6 mb-2 ${txForm.payment_method === m.id ? `text-${m.color}-600` : 'text-gray-400'}`} />
                             <span className="font-bold text-sm">{m.label}</span>
                           </button>
                         ))}
                       </div>
+
+                      {txForm.payment_method === 'cheque' && (
+                        <div className="mt-6 p-6 bg-amber-50 border border-amber-200 rounded-2xl">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <h5 className="font-bold text-amber-900">Çek Bilgileri</h5>
+                              <p className="text-sm text-amber-700/80 mt-1 font-medium">
+                                {chequeData.amount ? `${Number(chequeData.amount).toLocaleString('tr-TR')} ₺ tutarında çek girildi. (Banka: ${chequeData.bank})` : 'Henüz çek detayı girilmedi.'}
+                              </p>
+                            </div>
+                            <Button type="button" onClick={() => setShowChequeModal(true)} variant={chequeData.amount ? "outline" : "default"} className={chequeData.amount ? "border-amber-300 text-amber-800 hover:bg-amber-100" : "bg-amber-600 hover:bg-amber-700 text-white"}>
+                              {chequeData.amount ? 'Bilgileri Düzenle' : 'Çek Detayı Gir'}
+                            </Button>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
 
@@ -529,8 +602,22 @@ export default function CustomerDetailPage() {
                   )}
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 border-t border-gray-100">
-                    <div className="space-y-1.5"><label className="text-xs font-bold text-gray-500 uppercase px-1">İşlem Tarihi</label><input type="date" value={txForm.transaction_date} onChange={e => setTxForm({...txForm, transaction_date: e.target.value})} className="w-full px-4 py-3 border border-gray-200 rounded-xl outline-none" /></div>
-                    <div className="space-y-1.5"><label className="text-xs font-bold text-gray-500 uppercase px-1">Genel Toplam (₺)</label><input type="number" step="any" value={txForm.amount} onChange={e => setTxForm({...txForm, amount: e.target.value})} className="w-full px-4 py-3 border border-primary-100 rounded-xl outline-none font-bold text-xl text-primary-900 bg-primary-50/30" disabled={txForm.type === 'sale'} /></div>
+                    <div className="space-y-2">
+                      <label className="block text-xs font-black text-gray-400 uppercase tracking-widest px-1">İşlem Tarihi</label>
+                      <input type="date" value={txForm.transaction_date} onChange={e => setTxForm({...txForm, transaction_date: e.target.value})} className="w-full px-4 py-3 border-2 border-gray-100 rounded-2xl focus:border-primary-500 focus:ring-4 focus:ring-primary-50 outline-none font-bold text-gray-900 transition-all" />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="block text-xs font-black text-gray-400 uppercase tracking-widest px-1">Genel Toplam (₺)</label>
+                      <input 
+                        type="number" 
+                        step="any" 
+                        value={txForm.amount} 
+                        onFocus={() => setTxForm({...txForm, amount: '' as any})}
+                        onChange={e => setTxForm({...txForm, amount: e.target.value})} 
+                        className="w-full px-4 py-3 border-2 border-primary-100 rounded-2xl focus:border-primary-500 focus:ring-4 focus:ring-primary-50 outline-none font-black text-xl text-primary-900 bg-primary-50/30 transition-all" 
+                        disabled={txForm.type === 'sale'} 
+                      />
+                    </div>
                   </div>
                   <textarea placeholder="İşlem açıklaması veya notlar..." value={txForm.description} onChange={e => setTxForm({...txForm, description: e.target.value})} className="w-full px-4 py-3 border border-gray-200 rounded-xl outline-none h-24 resize-none shadow-sm" />
                   <div className="flex justify-end pt-4"><Button type="submit" size="lg" disabled={saving || (txForm.type === 'sale' && selectedItems.length === 0)} className="h-14 px-12 text-lg font-bold rounded-2xl shadow-lg transition-all active:scale-95">{saving ? 'Kaydediliyor...' : 'İşlemi Tamamla'}</Button></div>
@@ -564,22 +651,89 @@ export default function CustomerDetailPage() {
                 <div className="space-y-6">
                   <div className="space-y-2">
                     <label className="block text-xs font-black text-gray-400 uppercase tracking-widest px-1">Birim Fiyat (₺)</label>
-                    <div className="relative"><DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" /><input type="number" step="any" value={itemFormData.unit_price} onChange={e => setItemFormData({...itemFormData, unit_price: Number(e.target.value)})} className="w-full pl-10 pr-4 py-3 border-2 border-gray-100 rounded-2xl focus:border-primary-500 focus:ring-4 focus:ring-primary-50 focus:outline-none font-bold text-gray-900 transition-all" /></div>
+                    <div className="relative">
+                      <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <input 
+                        type="number" 
+                        step="any" 
+                        value={itemFormData.unit_price} 
+                        onFocus={() => setItemFormData({...itemFormData, unit_price: '' as any})}
+                        onChange={e => setItemFormData({...itemFormData, unit_price: Number(e.target.value)})} 
+                        className="w-full pl-10 pr-4 py-3 border-2 border-gray-100 rounded-2xl focus:border-primary-500 focus:ring-4 focus:ring-primary-50 focus:outline-none font-bold text-gray-900 transition-all" 
+                      />
+                    </div>
                     <button type="button" onClick={fetchPriceHistory} className="flex items-center gap-1.5 text-[11px] font-bold text-primary-600 hover:text-primary-700 hover:underline px-1 transition-all"><History className="h-3 w-3" /> Önceki Fiyatlar</button>
                   </div>
                   <div className="space-y-2">
                     <label className="block text-xs font-black text-gray-400 uppercase tracking-widest px-1">Miktar ({currentItem.unit})</label>
-                    <div className="relative"><Package className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" /><input type="number" step="any" value={itemFormData.quantity} onChange={e => setItemFormData({...itemFormData, quantity: Number(e.target.value)})} className="w-full pl-10 pr-4 py-3 border-2 border-gray-100 rounded-2xl focus:border-primary-500 focus:ring-4 focus:ring-primary-50 focus:outline-none font-bold text-gray-900 transition-all" /></div>
+                    <div className="relative">
+                      <Package className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <input 
+                        type="number" 
+                        step="any" 
+                        value={itemFormData.quantity} 
+                        onFocus={() => setItemFormData({...itemFormData, quantity: '' as any})}
+                        onChange={e => setItemFormData({...itemFormData, quantity: Number(e.target.value)})} 
+                        className="w-full pl-10 pr-4 py-3 border-2 border-gray-100 rounded-2xl focus:border-primary-500 focus:ring-4 focus:ring-primary-50 focus:outline-none font-bold text-gray-900 transition-all" 
+                      />
+                    </div>
                   </div>
                 </div>
                 <div className="space-y-6">
                   <div className="space-y-2">
                     <label className="block text-xs font-black text-gray-400 uppercase tracking-widest px-1">KDV Oranı (%)</label>
-                    <div className="relative flex items-center"><span className="absolute left-4 font-bold text-gray-400">%</span><input type="number" min="0" max="100" value={itemFormData.tax_rate} onChange={e => setItemFormData({...itemFormData, tax_rate: Number(e.target.value)})} className="w-full pl-10 pr-4 py-3 border-2 border-gray-100 rounded-2xl focus:border-primary-500 focus:ring-4 focus:ring-primary-50 focus:outline-none font-bold text-gray-900 transition-all" /></div>
+                    <div className="relative flex items-center">
+                      <span className="absolute left-4 font-bold text-gray-400">%</span>
+                      <input 
+                        type="number" 
+                        min="0" 
+                        max="100" 
+                        value={itemFormData.tax_rate} 
+                        onFocus={() => setItemFormData({...itemFormData, tax_rate: '' as any})}
+                        onChange={e => setItemFormData({...itemFormData, tax_rate: Number(e.target.value)})} 
+                        className="w-full pl-10 pr-4 py-3 border-2 border-gray-100 rounded-2xl focus:border-primary-500 focus:ring-4 focus:ring-primary-50 focus:outline-none font-bold text-gray-900 transition-all" 
+                      />
+                    </div>
                   </div>
                   <div className="space-y-2">
                     <label className="block text-xs font-black text-gray-400 uppercase tracking-widest px-1">İskonto (%)</label>
-                    <div className="relative flex items-center"><span className="absolute left-4 font-bold text-gray-400">%</span><input type="number" min="0" max="100" value={itemFormData.discount_rate} onChange={e => setItemFormData({...itemFormData, discount_rate: Number(e.target.value)})} className="w-full pl-10 pr-4 py-3 border-2 border-gray-100 rounded-2xl focus:border-primary-500 focus:ring-4 focus:ring-primary-50 focus:outline-none font-bold text-gray-900 transition-all" /></div>
+                    <div className="relative flex items-center">
+                      <span className="absolute left-4 font-bold text-gray-400">%</span>
+                      <input 
+                        type="number" 
+                        min="0" 
+                        max="100" 
+                        value={itemFormData.discount_rate} 
+                        onFocus={() => setItemFormData({...itemFormData, discount_rate: '' as any})}
+                        onChange={e => setItemFormData({...itemFormData, discount_rate: Number(e.target.value)})} 
+                        className="w-full pl-10 pr-4 py-3 border-2 border-gray-100 rounded-2xl focus:border-primary-500 focus:ring-4 focus:ring-primary-50 focus:outline-none font-bold text-gray-900 transition-all" 
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-2 mt-6">
+                <label className="block text-xs font-black text-gray-400 uppercase tracking-widest px-1">Çıkış Yapılacak Depo *</label>
+                <div className="relative group">
+                  <Building className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-primary-500 transition-colors pointer-events-none" />
+                  <select 
+                    value={itemFormData.warehouse_id} 
+                    onChange={e => setItemFormData({...itemFormData, warehouse_id: e.target.value})}
+                    className="w-full pl-10 pr-10 py-3.5 border-2 border-gray-100 rounded-2xl focus:border-primary-500 focus:ring-4 focus:ring-primary-50 outline-none font-bold text-gray-900 transition-all bg-white appearance-none cursor-pointer"
+                  >
+                    {warehouses.map(w => {
+                      const warehouseStock = currentItem.stock?.find(s => s.warehouse_id === w.id)?.quantity || 0
+                      const isNegative = warehouseStock < 0
+                      return (
+                        <option key={w.id} value={w.id} className={isNegative ? "text-red-600" : "text-gray-900"}>
+                          {w.name} {isNegative ? `(Stok: ${warehouseStock} - KRİTİK)` : `(Stok: ${warehouseStock} ${currentItem.unit})`}
+                        </option>
+                      )
+                    })}
+                  </select>
+                  <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
                   </div>
                 </div>
               </div>
@@ -628,6 +782,32 @@ export default function CustomerDetailPage() {
               </div>
 
               <div className="p-8">
+                {selectedTx.type === 'payment' && selectedTx.payment_method === 'cheque' && (selectedTx.cheque_bank || selectedTx.cheque_serial_number) && (
+                  <div className="mb-8 space-y-4">
+                    <h4 className="text-xs font-black text-amber-600 uppercase tracking-[0.2em] flex items-center gap-2"><FileText className="h-4 w-4" /> Çek Bilgileri</h4>
+                    <div className="grid grid-cols-3 gap-4 bg-amber-50 p-6 rounded-2xl border border-amber-100 shadow-sm">
+                      {selectedTx.cheque_bank && (
+                        <div>
+                          <p className="text-[10px] font-black text-amber-500 uppercase tracking-widest mb-1">Banka Adı</p>
+                          <p className="text-sm font-bold text-amber-900">{selectedTx.cheque_bank}</p>
+                        </div>
+                      )}
+                      {selectedTx.cheque_serial_number && (
+                        <div>
+                          <p className="text-[10px] font-black text-amber-500 uppercase tracking-widest mb-1">Seri Numarası</p>
+                          <p className="text-sm font-bold text-amber-900 uppercase">{selectedTx.cheque_serial_number}</p>
+                        </div>
+                      )}
+                      {selectedTx.cheque_due_date && (
+                        <div>
+                          <p className="text-[10px] font-black text-amber-500 uppercase tracking-widest mb-1">Vade Tarihi</p>
+                          <p className="text-sm font-bold text-amber-900">{new Date(selectedTx.cheque_due_date).toLocaleDateString('tr-TR')}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
                 {selectedTx.type === 'sale' && (selectedTx.document_number || selectedTx.waybill_number || selectedTx.order_date || selectedTx.shipment_date) && (
                   <div className="mb-8 space-y-4">
                     <h4 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em] flex items-center gap-2"><FileText className="h-4 w-4" /> Belge Bilgileri</h4>
@@ -794,6 +974,57 @@ export default function CustomerDetailPage() {
                 <div className="space-y-2"><label className="block text-xs font-bold text-gray-400 uppercase tracking-wider px-1">Birim</label><select value={newProductData.unit} onChange={e => setNewProductData({...newProductData, unit: e.target.value})} className="w-full px-4 py-3 border border-gray-200 rounded-xl outline-none appearance-none bg-white font-medium"><option value="adet">Adet</option><option value="kg">Kilogram (KG)</option><option value="litre">Litre (L)</option><option value="metre">Metre (m)</option><option value="paket">Paket</option></select></div>
                 <div className="flex gap-3 pt-4"><Button type="button" variant="outline" onClick={() => setShowProductModal(false)} className="flex-1 h-12 font-bold">Vazgeç</Button><Button type="submit" className="flex-1 h-12 font-bold">Ürünü Kaydet</Button></div>
               </form>
+            </CardBody>
+          </Card>
+        </div>
+      )}
+
+      {/* Cheque Modal */}
+      {showChequeModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[140] p-4 animate-in fade-in duration-300">
+          <Card className="w-full max-w-md shadow-2xl animate-in zoom-in slide-in-from-bottom-8 duration-300 overflow-hidden border-0">
+            <CardHeader className="bg-gradient-to-r from-amber-600 to-amber-700 text-white flex flex-row items-center justify-between py-5 px-6 border-0">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-white/20 rounded-2xl backdrop-blur-md"><FileText className="h-6 w-6 text-white" /></div>
+                <div>
+                  <CardTitle className="text-xl text-white font-bold">Çek Detayları</CardTitle>
+                  <p className="text-xs text-amber-100 font-medium mt-0.5">Çek / Senet bilgilerinizi giriniz</p>
+                </div>
+              </div>
+              <button onClick={() => setShowChequeModal(false)} className="p-2 hover:bg-white/10 rounded-full transition-all active:scale-90"><X className="h-6 w-6 text-white" /></button>
+            </CardHeader>
+            <CardBody className="p-8 space-y-6 bg-white">
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <label className="block text-xs font-black text-gray-400 uppercase tracking-widest px-1">Çek Tutarı (₺)</label>
+                  <div className="relative">
+                    <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-amber-500" />
+                    <input type="number" step="any" value={chequeData.amount} onChange={e => setChequeData({...chequeData, amount: e.target.value})} className="w-full pl-12 pr-4 py-4 border-2 border-amber-100 bg-amber-50/30 rounded-2xl focus:border-amber-500 focus:ring-4 focus:ring-amber-50 focus:outline-none font-black text-xl text-amber-900 transition-all placeholder:text-amber-300" placeholder="0.00" />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block text-xs font-black text-gray-400 uppercase tracking-widest px-1">Vade Tarihi</label>
+                  <input type="date" value={chequeData.due_date} onChange={e => setChequeData({...chequeData, due_date: e.target.value})} className="w-full px-4 py-3 border-2 border-gray-100 rounded-2xl focus:border-amber-500 focus:ring-4 focus:ring-amber-50 outline-none font-bold text-gray-900 transition-all" />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block text-xs font-black text-gray-400 uppercase tracking-widest px-1">Banka Adı</label>
+                  <input type="text" value={chequeData.bank} onChange={e => setChequeData({...chequeData, bank: e.target.value})} placeholder="Örn: Garanti Bankası" className="w-full px-4 py-3 border-2 border-gray-100 rounded-2xl focus:border-amber-500 focus:ring-4 focus:ring-amber-50 outline-none font-bold text-gray-900 transition-all" />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block text-xs font-black text-gray-400 uppercase tracking-widest px-1">Çek Seri No</label>
+                  <input type="text" value={chequeData.serial_number} onChange={e => setChequeData({...chequeData, serial_number: e.target.value})} placeholder="Örn: A1234567" className="w-full px-4 py-3 border-2 border-gray-100 rounded-2xl focus:border-amber-500 focus:ring-4 focus:ring-amber-50 outline-none font-bold text-gray-900 transition-all uppercase" />
+                </div>
+              </div>
+
+              <div className="flex gap-4 pt-4 mt-6 border-t border-dashed border-gray-200">
+                <Button type="button" variant="outline" onClick={() => setShowChequeModal(false)} className="flex-1 h-14 rounded-2xl font-bold border-2 text-gray-500">Vazgeç</Button>
+                <Button type="button" onClick={() => { setTxForm(prev => ({...prev, amount: chequeData.amount})); setShowChequeModal(false); }} className="flex-[1.5] h-14 rounded-2xl font-bold text-lg bg-amber-600 hover:bg-amber-700 shadow-lg shadow-amber-100 transition-all active:scale-95 text-white">
+                  <Check className="h-5 w-5 mr-2" /> Kaydet
+                </Button>
+              </div>
             </CardBody>
           </Card>
         </div>

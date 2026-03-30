@@ -89,7 +89,9 @@ export default function WarehousesPage() {
           const stockRecord = product.stock?.find((s: any) => s.warehouse_id === warehouseId)
           const quantity = Number(stockRecord?.quantity || 0)
 
-          if (quantity > 0) {
+          // Show all products that have a stock record (even 0 or negative)
+          // or just products that have been in this warehouse at some point
+          if (stockRecord) {
             return {
               id: product.id,
               name: product.name,
@@ -220,9 +222,7 @@ export default function WarehousesPage() {
     return sum + (item.quantity * priceInTRY)
   }, 0)
 
-  if (loading && warehouses.length === 0) {
-    return <div className="p-8">Yükleniyor...</div>
-  }
+  const hasNegativeStock = filteredStock.some(item => item.quantity < 0)
 
   return (
     <div className="space-y-6">
@@ -342,6 +342,17 @@ export default function WarehousesPage() {
             </div>
 
             <div className="p-6 flex-1 overflow-y-auto">
+              {hasNegativeStock && (
+                <div className="mb-6 p-4 bg-red-50 border border-red-100 rounded-xl flex items-center gap-3 text-red-800 animate-pulse">
+                  <div className="p-2 bg-red-100 rounded-lg">
+                    <X className="h-5 w-5 text-red-600" />
+                  </div>
+                  <div className="text-sm font-bold">
+                    DİKKAT: Bu depoda stok miktarı sıfırın altına düşmüş ürünler bulunmaktadır.
+                  </div>
+                </div>
+              )}
+
               <div className="flex flex-col sm:flex-row gap-4 justify-between items-center mb-6">
                 <div className="relative w-full sm:w-72">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -396,7 +407,11 @@ export default function WarehousesPage() {
                             {item.sku || '-'}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-right">
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700">
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${
+                              item.quantity < 0 
+                                ? 'bg-red-100 text-red-700 border border-red-200' 
+                                : 'bg-blue-50 text-blue-700'
+                            }`}>
                               {item.quantity.toLocaleString('tr-TR')} {item.unit}
                             </span>
                           </td>

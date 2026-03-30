@@ -25,26 +25,22 @@ function calculateTotalStock(stockRecords?: Array<{ warehouse_id?: string; quant
 export default async function DashboardPage() {
   const supabase = await createClient()
 
-  // 1. Fetch Basic Counts
-  const { count: productsCount } = await supabase.from('products').select('*', { count: 'exact', head: true })
-  const { count: warehousesCount } = await supabase.from('warehouses').select('*', { count: 'exact', head: true })
-  const { count: movementsCount } = await supabase.from('stock_movements').select('*', { count: 'exact', head: true })
-
-  // 2. Fetch Exchange Rates
-  const exchangeRates = await getExchangeRates()
-
-  // 3. Fetch Full Product & Stock Data for Charts & Stats
-  const { data: products } = await supabase
-    .from('products')
-    .select(`
-      *,
-      stock (
-        quantity,
-        warehouse_id,
-        warehouses (name)
-      )
-    `)
-    .eq('is_active', true)
+  // Parallelize all data fetching for faster loading
+  const [
+    { count: productsCount },
+    { count: warehousesCount },
+    { count: movementsCount },
+    exchangeRates,
+    { data: products },
+    { data: recentMovements }
+  ] = await Promise.all([
+    supabase.from('products').select('*', { count: 'exact', head: true }),
+    supabase.from('warehouses').select('*', { count: 'exact', head: true }),
+    supabase.from('stock_movements').select('*', { count: 'exact', head: true }),
+    getExchangeRates(),
+    supabase.from('products').select('*, stock (quantity, warehouse_id, warehouses (name))').eq('is_active', true),
+    supabase.from('stock_movements').select('*, products (name), warehouses (name)').order('created_at', { ascending: false }).limit(5)
+  ])
 
   // 4. Process Data for Charts
   const topProducts = (products || [])
@@ -99,17 +95,6 @@ export default async function DashboardPage() {
     const totalStock = calculateTotalStock(product.stock)
     return totalStock <= product.min_stock_level
   })
-
-  // 7. Fetch Recent Movements
-  const { data: recentMovements } = await supabase
-    .from('stock_movements')
-    .select(`
-      *,
-      products (name),
-      warehouses (name)
-    `)
-    .order('created_at', { ascending: false })
-    .limit(5)
 
   const stats = [
     {

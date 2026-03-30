@@ -40,6 +40,9 @@ export async function POST(request: Request) {
       waybill_number,
       shipment_date,
       order_date,
+      cheque_due_date,
+      cheque_bank,
+      cheque_serial_number,
       items // Array of { product_id, product_name, quantity, unit_price, total_price }
     } = body
 
@@ -53,6 +56,15 @@ export async function POST(request: Request) {
       .single()
 
     if (!profile) throw new Error('Profile not found')
+
+    // Get customer name for stock movement notes
+    const { data: customer } = await supabase
+      .from('customers')
+      .select('company_name')
+      .eq('id', customer_id)
+      .single()
+
+    const customerName = customer?.company_name || 'Bilinmeyen Müşteri'
 
     // 1. Create the main transaction
     const { data: transaction, error: txError } = await supabase
@@ -68,7 +80,10 @@ export async function POST(request: Request) {
         document_number,
         waybill_number,
         shipment_date,
-        order_date
+        order_date,
+        cheque_due_date: type === 'payment' && payment_method === 'cheque' ? cheque_due_date : null,
+        cheque_bank: type === 'payment' && payment_method === 'cheque' ? cheque_bank : null,
+        cheque_serial_number: type === 'payment' && payment_method === 'cheque' ? cheque_serial_number : null
       })
       .select()
       .single()
@@ -96,17 +111,19 @@ export async function POST(request: Request) {
 
       if (itemsError) throw itemsError
 
-      // 3. Optional: Create stock movements for each item if product_id exists
-      // This part depends on how stock_movements table is structured
+      // 3. Create stock movements for each item to deduct stock
       for (const item of items) {
         if (item.product_id) {
-          await supabase.from('stock_movements').insert({
+          const { error: movementError } = await supabase.from('stock_movements').insert({
             tenant_id: profile.tenant_id,
             product_id: item.product_id,
+            warehouse_id: item.warehouse_id,
             movement_type: 'out',
             quantity: item.quantity,
-            description: `Müşteri Satışı - ${transaction.id}`
+            reference_no: document_number || transaction.id,
+            notes: `Müşteri Satışı - ${customerName}`
           })
+          if (movementError) console.error('Stock movement error:', movementError)
         }
       }
     }
