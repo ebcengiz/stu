@@ -236,7 +236,8 @@ export default function CustomerDetailPage() {
       quantity: 1,
       unit_price: product.price || 0,
       tax_rate: product.tax_rate || 20,
-      discount_rate: product.discount_rate || 0
+      discount_rate: product.discount_rate || 0,
+      warehouse_id: warehouses[0]?.id || ''
     })
     setShowItemDetailModal(true)
   }

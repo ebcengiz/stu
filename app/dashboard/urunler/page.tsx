@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, Suspense } from 'react'
-import { Plus, Search, Edit2, Trash2, X, ScanBarcode, Filter, ArrowUpDown, ArrowUp, ArrowDown, ImageIcon, UploadCloud, Loader2, Package } from 'lucide-react'
+import { Plus, Search, Edit2, Trash2, X, ScanBarcode, Filter, ArrowUpDown, ArrowUp, ArrowDown, ImageIcon, UploadCloud, Loader2, Package, Layers, Warehouse as WarehouseIcon } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Card, CardHeader, CardBody, CardTitle } from '@/components/ui/Card'
 import { useRouter, useSearchParams } from 'next/navigation'
@@ -599,7 +599,7 @@ function ProductsPageContent() {
 
       {/* New Category Modal */}
       {showNewCategoryModal && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-[100] p-4 animate-in fade-in duration-300">
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-[10001] p-4 animate-in fade-in duration-300">
           <div className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-md overflow-hidden border-0 animate-in zoom-in-95 duration-200">
             <div className="px-8 py-7 border-b flex justify-between items-center bg-gray-50/50">
               <div className="flex items-center gap-3">
@@ -644,11 +644,11 @@ function ProductsPageContent() {
 
       {/* New Warehouse Modal */}
       {showNewWarehouseModal && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-[100] p-4 animate-in fade-in duration-300">
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-[10001] p-4 animate-in fade-in duration-300">
           <div className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-md overflow-hidden border-0 animate-in zoom-in-95 duration-200">
             <div className="px-8 py-7 border-b flex justify-between items-center bg-gray-50/50">
               <div className="flex items-center gap-3">
-                <div className="p-2.5 bg-primary-100 rounded-xl"><Warehouse className="h-5 w-5 text-primary-600" /></div>
+                <div className="p-2.5 bg-primary-100 rounded-xl"><WarehouseIcon className="h-5 w-5 text-primary-600" /></div>
                 <h3 className="text-base font-black text-gray-800 uppercase tracking-widest">Yeni Depo</h3>
               </div>
               <button onClick={() => setShowNewWarehouseModal(false)} className="p-2 hover:bg-gray-200 rounded-full transition-all active:scale-90"><X className="h-5 w-5 text-gray-400" /></button>
@@ -668,12 +668,9 @@ function ProductsPageContent() {
               </div>
               <div className="space-y-3">
                 <label className="block text-[11px] font-black text-gray-400 uppercase tracking-[0.15em] px-1">Depo Konumu</label>
-                <input 
-                  type="text" 
+                <LocationPicker 
                   value={newWarehouseData.location} 
-                  onChange={(e) => setNewWarehouseData({...newWarehouseData, location: e.target.value})} 
-                  className="w-full px-5 py-4 border-2 border-gray-100 rounded-2xl focus:border-primary-500 focus:ring-4 focus:ring-primary-50 outline-none font-bold text-gray-900 transition-all placeholder:text-gray-300" 
-                  placeholder="Şehir, Semt veya Detaylı Adres" 
+                  onChange={(location) => setNewWarehouseData({...newWarehouseData, location})} 
                 />
               </div>
               <div className="flex gap-4 pt-4">
