@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, ImageIcon, X, UploadCloud, Loader2 } from 'lucide-react'
+import { ArrowLeft, ImageIcon, X, UploadCloud, Loader2, Package, ChevronDown } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/Button'
 import { Card, CardHeader, CardBody, CardTitle } from '@/components/ui/Card'
@@ -13,6 +13,8 @@ export default function NewProductPage() {
   const [loading, setLoading] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState('')
+  const [categories, setCategories] = useState<{id: string, name: string}[]>([])
+  const [loadingCategories, setLoadingCategories] = useState(true)
 
   const [formData, setFormData] = useState({
     name: '',
@@ -22,7 +24,21 @@ export default function NewProductPage() {
     unit: 'adet',
     min_stock_level: 0,
     image_url: '',
+    category_id: '',
   })
+
+  useEffect(() => {
+    fetch('/api/categories')
+      .then(res => res.json())
+      .then(data => {
+        setCategories(Array.isArray(data) ? data : [])
+        setLoadingCategories(false)
+      })
+      .catch(err => {
+        console.error('Error fetching categories:', err)
+        setLoadingCategories(false)
+      })
+  }, [])
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -153,6 +169,24 @@ export default function NewProductPage() {
                       className="w-full px-5 py-4 border-2 border-gray-100 rounded-2xl focus:border-primary-500 focus:ring-4 focus:ring-primary-50 outline-none font-bold text-gray-900 transition-all placeholder:text-gray-300"
                       placeholder="Barkod numarasını giriniz"
                     />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="block text-[11px] font-black text-gray-400 uppercase tracking-widest px-1">Kategori *</label>
+                    <div className="relative">
+                      <select
+                        required
+                        value={formData.category_id}
+                        onChange={(e) => setFormData({ ...formData, category_id: e.target.value })}
+                        className="w-full px-5 pr-12 py-4 border-2 border-gray-100 rounded-2xl focus:border-primary-500 focus:ring-4 focus:ring-primary-50 outline-none text-[13px] font-semibold text-gray-700 transition-all bg-white appearance-none truncate shadow-sm"
+                      >
+                        <option value="">Kategori Seçiniz</option>
+                        {categories.map((c) => (
+                          <option key={c.id} value={c.id}>{c.name}</option>
+                        ))}
+                      </select>
+                      <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
+                    </div>
                   </div>
 
                   <div className="space-y-2">

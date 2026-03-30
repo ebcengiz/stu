@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect, Suspense } from 'react'
-import { Plus, Search, Edit2, Trash2, X, ScanBarcode, Filter, ArrowUpDown, ArrowUp, ArrowDown, ImageIcon, UploadCloud, Loader2, Package, Layers, Warehouse as WarehouseIcon } from 'lucide-react'
+import { useState, useEffect, Suspense, useMemo } from 'react'
+import { Plus, Search, Edit2, Trash2, X, ScanBarcode, Filter, ArrowUpDown, ArrowUp, ArrowDown, ImageIcon, UploadCloud, Loader2, Package, Layers, Warehouse as WarehouseIcon, ChevronDown } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Card, CardHeader, CardBody, CardTitle } from '@/components/ui/Card'
 import { useRouter, useSearchParams } from 'next/navigation'
@@ -118,9 +118,31 @@ function ProductsPageContent() {
   const searchParams = useSearchParams()
 
   useEffect(() => {
-    fetchProducts()
-    fetchCategories()
-    fetchWarehouses()
+    const fetchAllData = async () => {
+      try {
+        const [productsRes, categoriesRes, warehousesRes] = await Promise.all([
+          fetch('/api/products'),
+          fetch('/api/categories'),
+          fetch('/api/warehouses')
+        ])
+
+        const [productsData, categoriesData, warehousesData] = await Promise.all([
+          productsRes.json(),
+          categoriesRes.json(),
+          warehousesRes.json()
+        ])
+
+        setProducts(Array.isArray(productsData) ? productsData : [])
+        setCategories(Array.isArray(categoriesData) ? categoriesData : [])
+        setWarehouses(Array.isArray(warehousesData) ? warehousesData.filter((w: Warehouse) => w.is_active) : [])
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchAllData()
   }, [])
 
   useEffect(() => {
@@ -346,27 +368,34 @@ function ProductsPageContent() {
     }
   }
 
-  const filteredProducts = Array.isArray(products) ? products.filter(product => {
-    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.sku?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.barcode?.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesCategory = categoryFilter ? product.category_id === categoryFilter : true
-    const matchesWarehouse = warehouseFilter ? product.stock?.some(s => s.warehouse_id === warehouseFilter && Number(s.quantity) > 0) : true
-    const totalStock = calculateTotalStock(product.stock)
-    const isLowStock = stockFilter === 'low-stock' ? totalStock <= product.min_stock_level : true
-    return matchesSearch && matchesCategory && matchesWarehouse && isLowStock
-  }) : []
+  const filteredProducts = useMemo(() => {
+    if (!Array.isArray(products)) return []
+    return products.filter(product => {
+      const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        product.sku?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        product.barcode?.toLowerCase().includes(searchTerm.toLowerCase())
+      const matchesCategory = categoryFilter ? product.category_id === categoryFilter : true
+      const matchesWarehouse = warehouseFilter ? product.stock?.some(s => s.warehouse_id === warehouseFilter && Number(s.quantity) > 0) : true
+      const totalStock = calculateTotalStock(product.stock)
+      const isLowStock = stockFilter === 'low-stock' ? totalStock <= product.min_stock_level : true
+      return matchesSearch && matchesCategory && matchesWarehouse && isLowStock
+    })
+  }, [products, searchTerm, categoryFilter, warehouseFilter, stockFilter])
 
-  const sortedProducts = [...filteredProducts].sort((a, b) => {
-    if (!sortConfig) return 0
-    const { key, direction } = sortConfig
-    const aValue = a[key] ?? ''
-    const bValue = b[key] ?? ''
+  const sortedProducts = useMemo(() => {
+    const sorted = [...filteredProducts]
+    if (!sortConfig) return sorted
     
-    if (aValue < bValue) return direction === 'asc' ? -1 : 1
-    if (aValue > bValue) return direction === 'asc' ? 1 : -1
-    return 0
-  })
+    return sorted.sort((a, b) => {
+      const { key, direction } = sortConfig
+      const aValue = a[key] ?? ''
+      const bValue = b[key] ?? ''
+      
+      if (aValue < bValue) return direction === 'asc' ? -1 : 1
+      if (aValue > bValue) return direction === 'asc' ? 1 : -1
+      return 0
+    })
+  }, [filteredProducts, sortConfig])
 
   if (loading && products.length === 0) return <div className="p-8">Yükleniyor...</div>
 
@@ -398,7 +427,13 @@ function ProductsPageContent() {
             </div>
             {showFilters && (
               <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-inner grid grid-cols-1 sm:grid-cols-3 gap-6 animate-in slide-in-from-top-2 duration-200">
-                <div className="space-y-1.5"><label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Kategori</label><select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)} className="w-full bg-gray-50 border-none rounded-xl py-2.5 px-3 text-sm font-bold text-gray-700 focus:ring-2 focus:ring-primary-500"><option value="">Tüm Kategoriler</option>{categories.map((c) => (<option key={c.id} value={c.id}>{c.name}</option>))}</select></div>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Kategori</label>
+                  <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)} className="w-full bg-gray-50 border-none rounded-xl py-2.5 px-3 text-[11px] font-semibold text-gray-700 focus:ring-2 focus:ring-primary-500 transition-all">
+                    <option value="">Tüm Kategoriler</option>
+                    {categories.map((c) => (<option key={c.id} value={c.id}>{c.name}</option>))}
+                  </select>
+                </div>
                 <div className="space-y-1.5"><label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Depo</label><select value={warehouseFilter} onChange={(e) => setWarehouseFilter(e.target.value)} className="w-full bg-gray-50 border-none rounded-xl py-2.5 px-3 text-sm font-bold text-gray-700 focus:ring-2 focus:ring-primary-500"><option value="">Tüm Depolar</option>{warehouses.map((w) => (<option key={w.id} value={w.id}>{w.name}</option>))}</select></div>
                 <div className="space-y-1.5"><label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Durum</label><label className={`flex items-center justify-between w-full bg-gray-50 rounded-xl py-2.5 px-4 text-sm font-bold cursor-pointer transition-all ${stockFilter === 'low-stock' ? 'bg-red-50 text-red-700 ring-2 ring-red-200' : 'text-gray-600 hover:bg-gray-100'}`}><span>Düşük Stok</span><input type="checkbox" checked={stockFilter === 'low-stock'} onChange={(e) => setStockFilter(e.target.checked ? 'low-stock' : 'all')} className="h-4 w-4 rounded-full border-gray-300 text-red-600 focus:ring-red-500" /></label></div>
               </div>
@@ -410,18 +445,18 @@ function ProductsPageContent() {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50/50">
                 <tr>
-                  <th className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest cursor-pointer hover:text-primary-600 transition-colors" onClick={() => requestSort('name')}>
+                  <th className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-wider cursor-pointer hover:text-primary-600 transition-colors min-w-[140px]" onClick={() => requestSort('name')}>
                     <div className="flex items-center">Görsel / Ürün {getSortIcon('name')}</div>
                   </th>
-                  <th className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest cursor-pointer hover:text-primary-600 transition-colors" onClick={() => requestSort('sku')}>
+                  <th className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-wider cursor-pointer hover:text-primary-600 transition-colors min-w-[100px]" onClick={() => requestSort('sku')}>
                     <div className="flex items-center">SKU {getSortIcon('sku')}</div>
                   </th>
-                  <th className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Kategori</th>
-                  <th className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Fiyat Bilgisi</th>
-                  <th className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">KDV/İSK</th>
-                  <th className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Toplam Stok</th>
-                  <th className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Durum</th>
-                  <th className="px-6 py-4 text-right text-[10px] font-black text-gray-400 uppercase tracking-widest">İşlemler</th>
+                  <th className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-wider min-w-[120px]">Kategori</th>
+                  <th className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-wider min-w-[120px]">Fiyat Bilgisi</th>
+                  <th className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-wider text-center min-w-[100px]">KDV/İSK</th>
+                  <th className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-wider text-right min-w-[110px]">Toplam Stok</th>
+                  <th className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-wider min-w-[100px]">Durum</th>
+                  <th className="px-6 py-4 text-right text-[10px] font-black text-gray-400 uppercase tracking-wider min-w-[100px]">İşlemler</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-50">
@@ -432,8 +467,8 @@ function ProductsPageContent() {
                     const symbol = CURRENCY_SYMBOLS[product.currency || 'TRY'] || product.currency || '₺'
                     return (
                       <tr key={product.id} className={`group transition-colors ${isLow ? 'bg-red-50/30 hover:bg-red-50/50' : 'hover:bg-gray-50/80'}`}>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center gap-4">
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-4 min-w-[200px]">
                             <div className="h-12 w-12 rounded-xl bg-gray-100 flex-shrink-0 overflow-hidden border border-gray-100 group-hover:border-primary-200 transition-all shadow-sm">
                               {product.image_url ? (
                                 <img src={product.image_url} alt={product.name} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" />
@@ -443,11 +478,17 @@ function ProductsPageContent() {
                                 </div>
                               )}
                             </div>
-                            <div className="text-sm font-bold text-gray-900 group-hover:text-primary-600 transition-colors">{product.name}</div>
+                            <div className="text-sm font-bold text-gray-900 group-hover:text-primary-600 transition-colors leading-tight">{product.name}</div>
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-500 bg-gray-50/50 group-hover:bg-white transition-colors">{product.sku || '---'}</td>
-                        <td className="px-6 py-4 whitespace-nowrap"><span className="px-3 py-1 rounded-lg bg-gray-100 text-gray-600 text-[11px] font-black uppercase tracking-wider">{product.categories?.name || 'Genel'}</span></td>
+                        <td className="px-6 py-4">
+                          <div className="min-w-[120px]">
+                            <span className="px-3 py-1 rounded-lg bg-gray-100 text-gray-600 text-[10px] font-black uppercase tracking-wider inline-block text-center leading-tight">
+                              {product.categories?.name || 'Genel'}
+                            </span>
+                          </div>
+                        </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex flex-col">
                             <span className="text-sm font-black text-emerald-600">{symbol}{Number(product.price || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2 })}</span>
@@ -521,18 +562,21 @@ function ProductsPageContent() {
                     <input type="text" required value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="w-full px-5 py-3.5 border-2 border-gray-100 rounded-2xl focus:border-primary-500 focus:ring-4 focus:ring-primary-50 outline-none font-bold text-gray-900 transition-all" placeholder="Örn: iPhone 15 Pro Max" />
                   </div>
                   
-                  <div className="space-y-1.5">
+                  <div className="space-y-1.5 min-w-0">
                     <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Kategori *</label>
-                    <div className="flex gap-2">
-                      <select required value={formData.category_id} onChange={(e) => setFormData({ ...formData, category_id: e.target.value })} className="flex-1 px-4 py-3.5 border-2 border-gray-100 rounded-2xl focus:border-primary-500 focus:ring-4 focus:ring-primary-50 outline-none font-bold text-gray-900 transition-all bg-white shadow-sm appearance-none">
-                        <option value="">Seçiniz</option>
-                        {categories.map((c) => (<option key={c.id} value={c.id}>{c.name}</option>))}
-                      </select>
+                    <div className="flex gap-2 relative">
+                      <div className="relative flex-1 min-w-0">
+                        <select required value={formData.category_id} onChange={(e) => setFormData({ ...formData, category_id: e.target.value })} className="w-full px-4 pr-10 py-3.5 border-2 border-gray-100 rounded-2xl focus:border-primary-500 focus:ring-4 focus:ring-primary-50 outline-none text-[11px] font-semibold text-gray-700 transition-all bg-white shadow-sm appearance-none truncate">
+                          <option value="">Seçiniz</option>
+                          {categories.map((c) => (<option key={c.id} value={c.id}>{c.name}</option>))}
+                        </select>
+                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+                      </div>
                       <button type="button" onClick={() => setShowNewCategoryModal(true)} className="flex-shrink-0 h-[52px] w-[52px] flex items-center justify-center bg-primary-50 text-primary-600 rounded-2xl hover:bg-primary-100 transition-all active:scale-95 border-2 border-primary-100" title="Yeni Kategori Ekle"><Plus className="h-5 w-5" /></button>
                     </div>
                   </div>
 
-                  <div className="space-y-1.5">
+                  <div className="space-y-1.5 min-w-0">
                     <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">SKU (Stok Kodu)</label>
                     <input type="text" value={formData.sku} onChange={(e) => setFormData({ ...formData, sku: e.target.value })} className="w-full px-5 py-3.5 border-2 border-gray-100 rounded-2xl focus:border-primary-500 focus:ring-4 focus:ring-primary-50 outline-none font-bold text-gray-900 transition-all uppercase" placeholder="ABC-123" />
                   </div>
