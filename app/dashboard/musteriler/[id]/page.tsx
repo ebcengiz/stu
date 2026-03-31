@@ -549,7 +549,7 @@ export default function CustomerDetailPage() {
                                 {chequeData.amount ? `${Number(chequeData.amount).toLocaleString('tr-TR')} ₺ tutarında çek girildi. (Banka: ${chequeData.bank})` : 'Henüz çek detayı girilmedi.'}
                               </p>
                             </div>
-                            <Button type="button" onClick={() => setShowChequeModal(true)} variant={chequeData.amount ? "outline" : "default"} className={chequeData.amount ? "border-amber-300 text-amber-800 hover:bg-amber-100" : "bg-amber-600 hover:bg-amber-700 text-white"}>
+                            <Button type="button" onClick={() => setShowChequeModal(true)} variant={chequeData.amount ? "outline" : "primary"} className={chequeData.amount ? "border-amber-300 text-amber-800 hover:bg-amber-100" : "bg-amber-600 hover:bg-amber-700 text-white"}>
                               {chequeData.amount ? 'Bilgileri Düzenle' : 'Çek Detayı Gir'}
                             </Button>
                           </div>
