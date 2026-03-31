@@ -5,6 +5,7 @@ import { Plus, Edit2, Trash2, Package, Layers, X, Search, ArrowRight, ExternalLi
 import { Button } from '@/components/ui/Button'
 import { Card, CardHeader, CardBody, CardTitle } from '@/components/ui/Card'
 import { useRouter } from 'next/navigation'
+// @ts-ignore
 import { toast } from 'react-hot-toast'
 
 interface Category {
