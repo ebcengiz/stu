@@ -742,7 +742,6 @@ function ProductsPageContent() {
                   setShowBarcodeScanner(false);
                   toast.success('Barkod tarandı: ' + barcode);
                 }} 
-                onError={(err) => toast.error('Kamera hatası: ' + err)}
               />
             </div>
           </div>
