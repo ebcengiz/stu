@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
+// @ts-ignore
 import { v4 as uuidv4 } from 'uuid'
 // @ts-ignore
 
