@@ -56,7 +56,7 @@
 - [x] Düşük stok uyarıları
 - [x] Grafik hazırlıkları
 
-### 8. Admin Paneli ✓
+### 8. Ayarlar ✓
 - [x] Firma bilgileri
 - [x] Kullanıcı istatistikleri
 - [x] Sistem bilgileri
@@ -119,7 +119,7 @@ stok-takip/
 │   │   ├── kategoriler/     ✓ Kategoriler
 │   │   ├── depolar/         ✓ Depolar
 │   │   ├── raporlar/        ✓ Raporlar
-│   │   └── yonetim/         ✓ Admin paneli
+│   │   └── ayarlar/         ✓ Ayarlar
 │   ├── api/
 │   │   └── products/        ✓ Ürün API
 │   ├── globals.css          ✓ Global stiller

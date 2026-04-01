@@ -59,7 +59,7 @@ export default function DashboardSidebar({ profile }: { profile: Profile | null 
   }
 
   const navigation = [
-    { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+    { name: 'Anasayfa', href: '/dashboard', icon: LayoutDashboard },
     { name: 'Ürünler', href: '/dashboard/urunler', icon: Package },
     { name: 'Kategoriler', href: '/dashboard/kategoriler', icon: FolderTree },
     { name: 'Depolar', href: '/dashboard/depolar', icon: Warehouse },
@@ -69,7 +69,7 @@ export default function DashboardSidebar({ profile }: { profile: Profile | null 
   ]
 
   if (profile?.role === 'admin') {
-    navigation.push({ name: 'Yönetim', href: '/dashboard/yonetim', icon: Settings })
+    navigation.push({ name: 'Ayarlar', href: '/dashboard/ayarlar', icon: Settings })
   }
 
   const SidebarContent = ({ isMobile = false }) => {

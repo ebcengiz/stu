@@ -140,11 +140,11 @@ Ana dashboard'da şu bilgileri görebilirsiniz:
 3. **Düşük Stok Uyarıları**:
    - Minimum seviyenin altındaki ürünler
 
-## ⚙️ Yönetim Paneli (Admin)
+## ⚙️ Ayarlar Paneli (Admin)
 
 **Not**: Bu bölüm sadece Admin rolündeki kullanıcılar tarafından erişilebilir.
 
-### Yönetim Paneli Özellikleri
+### Ayarlar Paneli Özellikleri
 
 1. **Kullanıcı İstatistikleri**:
    - Toplam kullanıcı sayısı
