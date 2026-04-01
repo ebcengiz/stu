@@ -5,6 +5,7 @@ import { useRouter, useParams } from 'next/navigation'
 import { ArrowLeft, Building, CreditCard, FileText, ShoppingCart, Save, DollarSign, Plus, Search, Trash2, Package, X, Check, History, Users, User, Info, Calendar, Tag } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Card, CardHeader, CardBody, CardTitle } from '@/components/ui/Card'
+// @ts-ignore
 import { toast } from 'react-hot-toast'
 
 interface Product {
@@ -549,7 +550,7 @@ export default function CustomerDetailPage() {
                                 {chequeData.amount ? `${Number(chequeData.amount).toLocaleString('tr-TR')} ₺ tutarında çek girildi. (Banka: ${chequeData.bank})` : 'Henüz çek detayı girilmedi.'}
                               </p>
                             </div>
-                            <Button type="button" onClick={() => setShowChequeModal(true)} variant={chequeData.amount ? "outline" : "default"} className={chequeData.amount ? "border-amber-300 text-amber-800 hover:bg-amber-100" : "bg-amber-600 hover:bg-amber-700 text-white"}>
+                            <Button type="button" onClick={() => setShowChequeModal(true)} variant={chequeData.amount ? "outline" : "primary"} className={chequeData.amount ? "border-amber-300 text-amber-800 hover:bg-amber-100" : "bg-amber-600 hover:bg-amber-700 text-white"}>
                               {chequeData.amount ? 'Bilgileri Düzenle' : 'Çek Detayı Gir'}
                             </Button>
                           </div>

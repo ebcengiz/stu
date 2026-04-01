@@ -9,6 +9,7 @@ import dynamic from 'next/dynamic'
 import BarcodeScanner from '@/components/barcode/BarcodeScanner'
 import BarcodeDisplay from '@/components/barcode/BarcodeDisplay'
 import { CURRENCY_SYMBOLS } from '@/lib/currency'
+// @ts-ignore
 import { toast } from 'react-hot-toast'
 
 // Dynamically import LocationPicker to avoid SSR issues with Leaflet
@@ -742,7 +743,6 @@ function ProductsPageContent() {
                   setShowBarcodeScanner(false);
                   toast.success('Barkod tarandı: ' + barcode);
                 }} 
-                onError={(err) => toast.error('Kamera hatası: ' + err)}
               />
             </div>
           </div>
