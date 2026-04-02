@@ -160,6 +160,8 @@ export default function CustomerDetailPage() {
 
   // Sale Items
   const [selectedItems, setSelectedItems] = useState<SelectedItem[]>([])
+  const [productSearch, setProductSearch] = useState('')
+  const [isProductListVisible, setIsProductListVisible] = useState(false)
 
   useEffect(() => {
     if (customerId) {
@@ -400,6 +402,11 @@ export default function CustomerDetailPage() {
   const currentModalTax = (currentModalSubtotal * Number(itemFormData.tax_rate)) / 100
   const currentModalTotal = currentModalSubtotal + currentModalTax
 
+  const filteredProducts = products.filter(p => 
+    p.name.toLowerCase().includes(productSearch.toLowerCase()) || 
+    p.sku?.toLowerCase().includes(productSearch.toLowerCase())
+  )
+
   const totalStock = currentItem?.stock?.reduce((sum, s) => sum + (s.quantity || 0), 0) || 0
 
   return (
@@ -491,10 +498,59 @@ export default function CustomerDetailPage() {
                   {txForm.type === 'sale' ? (
                     <div className="space-y-6">
                       <div className="flex justify-between items-center"><h4 className="font-bold text-gray-900 flex items-center gap-2"><Package className="h-5 w-5 text-gray-400" />Satılacak Ürünler</h4><Button type="button" onClick={() => setShowProductModal(true)} size="sm" variant="outline" className="h-8 text-xs"><Plus className="h-3 w-3 mr-1" />Hızlı Ürün Ekle</Button></div>
-                      <select className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl outline-none focus:ring-4 focus:ring-primary-50 transition-all appearance-none cursor-pointer" onChange={(e) => { if(e.target.value) { openItemDetailModal(e.target.value); e.target.value = '' } }}>
-                        <option value="">Ürün seçin...</option>
-                        {products.map(p => <option key={p.id} value={p.id}>{p.name} {p.sku ? `(${p.sku})` : ''}</option>)}
-                      </select>
+                      <div className="relative">
+                        <div className="relative z-50">
+                          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                          <input
+                            type="text"
+                            placeholder="Ürün ara veya seçin..."
+                            value={productSearch}
+                            onChange={(e) => {
+                              setProductSearch(e.target.value)
+                              setIsProductListVisible(true)
+                            }}
+                            onFocus={() => setIsProductListVisible(true)}
+                            className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-xl outline-none focus:ring-4 focus:ring-primary-50 transition-all"
+                          />
+                        </div>
+                        
+                        {isProductListVisible && (
+                          <>
+                            <div 
+                              className="fixed inset-0 z-40" 
+                              onClick={() => setIsProductListVisible(false)}
+                            />
+                            <div className="absolute z-50 w-full mt-2 bg-white border border-gray-100 rounded-xl shadow-xl max-h-60 overflow-y-auto animate-in fade-in slide-in-from-top-2 duration-200">
+                              {filteredProducts.length > 0 ? (
+                                filteredProducts.map(p => (
+                                  <button
+                                    key={p.id}
+                                    type="button"
+                                    onClick={() => {
+                                      openItemDetailModal(p.id)
+                                      setProductSearch('')
+                                      setIsProductListVisible(false)
+                                    }}
+                                    className="w-full text-left px-4 py-3 hover:bg-primary-50 transition-colors flex items-center justify-between border-b border-gray-50 last:border-0"
+                                  >
+                                    <div>
+                                      <div className="font-bold text-gray-900">{p.name}</div>
+                                      <div className="text-xs text-gray-500">{p.sku || 'SKU YOK'}</div>
+                                    </div>
+                                    <div className="text-xs font-bold text-primary-600 bg-primary-50 px-2 py-1 rounded-lg">
+                                      {p.stock?.reduce((sum, s) => sum + (s.quantity || 0), 0) || 0} {p.unit}
+                                    </div>
+                                  </button>
+                                ))
+                              ) : (
+                                <div className="px-4 py-8 text-center text-gray-500 italic">
+                                  Ürün bulunamadı.
+                                </div>
+                              )}
+                            </div>
+                          </>
+                        )}
+                      </div>
 
                       {selectedItems.length > 0 && (
                         <div className="border rounded-2xl overflow-hidden bg-white shadow-sm">
@@ -715,7 +771,14 @@ export default function CustomerDetailPage() {
               </div>
 
               <div className="space-y-2 mt-6">
-                <label className="block text-xs font-black text-gray-400 uppercase tracking-widest px-1">Çıkış Yapılacak Depo *</label>
+                <div className="flex justify-between items-end px-1">
+                  <label className="block text-xs font-black text-gray-400 uppercase tracking-widest">Çıkış Yapılacak Depo *</label>
+                  {itemFormData.warehouse_id && (
+                    <span className="text-[10px] font-bold text-primary-600 bg-primary-50 px-2 py-0.5 rounded-full">
+                      Depo Mevcudu: {currentItem.stock?.find(s => s.warehouse_id === itemFormData.warehouse_id)?.quantity || 0} {currentItem.unit}
+                    </span>
+                  )}
+                </div>
                 <div className="relative group">
                   <Building className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-primary-500 transition-colors pointer-events-none" />
                   <select 
@@ -725,10 +788,10 @@ export default function CustomerDetailPage() {
                   >
                     {warehouses.map(w => {
                       const warehouseStock = currentItem.stock?.find(s => s.warehouse_id === w.id)?.quantity || 0
-                      const isNegative = warehouseStock < 0
+                      const isNegative = warehouseStock <= 0
                       return (
                         <option key={w.id} value={w.id} className={isNegative ? "text-red-600" : "text-gray-900"}>
-                          {w.name} {isNegative ? `(Stok: ${warehouseStock} - KRİTİK)` : `(Stok: ${warehouseStock} ${currentItem.unit})`}
+                          {w.name} (Stok: {warehouseStock} {currentItem.unit}) {isNegative ? '— KRİTİK' : ''}
                         </option>
                       )
                     })}
