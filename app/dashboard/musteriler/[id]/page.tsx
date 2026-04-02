@@ -5,6 +5,7 @@ import { useRouter, useParams } from 'next/navigation'
 import { ArrowLeft, Building, CreditCard, FileText, ShoppingCart, Save, DollarSign, Plus, Search, Trash2, Package, X, Check, History, Users, User, Info, Calendar, Tag } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Card, CardHeader, CardBody, CardTitle } from '@/components/ui/Card'
+import { TagSelector } from '@/components/admin/TagSelector'
 // @ts-ignore
 import { toast } from 'react-hot-toast'
 
@@ -504,14 +505,20 @@ export default function CustomerDetailPage() {
                       <div className="space-y-4">
                         <div className="space-y-1.5"><label className="text-xs font-semibold text-gray-500 uppercase px-1">İletişim Kişisi</label><input type="text" value={formData.contact_person} onChange={e => setFormData({...formData, contact_person: e.target.value})} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg" /></div>
                         <div className="grid grid-cols-2 gap-4">
-                          <div className="space-y-1.5">
-                            <label className="text-xs font-semibold text-gray-500 uppercase px-1">Müşteri Grubu</label>
-                            <input type="text" value={formData.category1} onChange={e => setFormData({...formData, category1: e.target.value})} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-primary-500" placeholder="Örn: VIP" />
-                          </div>
-                          <div className="space-y-1.5">
-                            <label className="text-xs font-semibold text-gray-500 uppercase px-1">Özel Etiket</label>
-                            <input type="text" value={formData.category2} onChange={e => setFormData({...formData, category2: e.target.value})} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-primary-500" placeholder="Örn: Güvenilir" />
-                          </div>
+                          <TagSelector
+                            label="Müşteri Grubu"
+                            type="category1"
+                            value={formData.category1 || ''}
+                            placeholder="Grup seçin veya yazın..."
+                            onChange={(val) => setFormData({ ...formData, category1: val })}
+                          />
+                          <TagSelector
+                            label="Özel Etiket"
+                            type="category2"
+                            value={formData.category2 || ''}
+                            placeholder="Etiket seçin veya yazın..."
+                            onChange={(val) => setFormData({ ...formData, category2: val })}
+                          />
                         </div>
                         <div className="grid grid-cols-2 gap-4"><div className="space-y-1.5"><label className="text-xs font-semibold text-gray-500 uppercase px-1">Telefon</label><input type="tel" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg" /></div><div className="space-y-1.5"><label className="text-xs font-semibold text-gray-500 uppercase px-1">E-Posta</label><input type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg" /></div></div>
                         <div className="space-y-1.5"><label className="text-xs font-semibold text-gray-500 uppercase px-1">Adres</label><textarea value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg h-24 resize-none" /></div>

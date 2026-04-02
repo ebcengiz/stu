@@ -5,6 +5,7 @@ import { Plus, Search, Edit2, Trash2, X, Building, Mail, Phone, MapPin } from 'l
 import { Button } from '@/components/ui/Button'
 import { Card, CardHeader, CardBody, CardTitle } from '@/components/ui/Card'
 import { useRouter } from 'next/navigation'
+import { TagSelector } from '@/components/admin/TagSelector'
 
 interface Customer {
   id: string
@@ -600,30 +601,20 @@ export default function CustomersPage() {
               <div className="pt-2 space-y-4">
                 <h3 className="text-sm font-semibold text-gray-900 border-b pb-2">Sınıflandırma</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Müşteri Grubu / Sınıfı
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.category1}
-                      onChange={(e) => setFormData({ ...formData, category1: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                      placeholder="Örn: VIP, Perakende, Toptan"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Özel Etiket
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.category2}
-                      onChange={(e) => setFormData({ ...formData, category2: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                      placeholder="Örn: Riskli, Güvenilir, Yeni"
-                    />
-                  </div>
+                  <TagSelector
+                    label="Müşteri Grubu / Sınıfı"
+                    type="category1"
+                    value={formData.category1 || ''}
+                    placeholder="Grup seçin veya yazın..."
+                    onChange={(val) => setFormData({ ...formData, category1: val })}
+                  />
+                  <TagSelector
+                    label="Özel Etiket"
+                    type="category2"
+                    value={formData.category2 || ''}
+                    placeholder="Etiket seçin veya yazın..."
+                    onChange={(val) => setFormData({ ...formData, category2: val })}
+                  />
                 </div>
 
                 <div>
