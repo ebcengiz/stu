@@ -38,6 +38,8 @@ interface Customer {
   tax_number: string | null
   tax_office: string | null
   notes: string | null
+  category1: string | null
+  category2: string | null
   is_active: boolean
 }
 
@@ -142,7 +144,8 @@ export default function CustomerDetailPage() {
   // Edit Form State
   const [formData, setFormData] = useState({
     company_name: '', company_logo: '', address: '', contact_person: '',
-    phone: '', email: '', tax_number: '', tax_office: '', notes: '', is_active: true
+    phone: '', email: '', tax_number: '', tax_office: '', notes: '',
+    category1: '', category2: '', is_active: true
   })
 
   // Transaction Form State
@@ -184,7 +187,8 @@ export default function CustomerDetailPage() {
           address: current.address || '', contact_person: current.contact_person || '',
           phone: current.phone || '', email: current.email || '',
           tax_number: current.tax_number || '', tax_office: current.tax_office || '',
-          notes: current.notes || '', is_active: current.is_active
+          notes: current.notes || '', category1: current.category1 || '',
+          category2: current.category2 || '', is_active: current.is_active
         })
       }
     } catch (error) { console.error(error) }
@@ -461,8 +465,33 @@ export default function CustomerDetailPage() {
               <CardBody className="pt-6">
                 {!isEditing ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div className="space-y-6"><div><h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Firma Ünvanı</h4><p className="text-gray-900 font-medium">{customer.company_name}</p></div><div><h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Vergi Bilgileri</h4><p className="text-gray-900">{customer.tax_office || '-'} / {customer.tax_number || '-'}</p></div><div><h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Adres</h4><p className="text-gray-600 leading-relaxed">{customer.address || 'Adres bilgisi girilmemiş'}</p></div></div>
-                    <div className="space-y-6"><div><h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">İletişim Kişisi</h4><p className="text-gray-900 font-medium">{customer.contact_person || '-'}</p></div><div><h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Telefon / E-Posta</h4><p className="text-gray-900">{customer.phone || '-'} / {customer.email || '-'}</p></div><div><h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Notlar</h4><p className="text-gray-600 italic leading-relaxed">{customer.notes || 'Herhangi bir not bulunmuyor'}</p></div></div>
+                    <div className="space-y-6">
+                      <div>
+                        <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Firma Ünvanı</h4>
+                        <div className="flex items-center gap-2">
+                          <p className="text-gray-900 font-medium">{customer.company_name}</p>
+                          <div className="flex gap-1">
+                            {customer.category1 && (
+                              <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-800">
+                                {customer.category1}
+                              </span>
+                            )}
+                            {customer.category2 && (
+                              <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-purple-100 text-purple-800">
+                                {customer.category2}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      <div><h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Vergi Bilgileri</h4><p className="text-gray-900">{customer.tax_office || '-'} / {customer.tax_number || '-'}</p></div>
+                      <div><h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Adres</h4><p className="text-gray-600 leading-relaxed">{customer.address || 'Adres bilgisi girilmemiş'}</p></div>
+                    </div>
+                    <div className="space-y-6">
+                      <div><h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">İletişim Kişisi</h4><p className="text-gray-900 font-medium">{customer.contact_person || '-'}</p></div>
+                      <div><h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Telefon / E-Posta</h4><p className="text-gray-900">{customer.phone || '-'} / {customer.email || '-'}</p></div>
+                      <div><h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Notlar</h4><p className="text-gray-600 italic leading-relaxed">{customer.notes || 'Herhangi bir not bulunmuyor'}</p></div>
+                    </div>
                   </div>
                 ) : (
                   <form onSubmit={handleUpdateCustomer} className="space-y-6">
@@ -474,6 +503,16 @@ export default function CustomerDetailPage() {
                       </div>
                       <div className="space-y-4">
                         <div className="space-y-1.5"><label className="text-xs font-semibold text-gray-500 uppercase px-1">İletişim Kişisi</label><input type="text" value={formData.contact_person} onChange={e => setFormData({...formData, contact_person: e.target.value})} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg" /></div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-1.5">
+                            <label className="text-xs font-semibold text-gray-500 uppercase px-1">Müşteri Grubu</label>
+                            <input type="text" value={formData.category1} onChange={e => setFormData({...formData, category1: e.target.value})} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-primary-500" placeholder="Örn: VIP" />
+                          </div>
+                          <div className="space-y-1.5">
+                            <label className="text-xs font-semibold text-gray-500 uppercase px-1">Özel Etiket</label>
+                            <input type="text" value={formData.category2} onChange={e => setFormData({...formData, category2: e.target.value})} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-primary-500" placeholder="Örn: Güvenilir" />
+                          </div>
+                        </div>
                         <div className="grid grid-cols-2 gap-4"><div className="space-y-1.5"><label className="text-xs font-semibold text-gray-500 uppercase px-1">Telefon</label><input type="tel" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg" /></div><div className="space-y-1.5"><label className="text-xs font-semibold text-gray-500 uppercase px-1">E-Posta</label><input type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg" /></div></div>
                         <div className="space-y-1.5"><label className="text-xs font-semibold text-gray-500 uppercase px-1">Adres</label><textarea value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg h-24 resize-none" /></div>
                       </div>

@@ -17,6 +17,9 @@ interface Customer {
   tax_number: string | null
   tax_office: string | null
   notes: string | null
+  category1: string | null
+  category2: string | null
+  balance: number
   is_active: boolean
   created_at: string
 }
@@ -28,6 +31,9 @@ export default function CustomersPage() {
   const [showModal, setShowModal] = useState(false)
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
+  const [categoryFilter, setCategoryFilter] = useState('all')
+  const [labelFilter, setLabelFilter] = useState('all')
+  const [showOnlyWithBalance, setShowOnlyWithBalance] = useState(false)
   const [saving, setSaving] = useState(false)
   const [uploadingLogo, setUploadingLogo] = useState(false)
 
@@ -41,6 +47,8 @@ export default function CustomersPage() {
     tax_number: '',
     tax_office: '',
     notes: '',
+    category1: '',
+    category2: '',
     is_active: true
   })
 
@@ -191,14 +199,23 @@ export default function CustomersPage() {
     setShowModal(true)
   }
 
+  const categories = Array.from(new Set(customers.map(c => c.category1).filter(Boolean)))
+  const labels = Array.from(new Set(customers.map(c => c.category2).filter(Boolean)))
+
   const filteredCustomers = customers.filter(customer => {
     const searchLower = searchTerm.toLowerCase()
-    return (
+    const matchesSearch = (
       customer.company_name?.toLowerCase().includes(searchLower) ||
       customer.contact_person?.toLowerCase().includes(searchLower) ||
       customer.email?.toLowerCase().includes(searchLower) ||
       customer.phone?.toLowerCase().includes(searchLower)
     )
+
+    const matchesCategory = categoryFilter === 'all' || customer.category1 === categoryFilter
+    const matchesLabel = labelFilter === 'all' || customer.category2 === labelFilter
+    const matchesBalance = !showOnlyWithBalance || (customer.balance && Math.abs(customer.balance) > 0.01)
+
+    return matchesSearch && matchesCategory && matchesLabel && matchesBalance
   })
 
   if (loading && customers.length === 0) {
@@ -216,6 +233,59 @@ export default function CustomersPage() {
           <Plus className="mr-2 h-4 w-4" />
           Yeni Müşteri
         </Button>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
+        <div className="space-y-1">
+          <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Müşteri Grubu</label>
+          <select 
+            value={categoryFilter} 
+            onChange={(e) => setCategoryFilter(e.target.value)}
+            className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"
+          >
+            <option value="all">Tüm Gruplar</option>
+            {categories.map(cat => (
+              <option key={cat} value={cat}>{cat}</option>
+            ))}
+          </select>
+        </div>
+        <div className="space-y-1">
+          <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Özel Etiket</label>
+          <select 
+            value={labelFilter} 
+            onChange={(e) => setLabelFilter(e.target.value)}
+            className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"
+          >
+            <option value="all">Tüm Etiketler</option>
+            {labels.map(lbl => (
+              <option key={lbl} value={lbl}>{lbl}</option>
+            ))}
+          </select>
+        </div>
+        <div className="flex items-end pb-1">
+          <label className="flex items-center gap-2 cursor-pointer select-none group">
+            <input 
+              type="checkbox" 
+              checked={showOnlyWithBalance}
+              onChange={(e) => setShowOnlyWithBalance(e.target.checked)}
+              className="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+            />
+            <span className="text-sm font-bold text-gray-600 group-hover:text-primary-600 transition-colors">Sadece Bakiyesi Olanlar</span>
+          </label>
+        </div>
+        <div className="space-y-1">
+          <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Arama</label>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <input
+              type="text"
+              placeholder="İsim, yetkili, tel..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"
+            />
+          </div>
+        </div>
       </div>
 
       <Card>
@@ -242,6 +312,7 @@ export default function CustomersPage() {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Firma Bilgisi</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">İletişim</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vergi Bilgileri</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Bakiye</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Durum</th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">İşlemler</th>
                 </tr>
@@ -265,6 +336,18 @@ export default function CustomersPage() {
                           )}
                           <div>
                             <div className="font-medium text-gray-900">{customer.company_name}</div>
+                            <div className="flex flex-wrap gap-1 mt-1">
+                              {customer.category1 && (
+                                <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-blue-100 text-blue-800">
+                                  {customer.category1}
+                                </span>
+                              )}
+                              {customer.category2 && (
+                                <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-purple-100 text-purple-800">
+                                  {customer.category2}
+                                </span>
+                              )}
+                            </div>
                             {customer.address && (
                               <div className="text-xs text-gray-500 flex items-center mt-1 truncate max-w-[200px]" title={customer.address}>
                                 <MapPin className="h-3 w-3 mr-1 flex-shrink-0" />
@@ -297,6 +380,11 @@ export default function CustomersPage() {
                         <div className="text-sm text-gray-900 mt-1">
                           {customer.tax_number ? <span className="text-gray-500 text-xs">VN: </span> : ''}
                           {customer.tax_number || '-'}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-right whitespace-nowrap">
+                        <div className={`text-sm font-bold ${customer.balance > 0 ? 'text-red-600' : customer.balance < 0 ? 'text-green-600' : 'text-gray-900'}`}>
+                          {customer.balance.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -508,18 +596,48 @@ export default function CustomersPage() {
                 </div>
               </div>
 
-              {/* Alt Kısım - Notlar & Durum */}
-              <div className="pt-2">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Müşteri Notları
-                </label>
-                <textarea
-                  rows={3}
-                  value={formData.notes}
-                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  placeholder="Müşteri hakkında özel notlar, çalışma şartları vb."
-                />
+              {/* Alt Kısım - Sınıflandırma, Notlar & Durum */}
+              <div className="pt-2 space-y-4">
+                <h3 className="text-sm font-semibold text-gray-900 border-b pb-2">Sınıflandırma</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Müşteri Grubu / Sınıfı
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.category1}
+                      onChange={(e) => setFormData({ ...formData, category1: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      placeholder="Örn: VIP, Perakende, Toptan"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Özel Etiket
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.category2}
+                      onChange={(e) => setFormData({ ...formData, category2: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      placeholder="Örn: Riskli, Güvenilir, Yeni"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Müşteri Notları
+                  </label>
+                  <textarea
+                    rows={3}
+                    value={formData.notes}
+                    onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    placeholder="Müşteri hakkında özel notlar, çalışma şartları vb."
+                  />
+                </div>
               </div>
 
               <div className="flex items-center py-2">

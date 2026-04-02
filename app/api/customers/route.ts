@@ -7,13 +7,35 @@ export async function GET() {
 
     const { data: customers, error } = await supabase
       .from('customers')
-      .select('*')
+      .select(`
+        *,
+        customer_transactions (
+          type,
+          amount
+        )
+      `)
       .order('created_at', { ascending: false })
 
     if (error) throw error
 
-    return NextResponse.json(customers)
+    // Calculate balance for each customer
+    const customersWithBalance = customers.map((customer: any) => {
+      const balance = (customer.customer_transactions || []).reduce((acc: number, tx: any) => {
+        if (tx.type === 'sale') return acc + Number(tx.amount)
+        if (tx.type === 'payment') return acc - Number(tx.amount)
+        return acc
+      }, 0)
+
+      const { customer_transactions, ...customerData } = customer
+      return {
+        ...customerData,
+        balance
+      }
+    })
+
+    return NextResponse.json(customersWithBalance)
   } catch (error: any) {
+    console.error('Customer fetch error:', error)
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 }

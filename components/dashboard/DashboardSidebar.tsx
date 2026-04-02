@@ -59,12 +59,12 @@ export default function DashboardSidebar({ profile }: { profile: Profile | null 
   }
 
   const navigation = [
-    { name: 'Anasayfa', href: '/dashboard', icon: LayoutDashboard },
+    { name: 'Ana sayfa', href: '/dashboard', icon: LayoutDashboard },
+    { name: 'Müşteriler', href: '/dashboard/musteriler', icon: Users },
+    { name: 'Tedarikçiler', href: '/dashboard/tedarikciler', icon: Warehouse },
     { name: 'Ürünler', href: '/dashboard/urunler', icon: Package },
     { name: 'Kategoriler', href: '/dashboard/kategoriler', icon: FolderTree },
     { name: 'Depolar', href: '/dashboard/depolar', icon: Warehouse },
-    { name: 'Müşteriler', href: '/dashboard/musteriler', icon: Users },
-    { name: 'Tedarikçiler', href: '/dashboard/tedarikciler', icon: Warehouse },
     { name: 'Raporlar', href: '/dashboard/raporlar', icon: BarChart3 },
     { name: 'Stok Hareketleri', href: '/dashboard/stok-hareketleri', icon: ArrowLeftRight },
   ]
