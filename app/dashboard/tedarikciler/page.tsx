@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { Plus, Search, Edit2, Trash2, X, Building, Mail, Phone, MapPin } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Card, CardHeader, CardBody, CardTitle } from '@/components/ui/Card'
+import { TagSelector } from '@/components/admin/TagSelector'
 import { useRouter } from 'next/navigation'
 
 interface Supplier {
@@ -17,6 +18,9 @@ interface Supplier {
   tax_number: string | null
   tax_office: string | null
   notes: string | null
+  category1: string | null
+  category2: string | null
+  balance: number
   is_active: boolean
   created_at: string
 }
@@ -28,6 +32,9 @@ export default function SuppliersPage() {
   const [showModal, setShowModal] = useState(false)
   const [editingSupplier, setEditingSupplier] = useState<Supplier | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
+  const [categoryFilter, setCategoryFilter] = useState('all')
+  const [labelFilter, setLabelFilter] = useState('all')
+  const [showOnlyWithBalance, setShowOnlyWithBalance] = useState(false)
   const [saving, setSaving] = useState(false)
   const [uploadingLogo, setUploadingLogo] = useState(false)
 
@@ -41,6 +48,8 @@ export default function SuppliersPage() {
     tax_number: '',
     tax_office: '',
     notes: '',
+    category1: '',
+    category2: '',
     is_active: true
   })
 
@@ -52,7 +61,7 @@ export default function SuppliersPage() {
     try {
       const response = await fetch('/api/suppliers')
       const data = await response.json()
-      setSuppliers(data)
+      setSuppliers(Array.isArray(data) ? data : [])
     } catch (error) {
       console.error('Error fetching suppliers:', error)
     } finally {
@@ -60,113 +69,8 @@ export default function SuppliersPage() {
     }
   }
 
-  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-
-    if (!file.type.startsWith('image/')) {
-      alert('Lütfen sadece resim dosyası seçin.')
-      return
-    }
-
-    if (file.size > 5 * 1024 * 1024) {
-      alert("Dosya boyutu 5MB'dan küçük olmalıdır.")
-      return
-    }
-
-    setUploadingLogo(true)
-    const uploadData = new FormData()
-    uploadData.append('file', file)
-
-    try {
-      const response = await fetch('/api/upload', {
-        method: 'POST',
-        body: uploadData,
-      })
-
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.error || 'Yükleme başarısız')
-      }
-
-      const data = await response.json()
-      setFormData(prev => ({ ...prev, company_logo: data.url }))
-    } catch (error: any) {
-      console.error('Upload error:', error)
-      alert(error.message || 'Logo yüklenirken bir hata oluştu.')
-    } finally {
-      setUploadingLogo(false)
-    }
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (saving) return
-    setSaving(true)
-
-    try {
-      const url = editingSupplier
-        ? `/api/suppliers/${editingSupplier.id}`
-        : '/api/suppliers'
-
-      const method = editingSupplier ? 'PUT' : 'POST'
-
-      // Clean empty strings to null
-      const cleanedData = Object.fromEntries(
-        Object.entries(formData).map(([key, value]) => [
-          key,
-          value === '' ? null : value
-        ])
-      )
-
-      const response = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(cleanedData),
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || 'Tedarikçi kaydedilemedi')
-      }
-
-      setShowModal(false)
-      setEditingSupplier(null)
-      resetForm()
-      fetchSuppliers()
-      
-      alert(editingSupplier ? 'Tedarikçi başarıyla güncellendi!' : 'Tedarikçi başarıyla eklendi!')
-    } catch (error: any) {
-      console.error('Error saving supplier:', error)
-      alert(error.message || 'Tedarikçi kaydedilemedi')
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  const handleEdit = (supplier: Supplier) => {
-    router.push(`/dashboard/tedarikciler/${supplier.id}`)
-  }
-
   const handleRowClick = (id: string) => {
     router.push(`/dashboard/tedarikciler/${id}`)
-  }
-
-  const handleDelete = async (id: string) => {
-    if (!confirm('Bu tedarikçiyi silmek istediğinizden emin misiniz?')) return
-
-    try {
-      const response = await fetch(`/api/suppliers/${id}`, {
-        method: 'DELETE',
-      })
-
-      if (!response.ok) throw new Error('Silme işlemi başarısız')
-
-      fetchSuppliers()
-    } catch (error) {
-      console.error('Error deleting supplier:', error)
-      alert('Tedarikçi silinemedi')
-    }
   }
 
   const resetForm = () => {
@@ -180,6 +84,8 @@ export default function SuppliersPage() {
       tax_number: '',
       tax_office: '',
       notes: '',
+      category1: '',
+      category2: '',
       is_active: true
     })
   }
@@ -190,14 +96,106 @@ export default function SuppliersPage() {
     setShowModal(true)
   }
 
+  const handleEdit = (e: React.MouseEvent, supplier: Supplier) => {
+    e.stopPropagation()
+    setEditingSupplier(supplier)
+    setFormData({
+      company_name: supplier.company_name,
+      company_logo: supplier.company_logo || '',
+      address: supplier.address || '',
+      contact_person: supplier.contact_person || '',
+      phone: supplier.phone || '',
+      email: supplier.email || '',
+      tax_number: supplier.tax_number || '',
+      tax_office: supplier.tax_office || '',
+      notes: supplier.notes || '',
+      category1: supplier.category1 || '',
+      category2: supplier.category2 || '',
+      is_active: supplier.is_active
+    })
+    setShowModal(true)
+  }
+
+  const handleDelete = async (e: React.MouseEvent, id: string) => {
+    e.stopPropagation()
+    if (!confirm('Bu tedarikçiyi silmek istediğinize emin misiniz?')) return
+
+    try {
+      const res = await fetch(`/api/suppliers/${id}`, { method: 'DELETE' })
+      if (res.ok) {
+        setSuppliers(suppliers.filter(s => s.id !== id))
+      }
+    } catch (error) {
+      console.error('Error deleting supplier:', error)
+    }
+  }
+
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setUploadingLogo(true)
+    const uploadData = new FormData()
+    uploadData.append('file', file)
+
+    try {
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: uploadData
+      })
+      const data = await res.json()
+      setFormData(prev => ({ ...prev, company_logo: data.url }))
+    } catch (error: any) {
+      console.error('Upload error:', error)
+      alert(error.message || 'Logo yüklenirken bir hata oluştu.')
+    } finally {
+      setUploadingLogo(false)
+    }
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setSaving(true)
+
+    try {
+      const method = editingSupplier ? 'PUT' : 'POST'
+      const url = editingSupplier ? `/api/suppliers/${editingSupplier.id}` : '/api/suppliers'
+
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      })
+
+      if (res.ok) {
+        setShowModal(false)
+        resetForm()
+        fetchSuppliers()
+      }
+    } catch (error) {
+      console.error('Error saving supplier:', error)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const categories = Array.from(new Set(suppliers.map(s => s.category1).filter(Boolean))) as string[]
+  const labels = Array.from(new Set(suppliers.map(s => s.category2).filter(Boolean))) as string[]
+
   const filteredSuppliers = suppliers.filter(supplier => {
     const searchLower = searchTerm.toLowerCase()
-    return (
+    const matchesSearch = (
       supplier.company_name?.toLowerCase().includes(searchLower) ||
       supplier.contact_person?.toLowerCase().includes(searchLower) ||
       supplier.email?.toLowerCase().includes(searchLower) ||
       supplier.phone?.toLowerCase().includes(searchLower)
     )
+
+    const matchesCategory = categoryFilter === 'all' || supplier.category1 === categoryFilter
+    const matchesLabel = labelFilter === 'all' || supplier.category2 === labelFilter
+    const matchesBalance = !showOnlyWithBalance || (supplier.balance && Math.abs(supplier.balance) > 0.01)
+
+    return matchesSearch && matchesCategory && matchesLabel && matchesBalance
   })
 
   if (loading && suppliers.length === 0) {
@@ -217,22 +215,60 @@ export default function SuppliersPage() {
         </Button>
       </div>
 
-      <Card>
-        <CardHeader>
-          <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
-            <CardTitle>Tedarikçi Listesi</CardTitle>
-            <div className="relative w-full sm:w-64">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Tedarikçi ara..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm"
-              />
-            </div>
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
+        <div className="space-y-1">
+          <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Tedarikçi Grubu</label>
+          <select 
+            value={categoryFilter} 
+            onChange={(e) => setCategoryFilter(e.target.value)}
+            className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"
+          >
+            <option value="all">Tüm Gruplar</option>
+            {categories.map(cat => (
+              <option key={cat} value={cat}>{cat}</option>
+            ))}
+          </select>
+        </div>
+        <div className="space-y-1">
+          <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Özel Etiket</label>
+          <select 
+            value={labelFilter} 
+            onChange={(e) => setLabelFilter(e.target.value)}
+            className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"
+          >
+            <option value="all">Tüm Etiketler</option>
+            {labels.map(lbl => (
+              <option key={lbl} value={lbl}>{lbl}</option>
+            ))}
+          </select>
+        </div>
+        <div className="flex items-end pb-1">
+          <label className="flex items-center gap-2 cursor-pointer select-none group">
+            <input 
+              type="checkbox" 
+              checked={showOnlyWithBalance}
+              onChange={(e) => setShowOnlyWithBalance(e.target.checked)}
+              className="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+            />
+            <span className="text-sm font-bold text-gray-600 group-hover:text-primary-600 transition-colors">Sadece Bakiyesi Olanlar</span>
+          </label>
+        </div>
+        <div className="space-y-1">
+          <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Arama</label>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <input
+              type="text"
+              placeholder="İsim, yetkili, tel..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"
+            />
           </div>
-        </CardHeader>
+        </div>
+      </div>
+
+      <Card>
         <CardBody className="p-0">
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
@@ -241,6 +277,7 @@ export default function SuppliersPage() {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Firma Bilgisi</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">İletişim</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vergi Bilgileri</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Bakiye</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Durum</th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">İşlemler</th>
                 </tr>
@@ -264,6 +301,18 @@ export default function SuppliersPage() {
                           )}
                           <div>
                             <div className="font-medium text-gray-900">{supplier.company_name}</div>
+                            <div className="flex flex-wrap gap-1 mt-1">
+                              {supplier.category1 && (
+                                <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-blue-100 text-blue-800">
+                                  {supplier.category1}
+                                </span>
+                              )}
+                              {supplier.category2 && (
+                                <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-purple-100 text-purple-800">
+                                  {supplier.category2}
+                                </span>
+                              )}
+                            </div>
                             {supplier.address && (
                               <div className="text-xs text-gray-500 flex items-center mt-1 truncate max-w-[200px]" title={supplier.address}>
                                 <MapPin className="h-3 w-3 mr-1 flex-shrink-0" />
@@ -298,6 +347,11 @@ export default function SuppliersPage() {
                           {supplier.tax_number || '-'}
                         </div>
                       </td>
+                      <td className="px-6 py-4 text-right whitespace-nowrap">
+                        <div className={`text-sm font-bold ${supplier.balance > 0 ? 'text-red-600' : supplier.balance < 0 ? 'text-green-600' : 'text-gray-900'}`}>
+                          {(supplier.balance || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺
+                        </div>
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium whitespace-nowrap ${
                           supplier.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
@@ -305,18 +359,18 @@ export default function SuppliersPage() {
                           {supplier.is_active ? 'Aktif' : 'Pasif'}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <div className="flex gap-2 justify-end">
+                      <td className="px-6 py-4 text-right text-sm font-medium">
+                        <div className="flex justify-end gap-2">
                           <button
-                            onClick={() => handleEdit(supplier)}
-                            className="text-blue-600 hover:text-blue-900 bg-blue-50 p-1.5 rounded-md transition-colors"
+                            onClick={(e) => handleEdit(e, supplier)}
+                            className="p-2 text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
                             title="Düzenle"
                           >
                             <Edit2 className="h-4 w-4" />
                           </button>
                           <button
-                            onClick={() => handleDelete(supplier.id)}
-                            className="text-red-600 hover:text-red-900 bg-red-50 p-1.5 rounded-md transition-colors"
+                            onClick={(e) => handleDelete(e, supplier.id)}
+                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                             title="Sil"
                           >
                             <Trash2 className="h-4 w-4" />
@@ -327,8 +381,8 @@ export default function SuppliersPage() {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={5} className="px-6 py-12 text-center text-gray-500">
-                      {searchTerm ? 'Arama sonucu bulunamadı.' : 'Henüz tedarikçi eklenmemiş.'}
+                    <td colSpan={6} className="px-6 py-12 text-center text-gray-500 italic">
+                      {searchTerm ? 'Arama kriterlerine uygun tedarikçi bulunamadı.' : 'Henüz bir tedarikçi kaydı bulunmuyor.'}
                     </td>
                   </tr>
                 )}
@@ -338,29 +392,23 @@ export default function SuppliersPage() {
         </CardBody>
       </Card>
 
-      {/* Modal */}
+      {/* Supplier Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg p-6 w-full max-w-3xl max-h-[90vh] overflow-y-auto shadow-xl animate-in fade-in zoom-in duration-200">
-            <div className="flex justify-between items-center mb-6 pb-3 border-b border-gray-100">
-              <h2 className="text-xl font-bold text-gray-900 flex items-center">
-                <Building className="mr-2 h-5 w-5 text-primary-600" />
-                {editingSupplier ? 'Tedarikçi Düzenle' : 'Yeni Tedarikçi Ekle'}
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center p-6 border-b sticky top-0 bg-white z-10">
+              <h2 className="text-xl font-bold text-gray-900">
+                {editingSupplier ? 'Tedarikçiyi Düzenle' : 'Yeni Tedarikçi Ekle'}
               </h2>
-              <button
-                onClick={() => setShowModal(false)}
-                className="text-gray-400 hover:text-gray-600 hover:bg-gray-100 p-1 rounded-full transition-colors"
-              >
-                <X className="h-6 w-6" />
+              <button onClick={() => setShowModal(false)} className="p-2 hover:bg-gray-100 rounded-full">
+                <X className="h-6 w-6 text-gray-500" />
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit} className="p-6 space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Sol Kolon - Temel Bilgiler */}
+                {/* Sol Kolon */}
                 <div className="space-y-4">
-                  <h3 className="text-sm font-semibold text-gray-900 border-b pb-2">Firma Bilgileri</h3>
-                  
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Firma Ünvanı *
@@ -371,7 +419,7 @@ export default function SuppliersPage() {
                       value={formData.company_name}
                       onChange={(e) => setFormData({ ...formData, company_name: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                      placeholder="Firma tam ünvanı"
+                      placeholder="Örn: ABC Lojistik A.Ş."
                     />
                   </div>
 
@@ -380,47 +428,16 @@ export default function SuppliersPage() {
                       Firma Logosu
                     </label>
                     <div className="flex items-center gap-4">
-                      {formData.company_logo ? (
-                        <div className="relative group">
-                          <img 
-                            src={formData.company_logo} 
-                            alt="Logo" 
-                            className="h-16 w-16 rounded-full object-cover border border-gray-200"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => setFormData({ ...formData, company_logo: '' })}
-                            className="absolute -top-2 -right-2 bg-red-100 text-red-600 rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                          >
-                            <X className="h-3 w-3" />
-                          </button>
-                        </div>
-                      ) : (
-                        <div className="h-16 w-16 rounded-full bg-gray-100 border-2 border-dashed border-gray-300 flex items-center justify-center text-gray-400">
-                          <Building className="h-6 w-6" />
-                        </div>
-                      )}
-                      
-                      <div className="flex-1">
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={handleLogoUpload}
-                          disabled={uploadingLogo}
-                          className="block w-full text-sm text-gray-500
-                            file:mr-4 file:py-2 file:px-4
-                            file:rounded-md file:border-0
-                            file:text-sm file:font-semibold
-                            file:bg-primary-50 file:text-primary-700
-                            hover:file:bg-primary-100
-                            disabled:opacity-50 disabled:cursor-not-allowed"
-                        />
-                        {uploadingLogo && <p className="text-xs text-primary-600 mt-1 animate-pulse">Logo yükleniyor...</p>}
-                      </div>
+                      <input
+                        type="file"
+                        onChange={handleLogoUpload}
+                        className="text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100"
+                      />
+                      {uploadingLogo && <span className="text-xs text-gray-500">Yükleniyor...</span>}
                     </div>
                   </div>
 
-                  <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
                         Vergi Dairesi
@@ -430,42 +447,37 @@ export default function SuppliersPage() {
                         value={formData.tax_office}
                         onChange={(e) => setFormData({ ...formData, tax_office: e.target.value })}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                        placeholder="Örn: Beyoğlu VD"
                       />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Vergi Numarası
+                        Vergi No
                       </label>
                       <input
                         type="text"
                         value={formData.tax_number}
                         onChange={(e) => setFormData({ ...formData, tax_number: e.target.value })}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                        placeholder="10 Haneli VKN / 11 Haneli TCKN"
                       />
                     </div>
                   </div>
                 </div>
 
-                {/* Sağ Kolon - İletişim Bilgileri */}
+                {/* Sağ Kolon */}
                 <div className="space-y-4">
-                  <h3 className="text-sm font-semibold text-gray-900 border-b pb-2">İletişim Bilgileri</h3>
-
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      İletişim Kurulacak Kişi
+                      İletişim Kişisi
                     </label>
                     <input
                       type="text"
                       value={formData.contact_person}
                       onChange={(e) => setFormData({ ...formData, contact_person: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                      placeholder="Ad Soyad"
                     />
                   </div>
 
-                  <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
                         Telefon
@@ -475,7 +487,6 @@ export default function SuppliersPage() {
                         value={formData.phone}
                         onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                        placeholder="05XX XXX XX XX"
                       />
                     </div>
                     <div>
@@ -487,7 +498,6 @@ export default function SuppliersPage() {
                         value={formData.email}
                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                        placeholder="ornek@firma.com"
                       />
                     </div>
                   </div>
@@ -500,47 +510,62 @@ export default function SuppliersPage() {
                       rows={2}
                       value={formData.address}
                       onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
-                      placeholder="Açık adres bilgisi"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     />
                   </div>
                 </div>
               </div>
 
-              {/* Alt Kısım - Notlar & Durum */}
-              <div className="pt-2">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Tedarikçi Notları
-                </label>
-                <textarea
-                  rows={3}
-                  value={formData.notes}
-                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  placeholder="Tedarikçi hakkında özel notlar, çalışma şartları vb."
-                />
+              {/* Alt Kısım - Sınıflandırma, Notlar & Durum */}
+              <div className="pt-2 space-y-4">
+                <h3 className="text-sm font-semibold text-gray-900 border-b pb-2">Sınıflandırma</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <TagSelector
+                    label="Tedarikçi Grubu / Sınıfı"
+                    type="category1"
+                    value={formData.category1 || ''}
+                    placeholder="Grup seçin veya yazın..."
+                    onChange={(val) => setFormData({ ...formData, category1: val })}
+                  />
+                  <TagSelector
+                    label="Özel Etiket"
+                    type="category2"
+                    value={formData.category2 || ''}
+                    placeholder="Etiket seçin veya yazın..."
+                    onChange={(val) => setFormData({ ...formData, category2: val })}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Tedarikçi Notları
+                  </label>
+                  <textarea
+                    rows={3}
+                    value={formData.notes}
+                    onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    placeholder="Tedarikçi hakkında özel notlar, çalışma şartları vb."
+                  />
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id="is_active"
+                    checked={formData.is_active}
+                    onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
+                    className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                  />
+                  <label htmlFor="is_active" className="text-sm font-medium text-gray-700">
+                    Bu tedarikçi aktif olarak çalışmaya devam ediyor
+                  </label>
+                </div>
               </div>
 
-              <div className="flex items-center py-2">
-                <input
-                  type="checkbox"
-                  id="is_active"
-                  checked={formData.is_active}
-                  onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
-                  className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
-                />
-                <label htmlFor="is_active" className="ml-2 block text-sm font-medium text-gray-700 select-none">
-                  Tedarikçi Aktif (Sistemde işlem yapılabilir)
-                </label>
-              </div>
-
-              <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setShowModal(false)}
-                >
-                  İptal
+              <div className="flex justify-end gap-3 pt-6 border-t">
+                <Button type="button" variant="outline" onClick={() => setShowModal(false)}>
+                  Vazgeç
                 </Button>
                 <Button type="submit" disabled={saving}>
                   {saving ? 'Kaydediliyor...' : (editingSupplier ? 'Güncelle' : 'Kaydet')}

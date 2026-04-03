@@ -22,13 +22,34 @@ export async function GET() {
 
     const { data: suppliers, error } = await supabase
       .from('suppliers')
-      .select('*')
+      .select(`
+        *,
+        supplier_transactions (
+          type,
+          amount
+        )
+      `)
       .eq('tenant_id', profile.tenant_id)
       .order('company_name', { ascending: true })
 
     if (error) throw error
 
-    return NextResponse.json(suppliers)
+    // Calculate balance for each supplier (Total Purchases - Total Payments)
+    const suppliersWithBalance = (suppliers || []).map((supplier: any) => {
+      const balance = (supplier.supplier_transactions || []).reduce((acc: number, tx: any) => {
+        if (tx.type === 'purchase') return acc + Number(tx.amount)
+        if (tx.type === 'payment') return acc - Number(tx.amount)
+        return acc
+      }, 0)
+
+      const { supplier_transactions, ...supplierData } = supplier
+      return {
+        ...supplierData,
+        balance
+      }
+    })
+
+    return NextResponse.json(suppliersWithBalance)
   } catch (error: any) {
     console.error('Error fetching suppliers:', error)
     return NextResponse.json({ error: error.message }, { status: 500 })

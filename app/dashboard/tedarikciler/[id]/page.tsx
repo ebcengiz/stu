@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
-import { ArrowLeft, Building, CreditCard, FileText, ShoppingCart, Save, DollarSign, Plus, Search, Trash2, Package, X, Check, History, Users, User, Info, Calendar, Tag } from 'lucide-react'
+import { ArrowLeft, Building, CreditCard, FileText, ShoppingCart, Save, DollarSign, Plus, Search, Trash2, Package, X, Check, History, Users, User, Info, Calendar, Tag, Mail, Phone, MapPin } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Card, CardHeader, CardBody, CardTitle } from '@/components/ui/Card'
+import { TagSelector } from '@/components/admin/TagSelector'
 // @ts-ignore
 import { toast } from 'react-hot-toast'
 
@@ -38,6 +39,8 @@ interface Supplier {
   tax_number: string | null
   tax_office: string | null
   notes: string | null
+  category1: string | null
+  category2: string | null
   is_active: boolean
 }
 
@@ -132,7 +135,8 @@ export default function SupplierDetailPage() {
   // Edit Form State
   const [formData, setFormData] = useState({
     company_name: '', company_logo: '', address: '', contact_person: '',
-    phone: '', email: '', tax_number: '', tax_office: '', notes: '', is_active: true
+    phone: '', email: '', tax_number: '', tax_office: '', notes: '',
+    category1: '', category2: '', is_active: true
   })
 
   // Transaction Form State
@@ -173,7 +177,8 @@ export default function SupplierDetailPage() {
           address: current.address || '', contact_person: current.contact_person || '',
           phone: current.phone || '', email: current.email || '',
           tax_number: current.tax_number || '', tax_office: current.tax_office || '',
-          notes: current.notes || '', is_active: current.is_active
+          notes: current.notes || '', category1: current.category1 || '',
+          category2: current.category2 || '', is_active: current.is_active
         })
       }
     } catch (error) { console.error(error) }
@@ -378,7 +383,7 @@ export default function SupplierDetailPage() {
 
   const filteredProducts = products.filter(p => 
     p.name.toLowerCase().includes(productSearch.toLowerCase()) || 
-    p.sku?.toLowerCase().includes(productSearch.toLowerCase())
+    (p.sku || '').toLowerCase().includes(productSearch.toLowerCase())
   )
 
   return (
@@ -388,7 +393,24 @@ export default function SupplierDetailPage() {
         <button onClick={() => router.push('/dashboard/tedarikciler')} className="p-2 bg-white border border-gray-200 rounded-md text-gray-600 hover:bg-gray-50 transition-colors"><ArrowLeft className="h-5 w-5" /></button>
         <div className="flex items-center gap-4">
           {supplier.company_logo ? <img src={supplier.company_logo} className="h-16 w-16 rounded-full object-cover border-2 shadow-sm" /> : <div className="h-16 w-16 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 text-xl font-bold border-2 shadow-sm">{supplier.company_name[0].toUpperCase()}</div>}
-          <div><h1 className="text-2xl font-bold text-gray-900">{supplier.company_name}</h1><p className="text-gray-500">{supplier.contact_person}</p></div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-2xl font-bold text-gray-900">{supplier.company_name}</h1>
+              <div className="flex gap-1">
+                {supplier.category1 && (
+                  <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-800">
+                    {supplier.category1}
+                  </span>
+                )}
+                {supplier.category2 && (
+                  <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-purple-100 text-purple-800">
+                    {supplier.category2}
+                  </span>
+                )}
+              </div>
+            </div>
+            <p className="text-gray-500">{supplier.contact_person}</p>
+          </div>
         </div>
       </div>
 
@@ -433,21 +455,62 @@ export default function SupplierDetailPage() {
               <CardBody className="pt-6">
                 {!isEditing ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div className="space-y-6"><div><h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Firma Ünvanı</h4><p className="text-gray-900 font-medium">{supplier.company_name}</p></div><div><h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Vergi Bilgileri</h4><p className="text-gray-900">{supplier.tax_office || '-'} / {supplier.tax_number || '-'}</p></div><div><h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Adres</h4><p className="text-gray-600 leading-relaxed">{supplier.address || 'Adres bilgisi girilmemiş'}</p></div></div>
-                    <div className="space-y-6"><div><h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">İletişim Kişisi</h4><p className="text-gray-900 font-medium">{supplier.contact_person || '-'}</p></div><div><h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Telefon / E-Posta</h4><p className="text-gray-900">{supplier.phone || '-'} / {supplier.email || '-'}</p></div><div><h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Notlar</h4><p className="text-gray-600 italic leading-relaxed">{supplier.notes || 'Herhangi bir not bulunmuyor'}</p></div></div>
+                    <div className="space-y-6">
+                      <div>
+                        <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Firma Ünvanı</h4>
+                        <div className="flex items-center gap-2">
+                          <p className="text-gray-900 font-medium">{supplier.company_name}</p>
+                          <div className="flex gap-1">
+                            {supplier.category1 && (
+                              <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-800">
+                                {supplier.category1}
+                              </span>
+                            )}
+                            {supplier.category2 && (
+                              <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-purple-100 text-purple-800">
+                                {supplier.category2}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      <div><h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Vergi Bilgileri</h4><p className="text-gray-900">{supplier.tax_office || '-'} / {supplier.tax_number || '-'}</p></div>
+                      <div><h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Adres</h4><p className="text-gray-600 leading-relaxed text-sm">{supplier.address || 'Adres bilgisi girilmemiş'}</p></div>
+                    </div>
+                    <div className="space-y-6">
+                      <div><h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">İletişim Kişisi</h4><p className="text-gray-900 font-medium">{supplier.contact_person || '-'}</p></div>
+                      <div><h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Telefon / E-Posta</h4><p className="text-gray-900 text-sm">{supplier.phone || '-'} / {supplier.email || '-'}</p></div>
+                      <div><h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Notlar</h4><p className="text-gray-600 italic leading-relaxed text-sm">{supplier.notes || 'Herhangi bir not bulunmuyor'}</p></div>
+                    </div>
                   </div>
                 ) : (
                   <form onSubmit={handleUpdateSupplier} className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="space-y-4">
-                        <div className="space-y-1.5"><label className="text-xs font-semibold text-gray-500 uppercase px-1">Firma Ünvanı</label><input type="text" value={formData.company_name} onChange={e => setFormData({...formData, company_name: e.target.value})} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all" /></div>
-                        <div className="space-y-1.5"><label className="text-xs font-semibold text-gray-500 uppercase px-1">Firma Logosu</label><div className="flex items-center gap-4"><input type="file" onChange={handleLogoUpload} className="text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100 transition-all cursor-pointer" />{uploadingLogo && <span className="text-xs text-primary-600 animate-pulse font-medium">Yükleniyor...</span>}</div></div>
+                        <div className="space-y-1.5"><label className="text-xs font-semibold text-gray-500 uppercase px-1">Firma Ünvanı</label><input type="text" value={formData.company_name} onChange={e => setFormData({...formData, company_name: e.target.value})} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-primary-500" /></div>
+                        <div className="space-y-1.5"><label className="text-xs font-semibold text-gray-500 uppercase px-1">Firma Logosu</label><div className="flex items-center gap-4"><input type="file" onChange={handleLogoUpload} className="text-xs file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100 transition-all cursor-pointer" />{uploadingLogo && <span className="text-[10px] text-primary-600 animate-pulse font-medium">Yükleniyor...</span>}</div></div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <TagSelector
+                            label="Tedarikçi Grubu"
+                            type="category1"
+                            value={formData.category1 || ''}
+                            placeholder="Grup seç..."
+                            onChange={(val) => setFormData({ ...formData, category1: val })}
+                          />
+                          <TagSelector
+                            label="Özel Etiket"
+                            type="category2"
+                            value={formData.category2 || ''}
+                            placeholder="Etiket seç..."
+                            onChange={(val) => setFormData({ ...formData, category2: val })}
+                          />
+                        </div>
                         <div className="grid grid-cols-2 gap-4"><div className="space-y-1.5"><label className="text-xs font-semibold text-gray-500 uppercase px-1">Vergi Dairesi</label><input type="text" value={formData.tax_office} onChange={e => setFormData({...formData, tax_office: e.target.value})} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none" /></div><div className="space-y-1.5"><label className="text-xs font-semibold text-gray-500 uppercase px-1">Vergi No</label><input type="text" value={formData.tax_number} onChange={e => setFormData({...formData, tax_number: e.target.value})} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none" /></div></div>
                       </div>
                       <div className="space-y-4">
-                        <div className="space-y-1.5"><label className="text-xs font-semibold text-gray-500 uppercase px-1">İletişim Kişisi</label><input type="text" value={formData.contact_person} onChange={e => setFormData({...formData, contact_person: e.target.value})} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg" /></div>
-                        <div className="grid grid-cols-2 gap-4"><div className="space-y-1.5"><label className="text-xs font-semibold text-gray-500 uppercase px-1">Telefon</label><input type="tel" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg" /></div><div className="space-y-1.5"><label className="text-xs font-semibold text-gray-500 uppercase px-1">E-Posta</label><input type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg" /></div></div>
-                        <div className="space-y-1.5"><label className="text-xs font-semibold text-gray-500 uppercase px-1">Adres</label><textarea value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg h-24 resize-none" /></div>
+                        <div className="space-y-1.5"><label className="text-xs font-semibold text-gray-500 uppercase px-1">İletişim Kişisi</label><input type="text" value={formData.contact_person} onChange={e => setFormData({...formData, contact_person: e.target.value})} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg outline-none" /></div>
+                        <div className="grid grid-cols-2 gap-4"><div className="space-y-1.5"><label className="text-xs font-semibold text-gray-500 uppercase px-1">Telefon</label><input type="tel" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg outline-none" /></div><div className="space-y-1.5"><label className="text-xs font-semibold text-gray-500 uppercase px-1">E-Posta</label><input type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg outline-none" /></div></div>
+                        <div className="space-y-1.5"><label className="text-xs font-semibold text-gray-500 uppercase px-1">Adres</label><textarea value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg h-24 resize-none outline-none" /></div>
                       </div>
                     </div>
                     <div className="flex justify-end gap-3 pt-4 border-t"><Button type="button" variant="outline" onClick={() => setIsEditing(false)}>Vazgeç</Button><Button type="submit" disabled={saving}>{saving ? 'Güncelleniyor...' : 'Değişiklikleri Kaydet'}</Button></div>
@@ -515,7 +578,7 @@ export default function SupplierDetailPage() {
                                   </button>
                                 ))
                               ) : (
-                                <div className="px-4 py-8 text-center text-gray-500 italic">
+                                <div className="px-4 py-8 text-center text-gray-500 italic text-sm">
                                   Ürün bulunamadı.
                                 </div>
                               )}
@@ -589,66 +652,18 @@ export default function SupplierDetailPage() {
 
                   {txForm.type === 'purchase' && (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 border-t border-gray-100">
-                      <div className="space-y-1.5">
-                        <label className="text-xs font-bold text-gray-500 uppercase px-1">Belge Numarası</label>
-                        <input 
-                          type="text" 
-                          placeholder="Fatura No vb." 
-                          value={txForm.document_number} 
-                          onChange={e => setTxForm({...txForm, document_number: e.target.value})} 
-                          className="w-full px-4 py-3 border border-gray-200 rounded-xl outline-none" 
-                        />
-                      </div>
-                      <div className="space-y-1.5">
-                        <label className="text-xs font-bold text-gray-500 uppercase px-1">İrsaliye Numarası</label>
-                        <input 
-                          type="text" 
-                          placeholder="İrsaliye No" 
-                          value={txForm.waybill_number} 
-                          onChange={e => setTxForm({...txForm, waybill_number: e.target.value})} 
-                          className="w-full px-4 py-3 border border-gray-200 rounded-xl outline-none" 
-                        />
-                      </div>
-                      <div className="space-y-1.5">
-                        <label className="text-xs font-bold text-gray-500 uppercase px-1">Sipariş Tarihi</label>
-                        <input 
-                          type="date" 
-                          value={txForm.order_date} 
-                          onChange={e => setTxForm({...txForm, order_date: e.target.value})} 
-                          className="w-full px-4 py-3 border border-gray-200 rounded-xl outline-none" 
-                        />
-                      </div>
-                      <div className="space-y-1.5">
-                        <label className="text-xs font-bold text-gray-500 uppercase px-1">Sevk Tarihi</label>
-                        <input 
-                          type="date" 
-                          value={txForm.shipment_date} 
-                          onChange={e => setTxForm({...txForm, shipment_date: e.target.value})} 
-                          className="w-full px-4 py-3 border border-gray-200 rounded-xl outline-none" 
-                        />
-                      </div>
+                      <div className="space-y-1.5"><label className="text-xs font-bold text-gray-500 uppercase px-1">Belge Numarası</label><input type="text" placeholder="Fatura No vb." value={txForm.document_number} onChange={e => setTxForm({...txForm, document_number: e.target.value})} className="w-full px-4 py-3 border border-gray-200 rounded-xl outline-none" /></div>
+                      <div className="space-y-1.5"><label className="text-xs font-bold text-gray-500 uppercase px-1">İrsaliye Numarası</label><input type="text" placeholder="İrsaliye No" value={txForm.waybill_number} onChange={e => setTxForm({...txForm, waybill_number: e.target.value})} className="w-full px-4 py-3 border border-gray-200 rounded-xl outline-none" /></div>
+                      <div className="space-y-1.5"><label className="text-xs font-bold text-gray-500 uppercase px-1">Sipariş Tarihi</label><input type="date" value={txForm.order_date} onChange={e => setTxForm({...txForm, order_date: e.target.value})} className="w-full px-4 py-3 border border-gray-200 rounded-xl outline-none" /></div>
+                      <div className="space-y-1.5"><label className="text-xs font-bold text-gray-500 uppercase px-1">Sevk Tarihi</label><input type="date" value={txForm.shipment_date} onChange={e => setTxForm({...txForm, shipment_date: e.target.value})} className="w-full px-4 py-3 border border-gray-200 rounded-xl outline-none" /></div>
                     </div>
                   )}
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 border-t border-gray-100">
-                    <div className="space-y-2">
-                      <label className="block text-xs font-black text-gray-400 uppercase tracking-widest px-1">İşlem Tarihi</label>
-                      <input type="date" value={txForm.transaction_date} onChange={e => setTxForm({...txForm, transaction_date: e.target.value})} className="w-full px-4 py-3 border-2 border-gray-100 rounded-2xl focus:border-primary-500 focus:ring-4 focus:ring-primary-50 outline-none font-bold text-gray-900 transition-all" />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="block text-xs font-black text-gray-400 uppercase tracking-widest px-1">Genel Toplam (₺)</label>
-                      <input 
-                        type="number" 
-                        step="any" 
-                        value={txForm.amount} 
-                        onFocus={() => setTxForm({...txForm, amount: '' as any})}
-                        onChange={e => setTxForm({...txForm, amount: e.target.value})} 
-                        className="w-full px-4 py-3 border-2 border-primary-100 rounded-2xl focus:border-primary-500 focus:ring-4 focus:ring-primary-50 outline-none font-black text-xl text-primary-900 bg-primary-50/30 transition-all" 
-                        disabled={txForm.type === 'purchase'} 
-                      />
-                    </div>
+                    <div className="space-y-2"><label className="block text-xs font-black text-gray-400 uppercase tracking-widest px-1">İşlem Tarihi</label><input type="date" value={txForm.transaction_date} onChange={e => setTxForm({...txForm, transaction_date: e.target.value})} className="w-full px-4 py-3 border-2 border-gray-100 rounded-2xl focus:border-primary-500 outline-none font-bold text-gray-900 transition-all" /></div>
+                    <div className="space-y-2"><label className="block text-xs font-black text-gray-400 uppercase tracking-widest px-1">Genel Toplam (₺)</label><input type="number" step="any" value={txForm.amount} onFocus={() => setTxForm({...txForm, amount: '' as any})} onChange={e => setTxForm({...txForm, amount: e.target.value})} className="w-full px-4 py-3 border-2 border-primary-100 rounded-2xl focus:border-primary-500 outline-none font-black text-xl text-primary-900 bg-primary-50/30 transition-all" disabled={txForm.type === 'purchase'} /></div>
                   </div>
-                  <textarea placeholder="İşlem açıklaması veya notlar..." value={txForm.description} onChange={e => setTxForm({...txForm, description: e.target.value})} className="w-full px-4 py-3 border border-gray-200 rounded-xl outline-none h-24 resize-none shadow-sm" />
+                  <textarea placeholder="İşlem açıklaması veya notlar..." value={txForm.description} onChange={e => setTxForm({...txForm, description: e.target.value})} className="w-full px-4 py-3 border border-gray-200 rounded-xl outline-none h-24 resize-none shadow-sm text-sm" />
                   <div className="flex justify-end pt-4"><Button type="submit" size="lg" disabled={saving || (txForm.type === 'purchase' && selectedItems.length === 0)} className="h-14 px-12 text-lg font-bold rounded-2xl shadow-lg transition-all active:scale-95">{saving ? 'Kaydediliyor...' : 'İşlemi Tamamla'}</Button></div>
                 </form>
               </CardBody>
@@ -673,71 +688,17 @@ export default function SupplierDetailPage() {
                   </div>
                 </div>
               </div>
-              <button onClick={() => setShowItemDetailModal(false)} className="p-2 hover:bg-white/10 rounded-full transition-all active:scale-90"><X className="h-6 w-6 text-white" /></button>
+              <button onClick={() => setShowItemDetailModal(false)} className="p-2 hover:bg-white/10 rounded-full transition-all"><X className="h-6 w-6 text-white" /></button>
             </CardHeader>
             <CardBody className="p-8">
               <div className="grid grid-cols-2 gap-8">
                 <div className="space-y-6">
-                  <div className="space-y-2">
-                    <label className="block text-xs font-black text-gray-400 uppercase tracking-widest px-1">Alış Fiyatı (₺)</label>
-                    <div className="relative">
-                      <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                      <input 
-                        type="number" 
-                        step="any" 
-                        value={itemFormData.unit_price} 
-                        onFocus={() => setItemFormData({...itemFormData, unit_price: '' as any})}
-                        onChange={e => setItemFormData({...itemFormData, unit_price: Number(e.target.value)})} 
-                        className="w-full pl-10 pr-4 py-3 border-2 border-gray-100 rounded-2xl focus:border-primary-500 focus:ring-4 focus:ring-primary-50 focus:outline-none font-bold text-gray-900 transition-all" 
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <label className="block text-xs font-black text-gray-400 uppercase tracking-widest px-1">Miktar ({currentItem.unit})</label>
-                    <div className="relative">
-                      <Package className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                      <input 
-                        type="number" 
-                        step="any" 
-                        value={itemFormData.quantity} 
-                        onFocus={() => setItemFormData({...itemFormData, quantity: '' as any})}
-                        onChange={e => setItemFormData({...itemFormData, quantity: Number(e.target.value)})} 
-                        className="w-full pl-10 pr-4 py-3 border-2 border-gray-100 rounded-2xl focus:border-primary-500 focus:ring-4 focus:ring-primary-50 focus:outline-none font-bold text-gray-900 transition-all" 
-                      />
-                    </div>
-                  </div>
+                  <div className="space-y-2"><label className="block text-xs font-black text-gray-400 uppercase tracking-widest px-1">Alış Fiyatı (₺)</label><div className="relative"><DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" /><input type="number" step="any" value={itemFormData.unit_price} onFocus={() => setItemFormData({...itemFormData, unit_price: '' as any})} onChange={e => setItemFormData({...itemFormData, unit_price: Number(e.target.value)})} className="w-full pl-10 pr-4 py-3 border-2 border-gray-100 rounded-2xl focus:border-primary-500 outline-none font-bold text-gray-900 transition-all" /></div></div>
+                  <div className="space-y-2"><label className="block text-xs font-black text-gray-400 uppercase tracking-widest px-1">Miktar ({currentItem.unit})</label><div className="relative"><Package className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" /><input type="number" step="any" value={itemFormData.quantity} onFocus={() => setItemFormData({...itemFormData, quantity: '' as any})} onChange={e => setItemFormData({...itemFormData, quantity: Number(e.target.value)})} className="w-full pl-10 pr-4 py-3 border-2 border-gray-100 rounded-2xl focus:border-primary-500 outline-none font-bold text-gray-900 transition-all" /></div></div>
                 </div>
                 <div className="space-y-6">
-                  <div className="space-y-2">
-                    <label className="block text-xs font-black text-gray-400 uppercase tracking-widest px-1">KDV Oranı (%)</label>
-                    <div className="relative flex items-center">
-                      <span className="absolute left-4 font-bold text-gray-400">%</span>
-                      <input 
-                        type="number" 
-                        min="0" 
-                        max="100" 
-                        value={itemFormData.tax_rate} 
-                        onFocus={() => setItemFormData({...itemFormData, tax_rate: '' as any})}
-                        onChange={e => setItemFormData({...itemFormData, tax_rate: Number(e.target.value)})} 
-                        className="w-full pl-10 pr-4 py-3 border-2 border-gray-100 rounded-2xl focus:border-primary-500 focus:ring-4 focus:ring-primary-50 focus:outline-none font-bold text-gray-900 transition-all" 
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <label className="block text-xs font-black text-gray-400 uppercase tracking-widest px-1">İskonto (%)</label>
-                    <div className="relative flex items-center">
-                      <span className="absolute left-4 font-bold text-gray-400">%</span>
-                      <input 
-                        type="number" 
-                        min="0" 
-                        max="100" 
-                        value={itemFormData.discount_rate} 
-                        onFocus={() => setItemFormData({...itemFormData, discount_rate: '' as any})}
-                        onChange={e => setItemFormData({...itemFormData, discount_rate: Number(e.target.value)})} 
-                        className="w-full pl-10 pr-4 py-3 border-2 border-gray-100 rounded-2xl focus:border-primary-500 focus:ring-4 focus:ring-primary-50 focus:outline-none font-bold text-gray-900 transition-all" 
-                      />
-                    </div>
-                  </div>
+                  <div className="space-y-2"><label className="block text-xs font-black text-gray-400 uppercase tracking-widest px-1">KDV Oranı (%)</label><div className="relative flex items-center"><span className="absolute left-4 font-bold text-gray-400">%</span><input type="number" value={itemFormData.tax_rate} onChange={e => setItemFormData({...itemFormData, tax_rate: Number(e.target.value)})} className="w-full pl-10 pr-4 py-3 border-2 border-gray-100 rounded-2xl focus:border-primary-500 outline-none font-bold text-gray-900 transition-all" /></div></div>
+                  <div className="space-y-2"><label className="block text-xs font-black text-gray-400 uppercase tracking-widest px-1">İskonto (%)</label><div className="relative flex items-center"><span className="absolute left-4 font-bold text-gray-400">%</span><input type="number" value={itemFormData.discount_rate} onChange={e => setItemFormData({...itemFormData, discount_rate: Number(e.target.value)})} className="w-full pl-10 pr-4 py-3 border-2 border-gray-100 rounded-2xl focus:border-primary-500 outline-none font-bold text-gray-900 transition-all" /></div></div>
                 </div>
               </div>
 
@@ -773,19 +734,14 @@ export default function SupplierDetailPage() {
               </div>
 
               <div className="mt-10 bg-gray-50/80 border border-gray-100 rounded-3xl p-6 space-y-3 relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-24 h-24 bg-primary-500/5 rounded-full -mr-12 -mt-12" />
-                <div className="flex justify-between text-sm text-gray-500 font-medium"><span>Ara Toplam (KDV'siz):</span><span className="text-gray-900">{currentModalBase.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺</span></div>
-                {currentModalDiscount > 0 && <div className="flex justify-between text-sm text-red-600 font-bold"><span>İskonto (%{itemFormData.discount_rate}):</span><span>-{currentModalDiscount.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺</span></div>}
+                <div className="flex justify-between text-sm text-gray-500 font-medium"><span>Ara Toplam (KDV'siz):</span><span className="text-gray-900">{currentModalSubtotal.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺</span></div>
                 <div className="flex justify-between text-sm text-gray-500 font-medium"><span>Hesaplanan KDV (%{itemFormData.tax_rate}):</span><span className="text-gray-900">+{currentModalTax.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺</span></div>
-                <div className="pt-4 mt-2 border-t border-dashed border-gray-200 flex justify-between items-center">
-                  <span className="font-black text-gray-900 uppercase tracking-wider text-xs">GENEL TOPLAM:</span>
-                  <span className="text-3xl font-black text-primary-600 tracking-tight">{currentModalTotal.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺</span>
-                </div>
+                <div className="pt-4 mt-2 border-t border-dashed border-gray-200 flex justify-between items-center"><span className="font-black text-gray-900 uppercase tracking-wider text-xs">GENEL TOPLAM:</span><span className="text-3xl font-black text-primary-600 tracking-tight">{currentModalTotal.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺</span></div>
               </div>
 
               <div className="flex gap-4 mt-10">
-                <Button type="button" variant="outline" onClick={() => setShowItemDetailModal(false)} className="flex-1 h-14 rounded-2xl font-bold border-2 text-gray-500">Vazgeç</Button>
-                <Button type="button" onClick={handleAddItemFromModal} className="flex-[1.5] h-14 rounded-2xl font-bold text-lg bg-primary-600 hover:bg-primary-700 shadow-lg shadow-primary-100 transition-all active:scale-95"><Check className="h-5 w-5 mr-2" />Listeye Ekle</Button>
+                <Button type="button" variant="outline" onClick={() => setShowItemDetailModal(false)} className="flex-1 h-14 rounded-2xl font-bold">Vazgeç</Button>
+                <Button type="button" onClick={handleAddItemFromModal} className="flex-[1.5] h-14 rounded-2xl font-bold text-lg shadow-lg transition-all active:scale-95"><Check className="h-5 w-5 mr-2" />Listeye Ekle</Button>
               </div>
             </CardBody>
           </Card>
@@ -798,129 +754,41 @@ export default function SupplierDetailPage() {
           <Card className="w-full max-w-3xl shadow-2xl animate-in zoom-in duration-300 rounded-3xl overflow-hidden border-0">
             <CardHeader className={`${selectedTx.type === 'purchase' ? 'bg-gradient-to-r from-primary-600 to-primary-700' : 'bg-gradient-to-r from-emerald-600 to-emerald-700'} text-white flex flex-row items-center justify-between py-6 px-8 border-0`}>
               <div className="flex items-center gap-4">
-                <div className="p-3 bg-white/20 rounded-2xl backdrop-blur-md">
-                  {selectedTx.type === 'purchase' ? <ShoppingCart className="h-6 w-6 text-white" /> : <CreditCard className="h-6 w-6 text-white" />}
-                </div>
-                <div>
-                  <CardTitle className="text-2xl text-white font-black">{selectedTx.type === 'purchase' ? 'Alış İşlemi' : 'Ödeme İşlemi'}</CardTitle>
-                  <p className="text-xs text-white/80 font-bold tracking-widest uppercase mt-1">İşlem ID: #{selectedTx.id.slice(0,8)}</p>
-                </div>
+                <div className="p-3 bg-white/20 rounded-2xl backdrop-blur-md">{selectedTx.type === 'purchase' ? <ShoppingCart className="h-6 w-6 text-white" /> : <CreditCard className="h-6 w-6 text-white" />}</div>
+                <div><CardTitle className="text-2xl text-white font-black">{selectedTx.type === 'purchase' ? 'Alış İşlemi' : 'Ödeme İşlemi'}</CardTitle><p className="text-xs text-white/80 font-bold tracking-widest uppercase mt-1">İşlem ID: #{selectedTx.id.slice(0,8)}</p></div>
               </div>
               <button onClick={() => setShowTxDetailModal(false)} className="p-2 hover:bg-white/10 rounded-full transition-all"><X className="h-7 w-7 text-white" /></button>
             </CardHeader>
             <CardBody className="p-0 bg-white">
               <div className="grid grid-cols-3 divide-x divide-gray-100 bg-gray-50/50 border-b">
-                <div className="p-6 text-center"><p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">İşlem Tarihi</p><p className="text-sm font-bold text-gray-900 flex items-center justify-center gap-2"><Calendar className="h-4 w-4 text-primary-500" /> {new Date(selectedTx.transaction_date).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}</p></div>
-                <div className="p-6 text-center"><p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">İşlem Tipi</p><p className="text-sm font-bold text-gray-900 flex items-center justify-center gap-2">{selectedTx.type === 'purchase' ? <Tag className="h-4 w-4 text-primary-500" /> : <Check className="h-4 w-4 text-emerald-500" />} {selectedTx.type === 'purchase' ? 'Borçlandırma' : 'Alacaklandırma'}</p></div>
-                <div className="p-6 text-center"><p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Ödeme Yöntemi</p><p className="text-sm font-bold text-gray-900 flex items-center justify-center gap-2"><CreditCard className="h-4 w-4 text-primary-500" /> {selectedTx.payment_method === 'cash' ? 'Nakit' : selectedTx.payment_method === 'credit_card' ? 'Kredi Kartı' : selectedTx.payment_method === 'cheque' ? 'Çek / Senet' : 'Tanımsız'}</p></div>
+                <div className="p-6 text-center"><p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">İşlem Tarihi</p><p className="text-sm font-bold text-gray-900">{new Date(selectedTx.transaction_date).toLocaleDateString('tr-TR')}</p></div>
+                <div className="p-6 text-center"><p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">İşlem Tipi</p><p className="text-sm font-bold text-gray-900">{selectedTx.type === 'purchase' ? 'Borçlandırma' : 'Alacaklandırma'}</p></div>
+                <div className="p-6 text-center"><p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Ödeme Yöntemi</p><p className="text-sm font-bold text-gray-900">{selectedTx.payment_method || 'Tanımsız'}</p></div>
               </div>
-
               <div className="p-8">
-                {selectedTx.type === 'payment' && selectedTx.payment_method === 'cheque' && (selectedTx.cheque_bank || selectedTx.cheque_serial_number) && (
-                  <div className="mb-8 space-y-4">
-                    <h4 className="text-xs font-black text-amber-600 uppercase tracking-[0.2em] flex items-center gap-2"><FileText className="h-4 w-4" /> Çek Bilgileri</h4>
-                    <div className="grid grid-cols-3 gap-4 bg-amber-50 p-6 rounded-2xl border border-amber-100 shadow-sm">
-                      {selectedTx.cheque_bank && (
-                        <div>
-                          <p className="text-[10px] font-black text-amber-500 uppercase tracking-widest mb-1">Banka Adı</p>
-                          <p className="text-sm font-bold text-amber-900">{selectedTx.cheque_bank}</p>
-                        </div>
-                      )}
-                      {selectedTx.cheque_serial_number && (
-                        <div>
-                          <p className="text-[10px] font-black text-amber-500 uppercase tracking-widest mb-1">Seri Numarası</p>
-                          <p className="text-sm font-bold text-amber-900 uppercase">{selectedTx.cheque_serial_number}</p>
-                        </div>
-                      )}
-                      {selectedTx.cheque_due_date && (
-                        <div>
-                          <p className="text-[10px] font-black text-amber-500 uppercase tracking-widest mb-1">Vade Tarihi</p>
-                          <p className="text-sm font-bold text-amber-900">{new Date(selectedTx.cheque_due_date).toLocaleDateString('tr-TR')}</p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {selectedTx.type === 'purchase' && (selectedTx.document_number || selectedTx.waybill_number || selectedTx.order_date || selectedTx.shipment_date) && (
-                  <div className="mb-8 space-y-4">
-                    <h4 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em] flex items-center gap-2"><FileText className="h-4 w-4" /> Belge Bilgileri</h4>
-                    <div className="grid grid-cols-2 gap-4 bg-primary-50/50 p-6 rounded-2xl border border-primary-100">
-                      {selectedTx.document_number && (
-                        <div>
-                          <p className="text-[10px] font-black text-primary-400/80 uppercase tracking-widest mb-1">Belge No</p>
-                          <p className="text-sm font-bold text-primary-900">{selectedTx.document_number}</p>
-                        </div>
-                      )}
-                      {selectedTx.waybill_number && (
-                        <div>
-                          <p className="text-[10px] font-black text-primary-400/80 uppercase tracking-widest mb-1">İrsaliye No</p>
-                          <p className="text-sm font-bold text-primary-900">{selectedTx.waybill_number}</p>
-                        </div>
-                      )}
-                      {selectedTx.order_date && (
-                        <div>
-                          <p className="text-[10px] font-black text-primary-400/80 uppercase tracking-widest mb-1">Sipariş Tarihi</p>
-                          <p className="text-sm font-bold text-primary-900">{new Date(selectedTx.order_date).toLocaleDateString('tr-TR')}</p>
-                        </div>
-                      )}
-                      {selectedTx.shipment_date && (
-                        <div>
-                          <p className="text-[10px] font-black text-primary-400/80 uppercase tracking-widest mb-1">Sevk Tarihi</p>
-                          <p className="text-sm font-bold text-primary-900">{new Date(selectedTx.shipment_date).toLocaleDateString('tr-TR')}</p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {selectedTx.type === 'purchase' && selectedTx.supplier_transaction_items && selectedTx.supplier_transaction_items.length > 0 ? (
+                {selectedTx.type === 'purchase' && selectedTx.supplier_transaction_items && selectedTx.supplier_transaction_items.length > 0 && (
                   <div className="space-y-6">
-                    <h4 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em] flex items-center gap-2"><Info className="h-4 w-4" /> Alınan Ürünler Detayı</h4>
+                    <h4 className="text-xs font-black text-gray-400 uppercase tracking-widest flex items-center gap-2"><Info className="h-4 w-4" /> Ürün Detayı</h4>
                     <div className="border border-gray-100 rounded-2xl overflow-hidden shadow-sm">
                       <table className="min-w-full divide-y divide-gray-100">
-                        <thead className="bg-gray-50">
-                          <tr>
-                            <th className="px-6 py-4 text-left text-[10px] font-black text-gray-500 uppercase tracking-widest">Ürün Adı</th>
-                            <th className="px-6 py-4 text-center text-[10px] font-black text-gray-500 uppercase tracking-widest">Miktar</th>
-                            <th className="px-6 py-4 text-center text-[10px] font-black text-gray-500 uppercase tracking-widest">Birim Fiyat</th>
-                            <th className="px-6 py-4 text-right text-[10px] font-black text-gray-500 uppercase tracking-widest">Toplam</th>
-                          </tr>
-                        </thead>
+                        <thead className="bg-gray-50"><tr><th className="px-6 py-4 text-left text-[10px] font-black text-gray-500 uppercase tracking-widest">Ürün</th><th className="px-6 py-4 text-center text-[10px] font-black text-gray-500 uppercase tracking-widest">Miktar</th><th className="px-6 py-4 text-right text-[10px] font-black text-gray-500 uppercase tracking-widest">B.Fiyat</th><th className="px-6 py-4 text-right text-[10px] font-black text-gray-500 uppercase tracking-widest">Toplam</th></tr></thead>
                         <tbody className="divide-y divide-gray-50">
                           {selectedTx.supplier_transaction_items.map((item) => (
                             <tr key={item.id} className="hover:bg-primary-50/30 transition-colors">
                               <td className="px-6 py-4 text-sm font-bold text-gray-900">{item.product_name}</td>
-                              <td className="px-6 py-4 text-sm font-medium text-gray-600 text-center">{item.quantity}</td>
-                              <td className="px-6 py-4 text-sm font-medium text-gray-600 text-center">{item.unit_price.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺</td>
-                              <td className="px-6 py-4 text-sm font-black text-gray-900 text-right">{item.total_price.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺</td>
+                              <td className="px-6 py-4 text-sm text-gray-600 text-center">{item.quantity}</td>
+                              <td className="px-6 py-4 text-sm text-gray-600 text-right">{item.unit_price.toLocaleString('tr-TR')} ₺</td>
+                              <td className="px-6 py-4 text-sm font-black text-gray-900 text-right">{item.total_price.toLocaleString('tr-TR')} ₺</td>
                             </tr>
                           ))}
                         </tbody>
                       </table>
                     </div>
                   </div>
-                ) : (
-                  <div className="bg-gray-50 rounded-2xl p-8 border border-dashed border-gray-200 text-center">
-                    <Info className="h-8 w-8 text-gray-300 mx-auto mb-3" />
-                    <p className="text-gray-500 font-bold">Bu işlem bir ödeme kaydıdır ve ürün detayı içermez.</p>
-                    {selectedTx.description && <p className="text-xs text-gray-400 mt-2 font-medium">Açıklama: {selectedTx.description}</p>}
-                  </div>
                 )}
-
-                {selectedTx.description && selectedTx.type === 'purchase' && (
-                  <div className="mt-8 p-6 bg-primary-50 rounded-2xl border border-primary-100/50">
-                    <h5 className="text-[10px] font-black text-primary-400 uppercase tracking-widest mb-2 flex items-center gap-2"><FileText className="h-3 w-3" /> İşlem Notu</h5>
-                    <p className="text-sm text-primary-900 font-medium leading-relaxed">{selectedTx.description}</p>
-                  </div>
-                )}
-
                 <div className="mt-10 flex items-center justify-between p-8 bg-gradient-to-br from-primary-800 to-primary-950 rounded-[2.5rem] text-white shadow-xl">
-                  <div className="flex items-center gap-4">
-                    <div className="p-4 bg-white/10 rounded-3xl"><DollarSign className="h-8 w-8 text-primary-300" /></div>
-                    <div><p className="text-[10px] font-black text-white/50 uppercase tracking-[0.2em] mb-1">İşlem Toplamı</p><p className="text-3xl font-black tracking-tight">{Number(selectedTx.amount).toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺</p></div>
-                  </div>
-                  <Button onClick={() => setShowTxDetailModal(false)} className="h-14 px-10 rounded-2xl font-black bg-white text-primary-900 hover:bg-primary-50 transition-all shadow-lg active:scale-95 border-0">KAPAT</Button>
+                  <div><p className="text-[10px] font-black text-white/50 uppercase tracking-[0.2em] mb-1">İşlem Toplamı</p><p className="text-3xl font-black tracking-tight">{Number(selectedTx.amount).toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺</p></div>
+                  <Button onClick={() => setShowTxDetailModal(false)} className="h-14 px-10 rounded-2xl font-black bg-white text-primary-900 border-0">KAPAT</Button>
                 </div>
               </div>
             </CardBody>
@@ -928,17 +796,16 @@ export default function SupplierDetailPage() {
         </div>
       )}
 
-      {/* Quick New Product Modal */}
+      {/* Quick Product Modal */}
       {showProductModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[110] p-4 animate-in fade-in duration-200">
-          <Card className="w-full max-w-md shadow-2xl animate-in zoom-in duration-300 rounded-3xl overflow-hidden border-0">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[110] p-4 animate-in fade-in">
+          <Card className="w-full max-w-md shadow-2xl rounded-3xl overflow-hidden border-0">
             <CardHeader className="bg-gray-50 border-b py-5 px-6"><CardTitle className="text-xl font-bold text-gray-900">Hızlı Ürün Tanımla</CardTitle></CardHeader>
             <CardBody className="p-8">
               <form onSubmit={handleCreateProduct} className="space-y-6">
-                <div className="space-y-2"><label className="block text-xs font-bold text-gray-400 uppercase tracking-wider px-1">Ürün Adı *</label><input type="text" required placeholder="Örn: iPhone 15 Pro Max" value={newProductData.name} onChange={e => setNewProductData({...newProductData, name: e.target.value})} className="w-full px-4 py-3 border border-gray-200 rounded-xl outline-none font-medium" /></div>
-                <div className="space-y-2"><label className="block text-xs font-bold text-gray-400 uppercase tracking-wider px-1">SKU / Barkod</label><input type="text" placeholder="Örn: IP15-PRO-BLK" value={newProductData.sku} onChange={e => setNewProductData({...newProductData, sku: e.target.value})} className="w-full px-4 py-3 border border-gray-200 rounded-xl outline-none font-medium" /></div>
-                <div className="space-y-2"><label className="block text-xs font-bold text-gray-400 uppercase tracking-wider px-1">Birim</label><select value={newProductData.unit} onChange={e => setNewProductData({...newProductData, unit: e.target.value})} className="w-full px-4 py-3 border border-gray-200 rounded-xl outline-none appearance-none bg-white font-medium"><option value="adet">Adet</option><option value="kg">Kilogram (KG)</option><option value="litre">Litre (L)</option><option value="metre">Metre (m)</option><option value="paket">Paket</option></select></div>
-                <div className="flex gap-3 pt-4"><Button type="button" variant="outline" onClick={() => setShowProductModal(false)} className="flex-1 h-12 font-bold">Vazgeç</Button><Button type="submit" className="flex-1 h-12 font-bold">Ürünü Kaydet</Button></div>
+                <div className="space-y-2"><label className="block text-xs font-bold text-gray-400 uppercase px-1">Ürün Adı *</label><input type="text" required placeholder="Örn: Ürün Adı" value={newProductData.name} onChange={e => setNewProductData({...newProductData, name: e.target.value})} className="w-full px-4 py-3 border border-gray-200 rounded-xl outline-none" /></div>
+                <div className="space-y-2"><label className="block text-xs font-bold text-gray-400 uppercase px-1">Barkod / SKU</label><input type="text" placeholder="Örn: SKU123" value={newProductData.sku} onChange={e => setNewProductData({...newProductData, sku: e.target.value})} className="w-full px-4 py-3 border border-gray-200 rounded-xl outline-none" /></div>
+                <div className="flex gap-3 pt-4"><Button type="button" variant="outline" onClick={() => setShowProductModal(false)} className="flex-1 h-12 font-bold">Vazgeç</Button><Button type="submit" className="flex-1 h-12 font-bold">Kaydet</Button></div>
               </form>
             </CardBody>
           </Card>
@@ -947,50 +814,16 @@ export default function SupplierDetailPage() {
 
       {/* Cheque Modal */}
       {showChequeModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[140] p-4 animate-in fade-in duration-300">
-          <Card className="w-full max-w-md shadow-2xl animate-in zoom-in slide-in-from-bottom-8 duration-300 overflow-hidden border-0">
-            <CardHeader className="bg-gradient-to-r from-amber-600 to-amber-700 text-white flex flex-row items-center justify-between py-5 px-6 border-0">
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-white/20 rounded-2xl backdrop-blur-md"><FileText className="h-6 w-6 text-white" /></div>
-                <div>
-                  <CardTitle className="text-xl text-white font-bold">Çek Detayları</CardTitle>
-                  <p className="text-xs text-amber-100 font-medium mt-0.5">Çek / Senet bilgilerinizi giriniz</p>
-                </div>
-              </div>
-              <button onClick={() => setShowChequeModal(false)} className="p-2 hover:bg-white/10 rounded-full transition-all active:scale-90"><X className="h-6 w-6 text-white" /></button>
-            </CardHeader>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[140] p-4 animate-in fade-in">
+          <Card className="w-full max-w-md shadow-2xl rounded-3xl overflow-hidden border-0">
+            <CardHeader className="bg-gradient-to-r from-amber-600 to-amber-700 text-white py-5 px-6 border-0"><CardTitle className="text-xl text-white font-bold">Çek Detayları</CardTitle></CardHeader>
             <CardBody className="p-8 space-y-6 bg-white">
               <div className="space-y-4">
-                <div className="space-y-2">
-                  <label className="block text-xs font-black text-gray-400 uppercase tracking-widest px-1">Çek Tutarı (₺)</label>
-                  <div className="relative">
-                    <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-amber-500" />
-                    <input type="number" step="any" value={chequeData.amount} onChange={e => setChequeData({...chequeData, amount: e.target.value})} className="w-full pl-12 pr-4 py-4 border-2 border-amber-100 bg-amber-50/30 rounded-2xl focus:border-amber-500 focus:ring-4 focus:ring-amber-50 focus:outline-none font-black text-xl text-amber-900 transition-all placeholder:text-amber-300" placeholder="0.00" />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="block text-xs font-black text-gray-400 uppercase tracking-widest px-1">Vade Tarihi</label>
-                  <input type="date" value={chequeData.due_date} onChange={e => setChequeData({...chequeData, due_date: e.target.value})} className="w-full px-4 py-3 border-2 border-gray-100 rounded-2xl focus:border-amber-500 focus:ring-4 focus:ring-amber-50 outline-none font-bold text-gray-900 transition-all" />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="block text-xs font-black text-gray-400 uppercase tracking-widest px-1">Banka Adı</label>
-                  <input type="text" value={chequeData.bank} onChange={e => setChequeData({...chequeData, bank: e.target.value})} placeholder="Örn: Garanti Bankası" className="w-full px-4 py-3 border-2 border-gray-100 rounded-2xl focus:border-amber-500 focus:ring-4 focus:ring-amber-50 outline-none font-bold text-gray-900 transition-all" />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="block text-xs font-black text-gray-400 uppercase tracking-widest px-1">Çek Seri No</label>
-                  <input type="text" value={chequeData.serial_number} onChange={e => setChequeData({...chequeData, serial_number: e.target.value})} placeholder="Örn: A1234567" className="w-full px-4 py-3 border-2 border-gray-100 rounded-2xl focus:border-amber-500 focus:ring-4 focus:ring-amber-50 outline-none font-bold text-gray-900 transition-all uppercase" />
-                </div>
+                <div className="space-y-2"><label className="block text-xs font-black text-gray-400 uppercase px-1">Tutar (₺)</label><input type="number" step="any" value={chequeData.amount} onChange={e => setChequeData({...chequeData, amount: e.target.value})} className="w-full px-4 py-4 border-2 border-amber-100 bg-amber-50/30 rounded-2xl outline-none font-black text-xl" /></div>
+                <div className="space-y-2"><label className="block text-xs font-black text-gray-400 uppercase px-1">Vade Tarihi</label><input type="date" value={chequeData.due_date} onChange={e => setChequeData({...chequeData, due_date: e.target.value})} className="w-full px-4 py-3 border-2 border-gray-100 rounded-2xl outline-none font-bold" /></div>
+                <div className="space-y-2"><label className="block text-xs font-black text-gray-400 uppercase px-1">Banka Adı</label><input type="text" value={chequeData.bank} onChange={e => setChequeData({...chequeData, bank: e.target.value})} className="w-full px-4 py-3 border-2 border-gray-100 rounded-2xl outline-none font-bold" /></div>
               </div>
-
-              <div className="flex gap-4 pt-4 mt-6 border-t border-dashed border-gray-200">
-                <Button type="button" variant="outline" onClick={() => setShowChequeModal(false)} className="flex-1 h-14 rounded-2xl font-bold border-2 text-gray-500">Vazgeç</Button>
-                <Button type="button" onClick={() => { setTxForm(prev => ({...prev, amount: chequeData.amount})); setShowChequeModal(false); }} className="flex-[1.5] h-14 rounded-2xl font-bold text-lg bg-amber-600 hover:bg-amber-700 shadow-lg shadow-amber-100 transition-all active:scale-95 text-white">
-                  <Check className="h-5 w-5 mr-2" /> Kaydet
-                </Button>
-              </div>
+              <div className="flex gap-4 pt-4 border-t border-dashed"><Button type="button" variant="outline" onClick={() => setShowChequeModal(false)} className="flex-1 h-14 rounded-2xl font-bold">Vazgeç</Button><Button type="button" onClick={() => { setTxForm(prev => ({...prev, amount: chequeData.amount})); setShowChequeModal(false); }} className="flex-[1.5] h-14 rounded-2xl font-bold text-lg bg-amber-600 text-white">Kaydet</Button></div>
             </CardBody>
           </Card>
         </div>
