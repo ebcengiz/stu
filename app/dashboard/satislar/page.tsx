@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Plus, Search, Store, UserPlus, Users, FileText, CheckCircle2, Clock } from 'lucide-react'
+import { Plus, Search, Store, UserPlus, Users, FileText, CheckCircle2, Clock, ChevronUp, ChevronDown, ArrowUpDown, X } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Card, CardHeader, CardBody, CardTitle } from '@/components/ui/Card'
 import { useRouter } from 'next/navigation'
@@ -23,6 +23,12 @@ export default function SalesPage() {
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
 
+  type SortColumn = 'sale_date' | 'company_name' | 'document_no' | 'status' | 'total_amount'
+  type SortDirection = 'asc' | 'desc'
+
+  const [sortColumn, setSortColumn] = useState<SortColumn>('sale_date')
+  const [sortDirection, setSortDirection] = useState<SortDirection>('desc')
+
   // Modal States
   const [showCustomerSearchModal, setShowCustomerSearchModal] = useState(false)
   const [showNewCustomerModal, setShowNewCustomerModal] = useState(false)
@@ -32,7 +38,16 @@ export default function SalesPage() {
   const [customerSearchTerm, setCustomerSearchTerm] = useState('')
 
   // New Customer Form
-  const [newCustomer, setNewCustomer] = useState({ company_name: '', phone: '', is_active: true })
+  const [newCustomer, setNewCustomer] = useState({ 
+    company_name: '', 
+    phone: '', 
+    email: '',
+    address: '',
+    tax_office: '',
+    tax_number: '',
+    currency: 'TRY',
+    is_active: true 
+  })
   const [savingCustomer, setSavingCustomer] = useState(false)
 
   useEffect(() => {
@@ -99,11 +114,39 @@ export default function SalesPage() {
     }
   }
 
-  const filteredSales = sales.filter(s => 
-    s.document_no?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    s.order_no?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    s.customers?.company_name?.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+  const handleSort = (column: SortColumn) => {
+    if (sortColumn === column) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')
+    } else {
+      setSortColumn(column)
+      setSortDirection('asc')
+    }
+  }
+
+  const SortIcon = ({ column }: { column: SortColumn }) => {
+    if (sortColumn !== column) return <ArrowUpDown className="h-4 w-4 ml-1 opacity-20 group-hover:opacity-50 transition-opacity" />
+    return sortDirection === 'asc' ? <ChevronUp className="h-4 w-4 ml-1 text-primary-600" /> : <ChevronDown className="h-4 w-4 ml-1 text-primary-600" />
+  }
+
+  const filteredSales = [...sales]
+    .filter(s => 
+      s.document_no?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      s.order_no?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      s.customers?.company_name?.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    .sort((a, b) => {
+      let aValue: any = a[sortColumn]
+      let bValue: any = b[sortColumn]
+
+      if (sortColumn === 'company_name') {
+        aValue = a.customers?.company_name || 'Perakende Müşteri'
+        bValue = b.customers?.company_name || 'Perakende Müşteri'
+      }
+
+      if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1
+      if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1
+      return 0
+    })
 
   const filteredCustomers = customers.filter(c => 
     c.company_name?.toLowerCase().includes(customerSearchTerm.toLowerCase()) ||
@@ -175,11 +218,51 @@ export default function SalesPage() {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tarih</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Firma Adı</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Sipariş / Belge No</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Durum</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Tutar</th>
+                  <th 
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase cursor-pointer hover:bg-gray-100 select-none group transition-colors"
+                    onClick={() => handleSort('sale_date')}
+                  >
+                    <div className="flex items-center">
+                      Tarih
+                      <SortIcon column="sale_date" />
+                    </div>
+                  </th>
+                  <th 
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase cursor-pointer hover:bg-gray-100 select-none group transition-colors"
+                    onClick={() => handleSort('company_name')}
+                  >
+                    <div className="flex items-center">
+                      Firma Adı
+                      <SortIcon column="company_name" />
+                    </div>
+                  </th>
+                  <th 
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase cursor-pointer hover:bg-gray-100 select-none group transition-colors"
+                    onClick={() => handleSort('document_no')}
+                  >
+                    <div className="flex items-center">
+                      Sipariş / Belge No
+                      <SortIcon column="document_no" />
+                    </div>
+                  </th>
+                  <th 
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase cursor-pointer hover:bg-gray-100 select-none group transition-colors"
+                    onClick={() => handleSort('status')}
+                  >
+                    <div className="flex items-center">
+                      Durum
+                      <SortIcon column="status" />
+                    </div>
+                  </th>
+                  <th 
+                    className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase cursor-pointer hover:bg-gray-100 select-none group transition-colors"
+                    onClick={() => handleSort('total_amount')}
+                  >
+                    <div className="flex items-center justify-end">
+                      Tutar
+                      <SortIcon column="total_amount" />
+                    </div>
+                  </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -291,14 +374,67 @@ export default function SalesPage() {
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"
                 />
               </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Telefon</label>
+                  <input
+                    type="tel"
+                    value={newCustomer.phone}
+                    onChange={(e) => setNewCustomer({...newCustomer, phone: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">E-posta</label>
+                  <input
+                    type="email"
+                    value={newCustomer.email}
+                    onChange={(e) => setNewCustomer({...newCustomer, email: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Vergi Dairesi</label>
+                  <input
+                    type="text"
+                    value={newCustomer.tax_office}
+                    onChange={(e) => setNewCustomer({...newCustomer, tax_office: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Vergi Numarası</label>
+                  <input
+                    type="text"
+                    value={newCustomer.tax_number}
+                    onChange={(e) => setNewCustomer({...newCustomer, tax_number: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"
+                  />
+                </div>
+              </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Telefon</label>
-                <input
-                  type="tel"
-                  value={newCustomer.phone}
-                  onChange={(e) => setNewCustomer({...newCustomer, phone: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"
+                <label className="block text-sm font-medium text-gray-700 mb-1">Adres</label>
+                <textarea
+                  rows={2}
+                  value={newCustomer.address}
+                  onChange={(e) => setNewCustomer({...newCustomer, address: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none resize-none"
                 />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Para Birimi</label>
+                <select
+                  value={newCustomer.currency}
+                  onChange={(e) => setNewCustomer({...newCustomer, currency: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"
+                >
+                  <option value="TRY">Türk Lirası (TRY)</option>
+                  <option value="USD">Amerikan Doları (USD)</option>
+                  <option value="EUR">Euro (EUR)</option>
+                  <option value="GBP">İngiliz Sterlini (GBP)</option>
+                </select>
               </div>
               <div className="pt-4 flex justify-end gap-3">
                 <Button type="button" variant="outline" onClick={() => setShowNewCustomerModal(false)}>İptal</Button>

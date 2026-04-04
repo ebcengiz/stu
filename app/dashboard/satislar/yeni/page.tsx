@@ -13,6 +13,11 @@ interface Product {
   price: number
   unit: string
   currency: string
+  tax_rate: number
+  stock?: {
+    quantity: number
+    warehouse_id: string
+  }[]
 }
 
 interface Warehouse {
@@ -44,7 +49,7 @@ function SaleEntryForm() {
     order_no: '',
     status: 'Bekliyor',
     description: '',
-    collected_amount: 0,
+    collected_amount: '' as string | number,
   })
 
   const [items, setItems] = useState<any[]>([])
@@ -81,7 +86,7 @@ function SaleEntryForm() {
   }, [customerId])
 
   const addItem = () => {
-    setItems([...items, { product_id: '', warehouse_id: warehouses[0]?.id || '', quantity: 1, unit_price: 0 }])
+    setItems([...items, { product_id: '', warehouse_id: warehouses[0]?.id || '', quantity: 1, unit_price: 0, vat_rate: 20 }])
   }
 
   const removeItem = (index: number) => {
@@ -98,13 +103,30 @@ function SaleEntryForm() {
       const product = products.find(p => p.id === value)
       if (product) {
         newItems[index].unit_price = product.price || 0
+        newItems[index].vat_rate = product.tax_rate || 20 // Varsayılan KDV %20
       }
     }
     setItems(newItems)
   }
 
+  const calculateRowTotal = (item: any) => {
+    const subtotal = Number(item.quantity) * Number(item.unit_price)
+    const vatAmount = subtotal * (Number(item.vat_rate) / 100)
+    return subtotal + vatAmount
+  }
+
   const calculateTotal = () => {
-    return items.reduce((sum, item) => sum + (Number(item.quantity) * Number(item.unit_price)), 0)
+    return items.reduce((sum, item) => sum + calculateRowTotal(item), 0)
+  }
+
+  const getAvailableStock = (productId: string, warehouseId: string) => {
+    if (!productId || !warehouseId) return 0
+    const product = products.find(p => p.id === productId)
+    if (!product || !product.stock) return 0
+
+    // Aynı depodaki stokları topla (eğer duplicate kayıtlar varsa)
+    const stockRecords = product.stock.filter(s => s.warehouse_id === warehouseId)
+    return stockRecords.reduce((sum, record) => sum + Number(record.quantity), 0)
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -129,7 +151,7 @@ function SaleEntryForm() {
       total_amount: calculateTotal(),
       items: items.map(item => ({
         ...item,
-        total_price: Number(item.quantity) * Number(item.unit_price)
+        total_price: calculateRowTotal(item)
       }))
     }
 
@@ -160,7 +182,7 @@ function SaleEntryForm() {
   }
 
   return (
-    <div className="space-y-6 max-w-5xl mx-auto">
+    <div className="space-y-6 max-w-6xl mx-auto">
       <div className="flex items-center gap-4">
         <button onClick={() => router.back()} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
           <ArrowLeft className="h-6 w-6 text-gray-600" />
@@ -243,7 +265,7 @@ function SaleEntryForm() {
                   step="0.01"
                   placeholder="Eğer anında ödeme alındıysa..."
                   value={formData.collected_amount}
-                  onChange={(e) => setFormData({...formData, collected_amount: parseFloat(e.target.value) || 0})}
+                  onChange={(e) => setFormData({...formData, collected_amount: e.target.value === '' ? '' : parseFloat(e.target.value)})}
                   className="w-full px-3 py-2 border border-green-300 bg-green-50 rounded-lg focus:ring-2 focus:ring-green-500 outline-none font-bold text-green-700"
                 />
                 <p className="text-xs text-gray-500 mt-1">Alınan nakit/kredi kartı ödemesini buraya yazın.</p>
@@ -265,90 +287,120 @@ function SaleEntryForm() {
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ürün</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Çıkış Deposu</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-56">Çıkış Deposu</th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-24">Miktar</th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-32">Birim Fiyat</th>
-                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase w-32">Toplam</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-28">KDV (%)</th>
+                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase w-40">Toplam (KDV Dahil)</th>
                     <th className="px-4 py-3 w-10"></th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {items.map((item, index) => (
-                    <tr key={index}>
-                      <td className="px-4 py-2">
-                        <select
-                          required
-                          value={item.product_id}
-                          onChange={(e) => handleItemChange(index, 'product_id', e.target.value)}
-                          className="w-full px-2 py-1.5 border border-gray-300 rounded text-sm outline-none focus:border-primary-500"
-                        >
-                          <option value="">Ürün Seçin</option>
-                          {products.map(p => (
-                            <option key={p.id} value={p.id}>{p.name}</option>
-                          ))}
-                        </select>
-                      </td>
-                      <td className="px-4 py-2">
-                        <select
-                          required
-                          value={item.warehouse_id}
-                          onChange={(e) => handleItemChange(index, 'warehouse_id', e.target.value)}
-                          className="w-full px-2 py-1.5 border border-gray-300 rounded text-sm outline-none focus:border-primary-500"
-                        >
-                          {warehouses.map(w => (
-                            <option key={w.id} value={w.id}>{w.name}</option>
-                          ))}
-                        </select>
-                      </td>
-                      <td className="px-4 py-2">
-                        <input
-                          type="number"
-                          required
-                          min="0.01"
-                          step="0.01"
-                          value={item.quantity}
-                          onChange={(e) => handleItemChange(index, 'quantity', parseFloat(e.target.value) || 0)}
-                          className="w-full px-2 py-1.5 border border-gray-300 rounded text-sm outline-none focus:border-primary-500 text-center"
-                        />
-                      </td>
-                      <td className="px-4 py-2">
-                        <div className="relative">
+                  {items.map((item, index) => {
+                    const availableStock = getAvailableStock(item.product_id, item.warehouse_id)
+                    const unit = products.find(p => p.id === item.product_id)?.unit || 'adet'
+
+                    return (
+                      <tr key={index}>
+                        <td className="px-4 py-2">
+                          <select
+                            required
+                            value={item.product_id}
+                            onChange={(e) => handleItemChange(index, 'product_id', e.target.value)}
+                            className="w-full px-2 py-1.5 border border-gray-300 rounded text-sm outline-none focus:border-primary-500"
+                          >
+                            <option value="">Ürün Seçin</option>
+                            {products.map(p => (
+                              <option key={p.id} value={p.id}>{p.name}</option>
+                            ))}
+                          </select>
+                        </td>
+                        <td className="px-4 py-2">
+                          <select
+                            required
+                            value={item.warehouse_id}
+                            onChange={(e) => handleItemChange(index, 'warehouse_id', e.target.value)}
+                            className="w-full px-2 py-1.5 border border-gray-300 rounded text-sm outline-none focus:border-primary-500"
+                          >
+                            {warehouses.map(w => {
+                              const stockAmount = getAvailableStock(item.product_id, w.id);
+                              const stockText = item.product_id ? ` (${stockAmount} ${unit})` : '';
+                              return (
+                                <option key={w.id} value={w.id}>
+                                  {w.name}{stockText}
+                                </option>
+                              )
+                            })}
+                          </select>
+                          {item.product_id && item.warehouse_id && (
+                            <div className={`text-[10px] mt-1 font-medium ${availableStock < item.quantity ? 'text-red-500' : 'text-gray-500'}`}>
+                              Mevcut Stok: {availableStock.toLocaleString('tr-TR')} {unit}
+                            </div>
+                          )}
+                        </td>
+                        <td className="px-4 py-2 align-top">
                           <input
                             type="number"
                             required
-                            min="0"
+                            min="0.01"
                             step="0.01"
-                            value={item.unit_price}
-                            onChange={(e) => handleItemChange(index, 'unit_price', parseFloat(e.target.value) || 0)}
-                            className="w-full pl-6 pr-2 py-1.5 border border-gray-300 rounded text-sm outline-none focus:border-primary-500"
+                            value={item.quantity === 0 ? '' : item.quantity}
+                            onChange={(e) => handleItemChange(index, 'quantity', e.target.value === '' ? '' : parseFloat(e.target.value))}
+                            className="w-full px-2 py-1.5 border border-gray-300 rounded text-sm outline-none focus:border-primary-500 text-center"
                           />
-                          <span className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-500 text-sm">₺</span>
-                        </div>
-                      </td>
-                      <td className="px-4 py-2 text-right font-medium text-gray-900">
-                        {(Number(item.quantity) * Number(item.unit_price)).toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺
-                      </td>
-                      <td className="px-4 py-2 text-center">
-                        <button
-                          type="button"
-                          onClick={() => removeItem(index)}
-                          className="text-red-500 hover:bg-red-50 p-1.5 rounded transition-colors"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
+                        </td>
+                        <td className="px-4 py-2 align-top">
+                          <div className="relative">
+                            <input
+                              type="number"
+                              required
+                              min="0"
+                              step="0.01"
+                              value={item.unit_price === 0 ? '' : item.unit_price}
+                              onChange={(e) => handleItemChange(index, 'unit_price', e.target.value === '' ? '' : parseFloat(e.target.value))}
+                              className="w-full pl-6 pr-2 py-1.5 border border-gray-300 rounded text-sm outline-none focus:border-primary-500"
+                            />
+                            <span className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-500 text-sm">₺</span>
+                          </div>
+                        </td>
+                        <td className="px-4 py-2 align-top">
+                           <select
+                            required
+                            value={item.vat_rate}
+                            onChange={(e) => handleItemChange(index, 'vat_rate', parseInt(e.target.value))}
+                            className="w-full px-2 py-1.5 border border-gray-300 rounded text-sm outline-none focus:border-primary-500"
+                          >
+                            <option value={0}>%0</option>
+                            <option value={1}>%1</option>
+                            <option value={10}>%10</option>
+                            <option value={20}>%20</option>
+                          </select>
+                        </td>
+                        <td className="px-4 py-2 text-right font-medium text-gray-900 align-top pt-4">
+                          {calculateRowTotal(item).toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺
+                        </td>
+                        <td className="px-4 py-2 text-center align-top pt-3">
+                          <button
+                            type="button"
+                            onClick={() => removeItem(index)}
+                            className="text-red-500 hover:bg-red-50 p-1.5 rounded transition-colors"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </td>
+                      </tr>
+                    )
+                  })}
                   {items.length === 0 && (
                     <tr>
-                      <td colSpan={6} className="px-4 py-8 text-center text-gray-500">Satış listesine ürün eklemek için "Satır Ekle" butonunu kullanın.</td>
+                      <td colSpan={7} className="px-4 py-8 text-center text-gray-500">Satış listesine ürün eklemek için "Satır Ekle" butonunu kullanın.</td>
                     </tr>
                   )}
                 </tbody>
                 {items.length > 0 && (
                   <tfoot className="bg-gray-50 font-bold">
                     <tr>
-                      <td colSpan={4} className="px-4 py-4 text-right text-gray-900 text-lg">Genel Toplam:</td>
+                      <td colSpan={5} className="px-4 py-4 text-right text-gray-900 text-lg">Genel Toplam:</td>
                       <td className="px-4 py-4 text-right text-primary-700 text-xl">
                         {calculateTotal().toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺
                       </td>

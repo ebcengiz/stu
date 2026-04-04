@@ -77,14 +77,22 @@ export async function POST(request: Request) {
 
     // B. Sale Items Tablosuna Ekle
     if (body.items && body.items.length > 0) {
-      const itemsToInsert = body.items.map((item: any) => ({
-        sale_id: sale.id,
-        product_id: item.product_id,
-        warehouse_id: item.warehouse_id,
-        quantity: item.quantity,
-        unit_price: item.unit_price,
-        total_price: item.total_price
-      }))
+      const itemsToInsert = body.items.map((item: any) => {
+        const subtotal = Number(item.quantity) * Number(item.unit_price)
+        const vatRate = Number(item.vat_rate) || 0
+        const vatAmount = subtotal * (vatRate / 100)
+
+        return {
+          sale_id: sale.id,
+          product_id: item.product_id,
+          warehouse_id: item.warehouse_id,
+          quantity: item.quantity,
+          unit_price: item.unit_price,
+          vat_rate: vatRate,
+          vat_amount: vatAmount,
+          total_price: item.total_price // KDV dahil
+        }
+      })
 
       const { error: itemsError } = await supabase
         .from('sale_items')
@@ -99,13 +107,9 @@ export async function POST(request: Request) {
         warehouse_id: item.warehouse_id,
         movement_type: 'out',
         quantity: item.quantity,
-        unit: 'adet', // Default, opsiyonel olarak body'den gelebilir
-        unit_price: item.unit_price,
-        total_price: item.total_price,
-        currency: 'TRY', // Default
-        date: body.sale_date,
-        document_no: body.document_no || `Sipariş-${sale.id.substring(0,8)}`,
-        notes: `Satış: ${sale.id}`
+        reference_no: body.document_no || `Sipariş-${sale.id.substring(0,8)}`,
+        notes: `Satış: ${sale.id}`,
+        created_by: user.id
       }))
 
       const { error: stockError } = await supabase
