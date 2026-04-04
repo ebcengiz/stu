@@ -12,12 +12,13 @@ interface Tag {
 interface TagSelectorProps {
   label: string
   type: 'category1' | 'category2'
+  entityType?: 'customer' | 'supplier'
   value: string
   placeholder: string
   onChange: (value: string) => void
 }
 
-export function TagSelector({ label, type, value, placeholder, onChange }: TagSelectorProps) {
+export function TagSelector({ label, type, entityType = 'customer', value, placeholder, onChange }: TagSelectorProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [tags, setTags] = useState<Tag[]>([])
   const [searchTerm, setSearchTerm] = useState('')
@@ -33,11 +34,11 @@ export function TagSelector({ label, type, value, placeholder, onChange }: TagSe
     }
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [])
+  }, [type, entityType])
 
   const fetchTags = async () => {
     try {
-      const res = await fetch(`/api/customer-tags?type=${type}`)
+      const res = await fetch(`/api/customer-tags?type=${type}&entityType=${entityType}`)
       const data = await res.json()
       setTags(Array.isArray(data) ? data : [])
     } catch (err) {
@@ -52,9 +53,16 @@ export function TagSelector({ label, type, value, placeholder, onChange }: TagSe
       const res = await fetch('/api/customer-tags', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: searchTerm.trim(), type })
+        body: JSON.stringify({ name: searchTerm.trim(), type, entityType })
       })
       const newTag = await res.json()
+      
+      if (newTag.error) {
+        console.error('API Error:', newTag.error)
+        alert('Etiket oluşturulamadı: ' + newTag.error)
+        return
+      }
+
       if (newTag && newTag.name) {
         setTags(prev => [...prev.filter(t => t.name !== newTag.name), newTag].sort((a, b) => a.name.localeCompare(b.name)))
         onChange(newTag.name)

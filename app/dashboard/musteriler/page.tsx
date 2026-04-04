@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button'
 import { Card, CardHeader, CardBody, CardTitle } from '@/components/ui/Card'
 import { useRouter } from 'next/navigation'
 import { TagSelector } from '@/components/admin/TagSelector'
+import { toast } from 'react-hot-toast'
 
 interface Customer {
   id: string
@@ -162,21 +163,52 @@ export default function CustomersPage() {
     router.push(`/dashboard/musteriler/${id}`)
   }
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Bu müşteriyi silmek istediğinizden emin misiniz?')) return
-
+  const executeDelete = async (id: string) => {
     try {
       const response = await fetch(`/api/customers/${id}`, {
         method: 'DELETE',
       })
 
-      if (!response.ok) throw new Error('Silme işlemi başarısız')
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Silme işlemi başarısız')
+      }
 
-      fetchCustomers()
-    } catch (error) {
+      setCustomers(prev => prev.filter(c => c.id !== id))
+      toast.success('Müşteri başarıyla silindi')
+    } catch (error: any) {
       console.error('Error deleting customer:', error)
-      alert('Müşteri silinemedi')
+      toast.error(error.message || 'Müşteri silinemedi')
     }
+  }
+
+  const handleDelete = (e: React.MouseEvent, id: string) => {
+    e.stopPropagation()
+    toast(
+      (t) => (
+        <div className="flex flex-col gap-3">
+          <div className="font-medium text-gray-900">Bu müşteriyi silmek istediğinizden emin misiniz?</div>
+          <div className="flex justify-end gap-2">
+            <button 
+              onClick={() => toast.dismiss(t.id)} 
+              className="px-3 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-md transition-colors"
+            >
+              Vazgeç
+            </button>
+            <button 
+              onClick={() => {
+                toast.dismiss(t.id)
+                executeDelete(id)
+              }} 
+              className="px-3 py-1.5 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md transition-colors"
+            >
+              Evet, Sil
+            </button>
+          </div>
+        </div>
+      ),
+      { duration: 8000, position: 'top-center', style: { minWidth: '300px' } }
+    )
   }
 
   const resetForm = () => {
@@ -405,7 +437,7 @@ export default function CustomersPage() {
                             <Edit2 className="h-4 w-4" />
                           </button>
                           <button
-                            onClick={() => handleDelete(customer.id)}
+                            onClick={(e) => handleDelete(e, customer.id)}
                             className="text-red-600 hover:text-red-900 bg-red-50 p-1.5 rounded-md transition-colors"
                             title="Sil"
                           >

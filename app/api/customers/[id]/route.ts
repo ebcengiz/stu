@@ -47,7 +47,12 @@ export async function DELETE(
       .delete()
       .eq('id', id)
 
-    if (error) throw error
+    if (error) {
+      if (error.code === '23503') {
+        throw new Error('Bu müşteriye ait işlemler (fatura, ödeme vb.) bulunduğu için silinemez.')
+      }
+      throw error
+    }
 
     return NextResponse.json({ success: true })
   } catch (error: any) {

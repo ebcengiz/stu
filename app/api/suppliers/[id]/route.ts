@@ -3,15 +3,17 @@ import { NextResponse } from 'next/server'
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: any }
 ) {
   try {
     const supabase = await createClient()
+    const resolvedParams = params instanceof Promise ? await params : params
+    const id = resolvedParams.id
 
     const { data: supplier, error } = await supabase
       .from('suppliers')
       .select('*')
-      .eq('id', params.id)
+      .eq('id', id)
       .single()
 
     if (error) throw error
@@ -24,16 +26,18 @@ export async function GET(
 
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: any }
 ) {
   try {
     const supabase = await createClient()
     const body = await request.json()
+    const resolvedParams = params instanceof Promise ? await params : params
+    const id = resolvedParams.id
 
     const { data: supplier, error } = await supabase
       .from('suppliers')
       .update(body)
-      .eq('id', params.id)
+      .eq('id', id)
       .select()
       .single()
 
@@ -47,17 +51,24 @@ export async function PUT(
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: any }
 ) {
   try {
     const supabase = await createClient()
+    const resolvedParams = params instanceof Promise ? await params : params
+    const id = resolvedParams.id
 
     const { error } = await supabase
       .from('suppliers')
       .delete()
-      .eq('id', params.id)
+      .eq('id', id)
 
-    if (error) throw error
+    if (error) {
+      if (error.code === '23503') {
+        throw new Error('Bu tedarikçiye ait işlemler (fatura, ödeme vb.) bulunduğu için silinemez.')
+      }
+      throw error
+    }
 
     return NextResponse.json({ success: true })
   } catch (error: any) {

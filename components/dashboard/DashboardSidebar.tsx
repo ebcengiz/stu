@@ -15,7 +15,9 @@ import {
   X,
   ChevronLeft,
   ChevronRight,
-  Users
+  Users,
+  ChevronDown,
+  Tags
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useState, useEffect } from 'react'
@@ -34,6 +36,7 @@ export default function DashboardSidebar({ profile }: { profile: Profile | null 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [isMounted, setIsMounted] = useState(false)
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false)
 
   useEffect(() => {
     setIsMounted(true)
@@ -41,7 +44,12 @@ export default function DashboardSidebar({ profile }: { profile: Profile | null 
     if (savedState !== null) {
       setIsCollapsed(savedState === 'true')
     }
-  }, [])
+    
+    // Auto-open settings if pathname matches sub-items
+    if (pathname.includes('/dashboard/ayarlar') || pathname.includes('/dashboard/tanimlar')) {
+      setIsSettingsOpen(true)
+    }
+  }, [pathname])
 
   useEffect(() => {
     if (isMounted) {
@@ -68,10 +76,6 @@ export default function DashboardSidebar({ profile }: { profile: Profile | null 
     { name: 'Raporlar', href: '/dashboard/raporlar', icon: BarChart3 },
     { name: 'Stok Hareketleri', href: '/dashboard/stok-hareketleri', icon: ArrowLeftRight },
   ]
-
-  if (profile?.role === 'admin') {
-    navigation.push({ name: 'Ayarlar', href: '/dashboard/ayarlar', icon: Settings })
-  }
 
   const SidebarContent = ({ isMobile = false }) => {
     const collapsed = !isMobile && isCollapsed;
@@ -128,6 +132,55 @@ export default function DashboardSidebar({ profile }: { profile: Profile | null 
               </Link>
             )
           })}
+
+          {/* Settings Accordion */}
+          {profile?.role === 'admin' && (
+            <div className="space-y-1">
+              <button
+                onClick={() => {
+                  if (collapsed) {
+                    setIsCollapsed(false)
+                    setIsSettingsOpen(true)
+                  } else {
+                    setIsSettingsOpen(!isSettingsOpen)
+                  }
+                }}
+                className={`w-full flex items-center py-2.5 text-sm font-medium rounded-md transition-all duration-300 text-gray-700 hover:bg-gray-50 hover:text-gray-900 ${collapsed ? 'justify-center px-0' : 'px-3'}`}
+                title={collapsed ? 'Ayarlar' : undefined}
+              >
+                <Settings className={`h-5 w-5 flex-shrink-0 ${collapsed ? '' : 'mr-3'}`} />
+                {!collapsed && (
+                  <>
+                    <span className="flex-1 text-left text-gray-700">Ayarlar</span>
+                    <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isSettingsOpen ? 'rotate-180' : ''}`} />
+                  </>
+                )}
+              </button>
+              
+              {isSettingsOpen && !collapsed && (
+                <div className="ml-9 space-y-1 animate-in fade-in slide-in-from-top-1 duration-200">
+                  <Link
+                    href="/dashboard/ayarlar"
+                    className={`flex items-center py-2 text-sm font-medium rounded-md transition-colors ${
+                      pathname === '/dashboard/ayarlar' ? 'text-primary-700 bg-primary-50' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                    } px-3`}
+                  >
+                    <Settings className="h-4 w-4 mr-2" />
+                    Genel Ayarlar
+                  </Link>
+                  <Link
+                    href="/dashboard/tanimlar"
+                    className={`flex items-center py-2 text-sm font-medium rounded-md transition-colors ${
+                      pathname === '/dashboard/tanimlar' ? 'text-primary-700 bg-primary-50' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                    } px-3`}
+                  >
+                    <Tags className="h-4 w-4 mr-2" />
+                    Tanımlar
+                  </Link>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         <div className="p-4 border-t border-gray-200">

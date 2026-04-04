@@ -1,13 +1,15 @@
 'use client'
-
 import { useState, useEffect } from 'react'
 import { Plus, Search, Edit2, Trash2, X, Building, Mail, Phone, MapPin } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Card, CardHeader, CardBody, CardTitle } from '@/components/ui/Card'
 import { TagSelector } from '@/components/admin/TagSelector'
 import { useRouter } from 'next/navigation'
+import { toast } from 'react-hot-toast'
 
 interface Supplier {
+// ...
+
   id: string
   company_name: string
   company_logo: string | null
@@ -116,18 +118,49 @@ export default function SuppliersPage() {
     setShowModal(true)
   }
 
-  const handleDelete = async (e: React.MouseEvent, id: string) => {
-    e.stopPropagation()
-    if (!confirm('Bu tedarikçiyi silmek istediğinize emin misiniz?')) return
-
+  const executeDelete = async (id: string) => {
     try {
       const res = await fetch(`/api/suppliers/${id}`, { method: 'DELETE' })
       if (res.ok) {
-        setSuppliers(suppliers.filter(s => s.id !== id))
+        setSuppliers(prev => prev.filter(s => s.id !== id))
+        toast.success('Tedarikçi başarıyla silindi')
+      } else {
+        const errorData = await res.json()
+        throw new Error(errorData.error || 'Silme işlemi başarısız')
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error deleting supplier:', error)
+      toast.error(error.message || 'Tedarikçi silinirken bir hata oluştu.')
     }
+  }
+
+  const handleDelete = (e: React.MouseEvent, id: string) => {
+    e.stopPropagation()
+    toast(
+      (t) => (
+        <div className="flex flex-col gap-3">
+          <div className="font-medium text-gray-900">Bu tedarikçiyi silmek istediğinize emin misiniz?</div>
+          <div className="flex justify-end gap-2">
+            <button 
+              onClick={() => toast.dismiss(t.id)} 
+              className="px-3 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-md transition-colors"
+            >
+              Vazgeç
+            </button>
+            <button 
+              onClick={() => {
+                toast.dismiss(t.id)
+                executeDelete(id)
+              }} 
+              className="px-3 py-1.5 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md transition-colors"
+            >
+              Evet, Sil
+            </button>
+          </div>
+        </div>
+      ),
+      { duration: 8000, position: 'top-center', style: { minWidth: '300px' } }
+    )
   }
 
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -523,6 +556,7 @@ export default function SuppliersPage() {
                   <TagSelector
                     label="Tedarikçi Grubu / Sınıfı"
                     type="category1"
+                    entityType="supplier"
                     value={formData.category1 || ''}
                     placeholder="Grup seçin veya yazın..."
                     onChange={(val) => setFormData({ ...formData, category1: val })}
@@ -530,6 +564,7 @@ export default function SuppliersPage() {
                   <TagSelector
                     label="Özel Etiket"
                     type="category2"
+                    entityType="supplier"
                     value={formData.category2 || ''}
                     placeholder="Etiket seçin veya yazın..."
                     onChange={(val) => setFormData({ ...formData, category2: val })}
