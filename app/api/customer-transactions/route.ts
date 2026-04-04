@@ -90,7 +90,7 @@ export async function POST(request: Request) {
 
     if (txError) throw txError
 
-    // 2. If it's a sale, create transaction items and update stock
+    // 2. If it's a sale, create transaction items, update stock, and create a sales record
     if (type === 'sale' && items && items.length > 0) {
       const itemsToInsert = items.map((item: any) => ({
         transaction_id: transaction.id,
@@ -111,6 +111,46 @@ export async function POST(request: Request) {
 
       if (itemsError) throw itemsError
 
+      // Create a record in 'sales' table so it shows up in SalesPage
+      const { data: saleData, error: saleError } = await supabase
+        .from('sales')
+        .insert({
+          tenant_id: profile.tenant_id,
+          customer_id: customer_id,
+          sale_date: transaction_date,
+          document_no: document_number || '',
+          order_no: '', 
+          total_amount: amount,
+          collected_amount: 0,
+          status: 'Faturalaşmış',
+          description: description || ''
+        })
+        .select()
+        .single()
+        
+      if (saleError) console.error('Sale insertion error:', saleError)
+
+      // If sale created successfully, create sale_items
+      if (saleData) {
+        const saleItemsToInsert = items.map((item: any) => {
+          const subtotal = Number(item.quantity) * Number(item.unit_price)
+          const vatRate = Number(item.tax_rate) || 0
+          const vatAmount = subtotal * (vatRate / 100)
+          return {
+            sale_id: saleData.id,
+            product_id: item.product_id,
+            warehouse_id: item.warehouse_id,
+            quantity: item.quantity,
+            unit_price: item.unit_price,
+            vat_rate: vatRate,
+            vat_amount: vatAmount,
+            total_price: item.total_price
+          }
+        })
+        const { error: saleItemsError } = await supabase.from('sale_items').insert(saleItemsToInsert)
+        if (saleItemsError) console.error('Sale items insertion error:', saleItemsError)
+      }
+
       // 3. Create stock movements for each item to deduct stock
       for (const item of items) {
         if (item.product_id) {
@@ -121,7 +161,8 @@ export async function POST(request: Request) {
             movement_type: 'out',
             quantity: item.quantity,
             reference_no: document_number || transaction.id,
-            notes: `Müşteri Satışı - ${customerName}`
+            notes: `Müşteri Satışı - ${customerName}`,
+            created_by: user.id
           })
           if (movementError) console.error('Stock movement error:', movementError)
         }

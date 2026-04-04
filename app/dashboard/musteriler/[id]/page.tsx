@@ -174,6 +174,13 @@ export default function CustomerDetailPage() {
       fetchProducts()
       fetchWarehouses()
     }
+    
+    if (typeof window !== 'undefined') {
+      const searchParams = new URLSearchParams(window.location.search)
+      if (searchParams.get('tab') === 'transaction') {
+        setActiveTab('transaction')
+      }
+    }
   }, [customerId])
 
   const fetchCustomerData = async () => {

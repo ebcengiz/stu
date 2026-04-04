@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Plus, Search, Store, UserPlus, Users, FileText, CheckCircle2, Clock, ChevronUp, ChevronDown, ArrowUpDown, X } from 'lucide-react'
+import { Plus, Search, Store, UserPlus, Users, FileText, CheckCircle2, Clock, ChevronUp, ChevronDown, ArrowUpDown, X, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Card, CardHeader, CardBody, CardTitle } from '@/components/ui/Card'
 import { useRouter } from 'next/navigation'
@@ -94,9 +94,9 @@ export default function SalesPage() {
       if (!res.ok) throw new Error('Müşteri oluşturulamadı')
 
       const data = await res.json()
-      toast.success('Müşteri oluşturuldu, satış ekranına yönlendiriliyorsunuz...')
+      toast.success('Müşteri oluşturuldu, müşteri detaylarına yönlendiriliyorsunuz...')
       setShowNewCustomerModal(false)
-      router.push(`/dashboard/satislar/yeni?customerId=${data.id}`)
+      router.push(`/dashboard/musteriler/${data.id}?tab=transaction`)
     } catch (error: any) {
       toast.error(error.message)
     } finally {
@@ -112,6 +112,55 @@ export default function SalesPage() {
       case 'Faturalaşmış (E-Fatura)': return 'bg-purple-100 text-purple-800'
       default: return 'bg-gray-100 text-gray-800'
     }
+  }
+
+  const executeDelete = async (id: string) => {
+    try {
+      const response = await fetch(`/api/sales/${id}`, {
+        method: 'DELETE',
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Silme işlemi başarısız')
+      }
+
+      setSales(prev => prev.filter(s => s.id !== id))
+      toast.success('Satış başarıyla silindi')
+    } catch (error: any) {
+      console.error('Error deleting sale:', error)
+      toast.error(error.message || 'Satış silinemedi')
+    }
+  }
+
+  const handleDelete = (e: React.MouseEvent, id: string) => {
+    e.stopPropagation()
+    toast(
+      (t) => (
+        <div className="flex flex-col gap-3">
+          <div className="font-medium text-gray-900">Bu satışı silmek istediğinizden emin misiniz?</div>
+          <div className="text-xs text-gray-500">Not: Stok ve bakiye hareketleri geri alınmaz.</div>
+          <div className="flex justify-end gap-2 mt-2">
+            <button 
+              onClick={() => toast.dismiss(t.id)} 
+              className="px-3 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-md transition-colors"
+            >
+              Vazgeç
+            </button>
+            <button 
+              onClick={() => {
+                toast.dismiss(t.id)
+                executeDelete(id)
+              }} 
+              className="px-3 py-1.5 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md transition-colors"
+            >
+              Evet, Sil
+            </button>
+          </div>
+        </div>
+      ),
+      { duration: 8000, position: 'top-center', style: { minWidth: '300px' } }
+    )
   }
 
   const handleSort = (column: SortColumn) => {
@@ -263,14 +312,15 @@ export default function SalesPage() {
                       <SortIcon column="total_amount" />
                     </div>
                   </th>
+                  <th className="px-6 py-3 w-10"></th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {loading ? (
-                  <tr><td colSpan={5} className="px-6 py-8 text-center text-gray-500">Yükleniyor...</td></tr>
+                  <tr><td colSpan={6} className="px-6 py-8 text-center text-gray-500">Yükleniyor...</td></tr>
                 ) : filteredSales.length > 0 ? (
                   filteredSales.map((sale) => (
-                    <tr key={sale.id} className="hover:bg-gray-50 transition-colors cursor-pointer" onClick={() => router.push(`/dashboard/satislar/${sale.id}`)}>
+                    <tr key={sale.id} className="hover:bg-gray-50 transition-colors cursor-pointer group" onClick={() => router.push(`/dashboard/satislar/${sale.id}`)}>
                       <td className="px-6 py-4 text-sm text-gray-900">
                         {new Date(sale.sale_date).toLocaleDateString('tr-TR')}
                       </td>
@@ -291,11 +341,21 @@ export default function SalesPage() {
                       <td className="px-6 py-4 text-right text-sm font-bold text-gray-900">
                         {sale.total_amount.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺
                       </td>
+                      <td className="px-6 py-4 text-center">
+                        <button
+                          type="button"
+                          onClick={(e) => handleDelete(e, sale.id)}
+                          className="text-red-500 hover:text-red-700 hover:bg-red-50 p-2 rounded-full transition-all opacity-0 group-hover:opacity-100"
+                          title="Satışı Sil"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={5} className="px-6 py-8 text-center text-gray-500 italic">
+                    <td colSpan={6} className="px-6 py-8 text-center text-gray-500 italic">
                       Satış bulunamadı.
                     </td>
                   </tr>
@@ -334,7 +394,7 @@ export default function SalesPage() {
                 filteredCustomers.map(customer => (
                   <div 
                     key={customer.id}
-                    onClick={() => router.push(`/dashboard/satislar/yeni?customerId=${customer.id}`)}
+                    onClick={() => router.push(`/dashboard/musteriler/${customer.id}?tab=transaction`)}
                     className="flex justify-between items-center p-4 border border-gray-100 rounded-xl hover:border-primary-300 hover:bg-primary-50 cursor-pointer transition-all"
                   >
                     <div>
