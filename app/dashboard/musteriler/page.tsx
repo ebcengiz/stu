@@ -268,7 +268,7 @@ export default function CustomersPage() {
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
         <div className="space-y-1">
           <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Müşteri Grubu</label>
           <select 

@@ -134,17 +134,17 @@ export default function DashboardCharts({ topProducts, warehouseStats, exchangeR
         </CardHeader>
         <CardBody>
           {warehouseStats.length > 0 ? (
-            <div className="flex flex-col sm:flex-row items-center gap-8">
+            <div className="flex flex-col xl:flex-row items-center gap-6 xl:gap-8">
               {/* CSS Pie Chart */}
               <div 
-                className="relative w-48 h-48 rounded-full flex-shrink-0 shadow-inner"
+                className="relative w-40 h-40 xl:w-48 xl:h-48 rounded-full flex-shrink-0 shadow-inner"
                 style={{ background: `conic-gradient(${gradientString})` }}
               >
                 {/* Inner white circle for donut effect */}
-                <div className="absolute inset-8 bg-white rounded-full flex items-center justify-center shadow-sm">
+                <div className="absolute inset-6 xl:inset-8 bg-white rounded-full flex items-center justify-center shadow-sm">
                   <div className="text-center">
-                    <span className="block text-xs text-gray-400 font-medium uppercase tracking-wider">TOPLAM</span>
-                    <span className="block text-sm font-bold text-gray-900">
+                    <span className="block text-[10px] xl:text-xs text-gray-400 font-medium uppercase tracking-wider">TOPLAM</span>
+                    <span className="block text-xs xl:text-sm font-bold text-gray-900">
                       {pieMetric === 'value' 
                         ? `₺${totalMetric.toLocaleString('tr-TR', { maximumFractionDigits: 0, notation: "compact" })}`
                         : totalMetric.toLocaleString('tr-TR', { maximumFractionDigits: 0, notation: "compact" })
@@ -155,24 +155,24 @@ export default function DashboardCharts({ topProducts, warehouseStats, exchangeR
               </div>
 
               {/* Legend */}
-              <div className="flex-1 w-full space-y-3">
+              <div className="flex-1 w-full space-y-2 xl:space-y-3">
                 {pieSlices.map((slice, index) => (
-                  <div key={index} className="flex items-center justify-between text-sm group">
+                  <div key={index} className="flex items-center justify-between text-xs xl:text-sm group">
                     <div className="flex items-center gap-2">
                       <div 
-                        className="w-3 h-3 rounded-full flex-shrink-0" 
+                        className="w-2.5 h-2.5 xl:w-3 xl:h-3 rounded-full flex-shrink-0" 
                         style={{ backgroundColor: slice.color }}
                       />
-                      <span className="text-gray-600 truncate max-w-[120px]">{slice.name}</span>
+                      <span className="text-gray-600 truncate max-w-[100px] xl:max-w-[120px]">{slice.name}</span>
                     </div>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 xl:gap-3">
                       <span className="font-semibold text-gray-900">
                         {pieMetric === 'value' 
                           ? `₺${slice.value.toLocaleString('tr-TR', { maximumFractionDigits: 0 })}`
                           : slice.value.toLocaleString('tr-TR')
                         }
                       </span>
-                      <span className="text-xs text-gray-400 w-8 text-right">{slice.percentage.toFixed(1)}%</span>
+                      <span className="text-[10px] xl:text-xs text-gray-400 w-8 text-right">{slice.percentage.toFixed(1)}%</span>
                     </div>
                   </div>
                 ))}

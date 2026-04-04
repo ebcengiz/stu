@@ -157,7 +157,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-5">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 xl:gap-6">
         {stats.map((stat) => {
           const Icon = stat.icon
           return (
@@ -166,17 +166,17 @@ export default async function DashboardPage() {
               href={stat.href}
               className="bg-white overflow-hidden shadow rounded-lg hover:shadow-md transition-shadow"
             >
-              <div className="p-5">
+              <div className="p-4 xl:p-5">
                 <div className="flex items-center">
-                  <div className={`flex-shrink-0 ${stat.color} rounded-md p-3`}>
-                    <Icon className="h-6 w-6 text-white" />
+                  <div className={`flex-shrink-0 ${stat.color} rounded-md p-2 xl:p-3`}>
+                    <Icon className="h-5 w-5 xl:h-6 xl:w-6 text-white" />
                   </div>
-                  <div className="ml-5 w-0 flex-1">
+                  <div className="ml-3 xl:ml-5 w-0 flex-1">
                     <dl>
-                      <dt className="text-sm font-medium text-gray-500 truncate">
+                      <dt className="text-xs xl:text-sm font-medium text-gray-500 truncate">
                         {stat.name}
                       </dt>
-                      <dd className="text-3xl font-semibold text-gray-900">
+                      <dd className="text-xl xl:text-3xl font-semibold text-gray-900">
                         {stat.value}
                       </dd>
                     </dl>
