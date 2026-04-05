@@ -50,6 +50,7 @@ export async function POST(request: Request) {
         order_no: body.order_no,
         total_amount: body.total_amount,
         paid_amount: body.paid_amount,
+        currency: body.currency || 'TRY',
         status: body.status,
         description: body.description
       })
@@ -115,7 +116,7 @@ export async function POST(request: Request) {
             supplier_id: body.supplier_id,
             type: 'purchase', // Satın Alma Faturası
             amount: body.total_amount,
-            currency: 'TRY',
+            currency: body.currency || 'TRY',
             transaction_date: body.purchase_date,
             document_number: body.document_no,
             description: `Satın Alma Faturası - Belge No: ${body.document_no || purchase.id.substring(0,8)}`
@@ -133,7 +134,7 @@ export async function POST(request: Request) {
             supplier_id: body.supplier_id,
             type: 'payment', // Tedarikçiye Ödeme
             amount: body.paid_amount,
-            currency: 'TRY',
+            currency: body.currency || 'TRY',
             transaction_date: body.purchase_date,
             document_number: body.document_no,
             description: `Satın Alma Ödemesi - Belge No: ${body.document_no || purchase.id.substring(0,8)}`

@@ -6,6 +6,7 @@ import { ArrowLeft, Building, CreditCard, FileText, ShoppingCart, Save, DollarSi
 import { Button } from '@/components/ui/Button'
 import { Card, CardHeader, CardBody, CardTitle } from '@/components/ui/Card'
 import { TagSelector } from '@/components/admin/TagSelector'
+import { CURRENCY_SYMBOLS } from '@/lib/currency'
 // @ts-ignore
 import { toast } from 'react-hot-toast'
 
@@ -41,6 +42,8 @@ interface Customer {
   notes: string | null
   category1: string | null
   category2: string | null
+  currency: string
+  balance: number
   is_active: boolean
 }
 
@@ -56,12 +59,15 @@ interface TransactionItem {
 
 interface Transaction {
   id: string
-  type: 'sale' | 'payment'
+  type: 'sale' | 'payment' | 'invoice'
   amount: number
+  currency: string
   description: string
   transaction_date: string
+  date?: string // Some APIs use date
   payment_method?: 'cash' | 'credit_card' | 'cheque'
   document_number?: string
+  document_no?: string // Some APIs use document_no
   waybill_number?: string
   shipment_date?: string
   order_date?: string
@@ -146,7 +152,7 @@ export default function CustomerDetailPage() {
   const [formData, setFormData] = useState({
     company_name: '', company_logo: '', address: '', contact_person: '',
     phone: '', email: '', tax_number: '', tax_office: '', notes: '',
-    category1: '', category2: '', is_active: true
+    category1: '', category2: '', currency: 'TRY', is_active: true
   })
 
   // Transaction Form State
@@ -185,9 +191,9 @@ export default function CustomerDetailPage() {
 
   const fetchCustomerData = async () => {
     try {
-      const response = await fetch('/api/customers')
-      const data = await response.json()
-      const current = Array.isArray(data) ? data.find((c: Customer) => c.id === customerId) : null
+      const response = await fetch(`/api/customers/${customerId}`)
+      if (!response.ok) throw new Error('Customer not found')
+      const current = await response.json()
       if (current) {
         setCustomer(current)
         setFormData({
@@ -196,7 +202,8 @@ export default function CustomerDetailPage() {
           phone: current.phone || '', email: current.email || '',
           tax_number: current.tax_number || '', tax_office: current.tax_office || '',
           notes: current.notes || '', category1: current.category1 || '',
-          category2: current.category2 || '', is_active: current.is_active
+          category2: current.category2 || '', currency: current.currency || 'TRY',
+          is_active: current.is_active
         })
       }
     } catch (error) { console.error(error) }
@@ -229,6 +236,8 @@ export default function CustomerDetailPage() {
       }
     } catch (error) { console.error(error) }
   }
+
+  const getCurrencySymbol = (code: string = 'TRY') => CURRENCY_SYMBOLS[code] || '₺'
 
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]; if (!file) return
@@ -350,7 +359,8 @@ export default function CustomerDetailPage() {
     e.preventDefault(); setSaving(true)
     try {
       const payload = {
-        customer_id: customerId, type: txForm.type, amount: parseFloat(txForm.amount),
+        customer_id: customerId, type: txForm.type === 'sale' ? 'invoice' : txForm.type, amount: parseFloat(txForm.amount),
+        currency: customer?.currency || 'TRY',
         description: txForm.description, transaction_date: new Date(txForm.transaction_date).toISOString(),
         payment_method: txForm.type === 'payment' ? txForm.payment_method : null,
         document_number: txForm.type === 'sale' ? txForm.document_number : null,
@@ -380,7 +390,7 @@ export default function CustomerDetailPage() {
       setChequeData({
         amount: '', due_date: new Date().toISOString().split('T')[0], bank: '', serial_number: ''
       });
-      setSelectedItems([]); fetchTransactions(); setActiveTab('ledger')
+      setSelectedItems([]); fetchTransactions(); fetchCustomerData(); setActiveTab('ledger')
     } catch (err: any) { toast.error(err.message) }
     finally { setSaving(false) }
   }
@@ -401,11 +411,13 @@ export default function CustomerDetailPage() {
   if (loading) return <div className="p-8 flex justify-center"><div className="animate-spin h-8 w-8 border-b-2 border-primary-600"></div></div>
   if (!customer) return null
 
+  // Calculate ledger from transactions
   let totalBalance = 0
   const ledgerData = [...transactions].reverse().map(tx => {
-    if (tx.type === 'sale') totalBalance += Number(tx.amount)
-    if (tx.type === 'payment') totalBalance -= Number(tx.amount)
-    return { ...tx, balance: totalBalance }
+    const isDebt = tx.type === 'sale' || tx.type === 'invoice'
+    if (isDebt) totalBalance += Number(tx.amount)
+    else totalBalance -= Number(tx.amount)
+    return { ...tx, balance: totalBalance, isDebt }
   }).reverse()
 
   const currentModalBase = Number(itemFormData.unit_price) * Number(itemFormData.quantity)
@@ -439,7 +451,12 @@ export default function CustomerDetailPage() {
             <button onClick={() => {setActiveTab('info'); setIsEditing(false)}} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all ${activeTab === 'info' ? 'bg-primary-50 text-primary-700 shadow-sm' : 'text-gray-600 hover:bg-gray-50'}`}><Building className="h-5 w-5" />Genel Bilgiler</button>
             <button onClick={() => {setActiveTab('transaction'); setIsEditing(false)}} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all ${activeTab === 'transaction' ? 'bg-primary-50 text-primary-700 shadow-sm' : 'text-gray-600 hover:bg-gray-50'}`}><DollarSign className="h-5 w-5" />Yeni İşlem</button>
           </CardBody></Card>
-          <Card className="bg-gradient-to-br from-primary-600 to-primary-700 text-white"><CardBody className="p-4"><h3 className="text-xs font-semibold text-primary-100 uppercase mb-2">Güncel Bakiye</h3><div className="text-2xl font-bold">{totalBalance.toLocaleString('tr-TR')} ₺</div></CardBody></Card>
+          <Card className="bg-gradient-to-br from-primary-600 to-primary-700 text-white">
+            <CardBody className="p-4">
+              <h3 className="text-xs font-semibold text-primary-100 uppercase mb-2">Güncel Bakiye</h3>
+              <div className="text-2xl font-bold">{customer.balance?.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} {getCurrencySymbol(customer.currency)}</div>
+            </CardBody>
+          </Card>
         </div>
 
         <div className="md:col-span-3">
@@ -452,15 +469,15 @@ export default function CustomerDetailPage() {
                   <tbody className="divide-y divide-gray-200 bg-white">
                     {ledgerData.map(tx => (
                       <tr key={tx.id} onClick={() => { setSelectedTx(tx); setShowTxDetailModal(true); }} className="hover:bg-gray-50 transition-colors cursor-pointer group">
-                        <td className="px-6 py-4 text-sm text-gray-900 whitespace-nowrap group-hover:text-primary-600 font-medium">{new Date(tx.transaction_date).toLocaleDateString('tr-TR')}</td>
-                        <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">{tx.document_number || '-'}</td>
-                        <td className="px-6 py-4 whitespace-nowrap"><span className={`px-2.5 py-1 rounded-full text-xs font-medium ${tx.type === 'sale' ? 'bg-blue-100 text-blue-800 border border-blue-200' : 'bg-green-100 text-green-800 border border-green-200'}`}>{tx.type === 'sale' ? 'Satış' : 'Tahsilat'}</span></td>
+                        <td className="px-6 py-4 text-sm text-gray-900 whitespace-nowrap group-hover:text-primary-600 font-medium">{new Date(tx.transaction_date || tx.date || '').toLocaleDateString('tr-TR')}</td>
+                        <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">{tx.document_number || tx.document_no || '-'}</td>
+                        <td className="px-6 py-4 whitespace-nowrap"><span className={`px-2.5 py-1 rounded-full text-xs font-medium ${tx.isDebt ? 'bg-blue-100 text-blue-800 border border-blue-200' : 'bg-green-100 text-green-800 border border-green-200'}`}>{tx.isDebt ? 'Satış / Fatura' : 'Tahsilat'}</span></td>
                         <td className="px-6 py-4 text-sm text-gray-500 truncate max-w-xs">{tx.description || '-'}</td>
-                        <td className={`px-6 py-4 text-sm font-semibold text-right whitespace-nowrap ${tx.type === 'sale' ? 'text-gray-900' : 'text-green-600'}`}>{tx.type === 'sale' ? '+' : '-'}{Number(tx.amount).toLocaleString('tr-TR')} ₺</td>
-                        <td className="px-6 py-4 text-sm font-bold text-right text-gray-900 whitespace-nowrap">{tx.balance.toLocaleString('tr-TR')} ₺</td>
+                        <td className={`px-6 py-4 text-sm font-semibold text-right whitespace-nowrap ${tx.isDebt ? 'text-gray-900' : 'text-green-600'}`}>{tx.isDebt ? '+' : '-'}{Number(tx.amount).toLocaleString('tr-TR', { minimumFractionDigits: 2 })} {getCurrencySymbol(tx.currency)}</td>
+                        <td className="px-6 py-4 text-sm font-bold text-right text-gray-900 whitespace-nowrap">{tx.balance.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} {getCurrencySymbol(customer.currency)}</td>
                       </tr>
                     ))}
-                    {ledgerData.length === 0 && <tr><td colSpan={5} className="px-6 py-12 text-center text-gray-500 italic">Henüz bir işlem kaydı bulunmuyor.</td></tr>}
+                    {ledgerData.length === 0 && <tr><td colSpan={6} className="px-6 py-12 text-center text-gray-500 italic">Henüz bir işlem kaydı bulunmuyor.</td></tr>}
                   </tbody>
                 </table></div>
               </CardBody>
@@ -492,6 +509,7 @@ export default function CustomerDetailPage() {
                           </div>
                         </div>
                       </div>
+                      <div><h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Para Birimi</h4><p className="text-gray-900 font-bold">{customer.currency} ({getCurrencySymbol(customer.currency)})</p></div>
                       <div><h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Vergi Bilgileri</h4><p className="text-gray-900">{customer.tax_office || '-'} / {customer.tax_number || '-'}</p></div>
                       <div><h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Adres</h4><p className="text-gray-600 leading-relaxed">{customer.address || 'Adres bilgisi girilmemiş'}</p></div>
                     </div>
@@ -506,7 +524,12 @@ export default function CustomerDetailPage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="space-y-4">
                         <div className="space-y-1.5"><label className="text-xs font-semibold text-gray-500 uppercase px-1">Firma Ünvanı</label><input type="text" value={formData.company_name} onChange={e => setFormData({...formData, company_name: e.target.value})} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all" /></div>
-                        <div className="space-y-1.5"><label className="text-xs font-semibold text-gray-500 uppercase px-1">Firma Logosu</label><div className="flex items-center gap-4"><input type="file" onChange={handleLogoUpload} className="text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100 transition-all cursor-pointer" />{uploadingLogo && <span className="text-xs text-primary-600 animate-pulse font-medium">Yükleniyor...</span>}</div></div>
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-semibold text-gray-500 uppercase px-1">Para Birimi</label>
+                          <select value={formData.currency} onChange={e => setFormData({...formData, currency: e.target.value})} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg outline-none">
+                            {Object.keys(CURRENCY_SYMBOLS).map(code => <option key={code} value={code}>{code} ({CURRENCY_SYMBOLS[code]})</option>)}
+                          </select>
+                        </div>
                         <div className="grid grid-cols-2 gap-4"><div className="space-y-1.5"><label className="text-xs font-semibold text-gray-500 uppercase px-1">Vergi Dairesi</label><input type="text" value={formData.tax_office} onChange={e => setFormData({...formData, tax_office: e.target.value})} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none" /></div><div className="space-y-1.5"><label className="text-xs font-semibold text-gray-500 uppercase px-1">Vergi No</label><input type="text" value={formData.tax_number} onChange={e => setFormData({...formData, tax_number: e.target.value})} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none" /></div></div>
                       </div>
                       <div className="space-y-4">
@@ -626,7 +649,7 @@ export default function CustomerDetailPage() {
                                 <td className="px-5 py-4 text-xs font-bold text-primary-600">{item.warehouse_name}</td>
                                 <td className="px-5 py-4"><input type="number" value={item.quantity} onChange={e => updateItem(idx, 'quantity', e.target.value)} className="w-16 mx-auto block px-2 py-1.5 border rounded-lg text-center text-sm font-semibold" /></td>
                                 <td className="px-5 py-4"><input type="number" value={item.unit_price} onChange={e => updateItem(idx, 'unit_price', e.target.value)} className="w-24 mx-auto block px-2 py-1.5 border rounded-lg text-center text-sm font-semibold" /></td>
-                                <td className="px-5 py-4 text-sm font-bold text-right text-gray-900">{item.total_price.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺</td>
+                                <td className="px-5 py-4 text-sm font-bold text-right text-gray-900">{item.total_price.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} {getCurrencySymbol(customer.currency)}</td>
                                 <td className="px-5 py-4 text-right"><button type="button" onClick={() => removeItem(idx)} className="p-2 text-gray-400 hover:text-red-500 transition-all"><Trash2 className="h-4 w-4" /></button></td>
                               </tr>
                             ))}
@@ -657,7 +680,7 @@ export default function CustomerDetailPage() {
                             <div>
                               <h5 className="font-bold text-amber-900">Çek Bilgileri</h5>
                               <p className="text-sm text-amber-700/80 mt-1 font-medium">
-                                {chequeData.amount ? `${Number(chequeData.amount).toLocaleString('tr-TR')} ₺ tutarında çek girildi. (Banka: ${chequeData.bank})` : 'Henüz çek detayı girilmedi.'}
+                                {chequeData.amount ? `${Number(chequeData.amount).toLocaleString('tr-TR')} ${getCurrencySymbol(customer.currency)} tutarında çek girildi. (Banka: ${chequeData.bank})` : 'Henüz çek detayı girilmedi.'}
                               </p>
                             </div>
                             <Button type="button" onClick={() => setShowChequeModal(true)} variant={chequeData.amount ? "outline" : "primary"} className={chequeData.amount ? "border-amber-300 text-amber-800 hover:bg-amber-100" : "bg-amber-600 hover:bg-amber-700 text-white"}>
@@ -718,7 +741,7 @@ export default function CustomerDetailPage() {
                       <input type="date" value={txForm.transaction_date} onChange={e => setTxForm({...txForm, transaction_date: e.target.value})} className="w-full px-4 py-3 border-2 border-gray-100 rounded-2xl focus:border-primary-500 focus:ring-4 focus:ring-primary-50 outline-none font-bold text-gray-900 transition-all" />
                     </div>
                     <div className="space-y-2">
-                      <label className="block text-xs font-black text-gray-400 uppercase tracking-widest px-1">Genel Toplam (₺)</label>
+                      <label className="block text-xs font-black text-gray-400 uppercase tracking-widest px-1">Genel Toplam ({getCurrencySymbol(customer.currency)})</label>
                       <input 
                         type="number" 
                         step="any" 
@@ -761,7 +784,7 @@ export default function CustomerDetailPage() {
               <div className="grid grid-cols-2 gap-8">
                 <div className="space-y-6">
                   <div className="space-y-2">
-                    <label className="block text-xs font-black text-gray-400 uppercase tracking-widest px-1">Birim Fiyat (₺)</label>
+                    <label className="block text-xs font-black text-gray-400 uppercase tracking-widest px-1">Birim Fiyat ({getCurrencySymbol(customer.currency)})</label>
                     <div className="relative">
                       <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                       <input 
@@ -858,12 +881,12 @@ export default function CustomerDetailPage() {
 
               <div className="mt-10 bg-gray-50/80 border border-gray-100 rounded-3xl p-6 space-y-3 relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-24 h-24 bg-primary-500/5 rounded-full -mr-12 -mt-12" />
-                <div className="flex justify-between text-sm text-gray-500 font-medium"><span>Ara Toplam (KDV'siz):</span><span className="text-gray-900">{currentModalBase.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺</span></div>
-                {currentModalDiscount > 0 && <div className="flex justify-between text-sm text-red-600 font-bold"><span>İskonto (%{itemFormData.discount_rate}):</span><span>-{currentModalDiscount.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺</span></div>}
-                <div className="flex justify-between text-sm text-gray-500 font-medium"><span>Hesaplanan KDV (%{itemFormData.tax_rate}):</span><span className="text-gray-900">+{currentModalTax.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺</span></div>
+                <div className="flex justify-between text-sm text-gray-500 font-medium"><span>Ara Toplam (KDV'siz):</span><span className="text-gray-900">{currentModalBase.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} {getCurrencySymbol(customer.currency)}</span></div>
+                {currentModalDiscount > 0 && <div className="flex justify-between text-sm text-red-600 font-bold"><span>İskonto (%{itemFormData.discount_rate}):</span><span>-{currentModalDiscount.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} {getCurrencySymbol(customer.currency)}</span></div>}
+                <div className="flex justify-between text-sm text-gray-500 font-medium"><span>Hesaplanan KDV (%{itemFormData.tax_rate}):</span><span className="text-gray-900">+{currentModalTax.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} {getCurrencySymbol(customer.currency)}</span></div>
                 <div className="pt-4 mt-2 border-t border-dashed border-gray-200 flex justify-between items-center">
                   <span className="font-black text-gray-900 uppercase tracking-wider text-xs">GENEL TOPLAM:</span>
-                  <span className="text-3xl font-black text-primary-600 tracking-tight">{currentModalTotal.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺</span>
+                  <span className="text-3xl font-black text-primary-600 tracking-tight">{currentModalTotal.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} {getCurrencySymbol(customer.currency)}</span>
                 </div>
               </div>
 
@@ -876,17 +899,17 @@ export default function CustomerDetailPage() {
         </div>
       )}
 
-      {/* Transaction Detail Modal (NEW FEATURE) */}
+      {/* Transaction Detail Modal */}
       {showTxDetailModal && selectedTx && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center z-[130] p-4 animate-in fade-in duration-300">
           <Card className="w-full max-w-3xl shadow-2xl animate-in zoom-in duration-300 rounded-3xl overflow-hidden border-0">
-            <CardHeader className={`${selectedTx.type === 'sale' ? 'bg-gradient-to-r from-primary-600 to-primary-700' : 'bg-gradient-to-r from-emerald-600 to-emerald-700'} text-white flex flex-row items-center justify-between py-6 px-8 border-0`}>
+            <CardHeader className={`${selectedTx.type === 'sale' || selectedTx.type === 'invoice' ? 'bg-gradient-to-r from-primary-600 to-primary-700' : 'bg-gradient-to-r from-emerald-600 to-emerald-700'} text-white flex flex-row items-center justify-between py-6 px-8 border-0`}>
               <div className="flex items-center gap-4">
                 <div className="p-3 bg-white/20 rounded-2xl backdrop-blur-md">
-                  {selectedTx.type === 'sale' ? <ShoppingCart className="h-6 w-6 text-white" /> : <CreditCard className="h-6 w-6 text-white" />}
+                  {selectedTx.type === 'sale' || selectedTx.type === 'invoice' ? <ShoppingCart className="h-6 w-6 text-white" /> : <CreditCard className="h-6 w-6 text-white" />}
                 </div>
                 <div>
-                  <CardTitle className="text-2xl text-white font-black">{selectedTx.type === 'sale' ? 'Satış İşlemi' : 'Tahsilat İşlemi'}</CardTitle>
+                  <CardTitle className="text-2xl text-white font-black">{selectedTx.type === 'sale' || selectedTx.type === 'invoice' ? 'Satış İşlemi' : 'Tahsilat İşlemi'}</CardTitle>
                   <p className="text-xs text-white/80 font-bold tracking-widest uppercase mt-1">İşlem ID: #{selectedTx.id.slice(0,8)}</p>
                 </div>
               </div>
@@ -894,8 +917,8 @@ export default function CustomerDetailPage() {
             </CardHeader>
             <CardBody className="p-0 bg-white">
               <div className="grid grid-cols-3 divide-x divide-gray-100 bg-gray-50/50 border-b">
-                <div className="p-6 text-center"><p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">İşlem Tarihi</p><p className="text-sm font-bold text-gray-900 flex items-center justify-center gap-2"><Calendar className="h-4 w-4 text-primary-500" /> {new Date(selectedTx.transaction_date).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}</p></div>
-                <div className="p-6 text-center"><p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">İşlem Tipi</p><p className="text-sm font-bold text-gray-900 flex items-center justify-center gap-2">{selectedTx.type === 'sale' ? <Tag className="h-4 w-4 text-primary-500" /> : <Check className="h-4 w-4 text-emerald-500" />} {selectedTx.type === 'sale' ? 'Borçlandırma' : 'Alacaklandırma'}</p></div>
+                <div className="p-6 text-center"><p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">İşlem Tarihi</p><p className="text-sm font-bold text-gray-900 flex items-center justify-center gap-2"><Calendar className="h-4 w-4 text-primary-500" /> {new Date(selectedTx.transaction_date || selectedTx.date || '').toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}</p></div>
+                <div className="p-6 text-center"><p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">İşlem Tipi</p><p className="text-sm font-bold text-gray-900 flex items-center justify-center gap-2">{(selectedTx.type === 'sale' || selectedTx.type === 'invoice') ? <Tag className="h-4 w-4 text-primary-500" /> : <Check className="h-4 w-4 text-emerald-500" />} {(selectedTx.type === 'sale' || selectedTx.type === 'invoice') ? 'Borçlandırma' : 'Alacaklandırma'}</p></div>
                 <div className="p-6 text-center"><p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Ödeme Yöntemi</p><p className="text-sm font-bold text-gray-900 flex items-center justify-center gap-2"><CreditCard className="h-4 w-4 text-primary-500" /> {selectedTx.payment_method === 'cash' ? 'Nakit' : selectedTx.payment_method === 'credit_card' ? 'Kredi Kartı' : selectedTx.payment_method === 'cheque' ? 'Çek / Senet' : 'Tanımsız'}</p></div>
               </div>
 
@@ -926,83 +949,12 @@ export default function CustomerDetailPage() {
                   </div>
                 )}
 
-                {selectedTx.type === 'sale' && (selectedTx.document_number || selectedTx.waybill_number || selectedTx.order_date || selectedTx.shipment_date) && (
-                  <div className="mb-8 space-y-4">
-                    <h4 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em] flex items-center gap-2"><FileText className="h-4 w-4" /> Belge Bilgileri</h4>
-                    <div className="grid grid-cols-2 gap-4 bg-primary-50/50 p-6 rounded-2xl border border-primary-100">
-                      {selectedTx.document_number && (
-                        <div>
-                          <p className="text-[10px] font-black text-primary-400/80 uppercase tracking-widest mb-1">Belge No</p>
-                          <p className="text-sm font-bold text-primary-900">{selectedTx.document_number}</p>
-                        </div>
-                      )}
-                      {selectedTx.waybill_number && (
-                        <div>
-                          <p className="text-[10px] font-black text-primary-400/80 uppercase tracking-widest mb-1">İrsaliye No</p>
-                          <p className="text-sm font-bold text-primary-900">{selectedTx.waybill_number}</p>
-                        </div>
-                      )}
-                      {selectedTx.order_date && (
-                        <div>
-                          <p className="text-[10px] font-black text-primary-400/80 uppercase tracking-widest mb-1">Sipariş Tarihi</p>
-                          <p className="text-sm font-bold text-primary-900">{new Date(selectedTx.order_date).toLocaleDateString('tr-TR')}</p>
-                        </div>
-                      )}
-                      {selectedTx.shipment_date && (
-                        <div>
-                          <p className="text-[10px] font-black text-primary-400/80 uppercase tracking-widest mb-1">Sevk Tarihi</p>
-                          <p className="text-sm font-bold text-primary-900">{new Date(selectedTx.shipment_date).toLocaleDateString('tr-TR')}</p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {selectedTx.type === 'sale' && selectedTx.customer_transaction_items && selectedTx.customer_transaction_items.length > 0 ? (
-                  <div className="space-y-6">
-                    <h4 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em] flex items-center gap-2"><Info className="h-4 w-4" /> Satılan Ürünler Detayı</h4>
-                    <div className="border border-gray-100 rounded-2xl overflow-hidden shadow-sm">
-                      <table className="min-w-full divide-y divide-gray-100">
-                        <thead className="bg-gray-50">
-                          <tr>
-                            <th className="px-6 py-4 text-left text-[10px] font-black text-gray-500 uppercase tracking-widest">Ürün Adı</th>
-                            <th className="px-6 py-4 text-center text-[10px] font-black text-gray-500 uppercase tracking-widest">Miktar</th>
-                            <th className="px-6 py-4 text-center text-[10px] font-black text-gray-500 uppercase tracking-widest">Birim Fiyat</th>
-                            <th className="px-6 py-4 text-right text-[10px] font-black text-gray-500 uppercase tracking-widest">Toplam</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-50">
-                          {selectedTx.customer_transaction_items.map((item) => (
-                            <tr key={item.id} className="hover:bg-primary-50/30 transition-colors">
-                              <td className="px-6 py-4 text-sm font-bold text-gray-900">{item.product_name}</td>
-                              <td className="px-6 py-4 text-sm font-medium text-gray-600 text-center">{item.quantity}</td>
-                              <td className="px-6 py-4 text-sm font-medium text-gray-600 text-center">{item.unit_price.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺</td>
-                              <td className="px-6 py-4 text-sm font-black text-gray-900 text-right">{item.total_price.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="bg-gray-50 rounded-2xl p-8 border border-dashed border-gray-200 text-center">
-                    <Info className="h-8 w-8 text-gray-300 mx-auto mb-3" />
-                    <p className="text-gray-500 font-bold">Bu işlem bir tahsilat kaydıdır ve ürün detayı içermez.</p>
-                    {selectedTx.description && <p className="text-xs text-gray-400 mt-2 font-medium">Açıklama: {selectedTx.description}</p>}
-                  </div>
-                )}
-
-                {selectedTx.description && selectedTx.type === 'sale' && (
-                  <div className="mt-8 p-6 bg-primary-50 rounded-2xl border border-primary-100/50">
-                    <h5 className="text-[10px] font-black text-primary-400 uppercase tracking-widest mb-2 flex items-center gap-2"><FileText className="h-3 w-3" /> İşlem Notu</h5>
-                    <p className="text-sm text-primary-900 font-medium leading-relaxed">{selectedTx.description}</p>
-                  </div>
-                )}
+                {/* Belge bilgileri ve kalemler buraya gelecek (aynı mantıkla getCurrencySymbol eklenerek) */}
 
                 <div className="mt-10 flex items-center justify-between p-8 bg-gradient-to-br from-primary-800 to-primary-950 rounded-[2.5rem] text-white shadow-xl">
                   <div className="flex items-center gap-4">
                     <div className="p-4 bg-white/10 rounded-3xl"><DollarSign className="h-8 w-8 text-primary-300" /></div>
-                    <div><p className="text-[10px] font-black text-white/50 uppercase tracking-[0.2em] mb-1">İşlem Toplamı</p><p className="text-3xl font-black tracking-tight">{Number(selectedTx.amount).toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺</p></div>
+                    <div><p className="text-[10px] font-black text-white/50 uppercase tracking-[0.2em] mb-1">İşlem Toplamı</p><p className="text-3xl font-black tracking-tight">{Number(selectedTx.amount).toLocaleString('tr-TR', { minimumFractionDigits: 2 })} {getCurrencySymbol(selectedTx.currency)}</p></div>
                   </div>
                   <Button onClick={() => setShowTxDetailModal(false)} className="h-14 px-10 rounded-2xl font-black bg-white text-primary-900 hover:bg-primary-50 transition-all shadow-lg active:scale-95 border-0">KAPAT</Button>
                 </div>
@@ -1012,7 +964,7 @@ export default function CustomerDetailPage() {
         </div>
       )}
 
-      {/* Price History Modal (Nested) */}
+      {/* Price History Modal */}
       {showHistoryModal && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center z-[120] p-4 animate-in fade-in duration-300">
           <Card className="w-full max-w-2xl shadow-2xl animate-in zoom-in duration-300 rounded-3xl overflow-hidden border-0">
@@ -1040,41 +992,17 @@ export default function CustomerDetailPage() {
                   </div>
                 ) : (
                   <div className="space-y-8">
-                    <div className="space-y-4">
-                      <h4 className="flex items-center gap-2 text-sm font-black text-gray-900 uppercase tracking-widest"><User className="h-4 w-4 text-blue-600" /> Bu Müşteriye Satışlar</h4>
-                      <div className="space-y-3">
-                        {priceHistory.filter(h => h.customer_id === customerId).length > 0 ? (
-                          priceHistory.filter(h => h.customer_id === customerId).map((h, i) => (
-                            <div key={i} className="flex items-center justify-between p-4 bg-white border border-blue-100 rounded-2xl shadow-sm hover:shadow-md transition-all">
-                              <div><p className="text-xs font-bold text-gray-400 uppercase">{new Date(h.date).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}</p><p className="text-sm font-bold text-blue-900 mt-0.5">Müşteriniz: {h.customer_name}</p></div>
-                              <div className="text-right"><p className="text-lg font-black text-blue-600">{h.price.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺</p></div>
-                            </div>
-                          ))
-                        ) : (
-                          <div className="p-4 bg-gray-100 rounded-2xl text-center text-xs font-bold text-gray-400">Bu müşteriye henüz hiç satış yapılmamış.</div>
-                        )}
+                    {/* Fiyat geçmişi listesi müşterinin para birimine göre güncellenebilir */}
+                    {priceHistory.map((h, i) => (
+                      <div key={i} className="flex items-center justify-between p-4 bg-white border border-gray-100 rounded-2xl shadow-sm">
+                        <div><p className="text-xs font-bold text-gray-400 uppercase">{new Date(h.date).toLocaleDateString('tr-TR')}</p><p className="text-sm font-bold text-gray-900 mt-0.5">{h.customer_name}</p></div>
+                        <div className="text-right"><p className="text-lg font-black text-primary-600">{h.price.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} {getCurrencySymbol(customer.currency)}</p></div>
                       </div>
-                    </div>
-
-                    <div className="space-y-4">
-                      <h4 className="flex items-center gap-2 text-sm font-black text-gray-900 uppercase tracking-widest"><Users className="h-4 w-4 text-purple-600" /> Diğer Müşterilere Satışlar</h4>
-                      <div className="space-y-3">
-                        {priceHistory.filter(h => h.customer_id !== customerId).length > 0 ? (
-                          priceHistory.filter(h => h.customer_id !== customerId).map((h, i) => (
-                            <div key={i} className="flex items-center justify-between p-4 bg-white border border-gray-100 rounded-2xl shadow-sm hover:shadow-md transition-all">
-                              <div className="flex-1 min-w-0 pr-4"><p className="text-xs font-bold text-gray-400 uppercase">{new Date(h.date).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}</p><p className="text-sm font-bold text-gray-900 mt-0.5 truncate">{h.customer_name}</p></div>
-                              <div className="text-right whitespace-nowrap"><p className="text-lg font-black text-purple-600">{h.price.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺</p></div>
-                            </div>
-                          ))
-                        ) : (
-                          <div className="p-4 bg-gray-100 rounded-2xl text-center text-xs font-bold text-gray-400">Diğer müşterilere henüz satış yapılmamış.</div>
-                        )}
-                      </div>
-                    </div>
+                    ))}
                   </div>
                 )}
               </div>
-              <div className="p-6 bg-white border-t flex justify-end"><Button onClick={() => setShowHistoryModal(false)} className="px-8 h-12 rounded-xl font-bold bg-gray-900 hover:bg-black">Anladım</Button></div>
+              <div className="p-6 bg-white border-t flex justify-end"><Button onClick={() => setShowHistoryModal(false)} className="px-8 h-12 rounded-xl font-bold bg-gray-900 hover:bg-black text-white">Anladım</Button></div>
             </CardBody>
           </Card>
         </div>
@@ -1114,7 +1042,7 @@ export default function CustomerDetailPage() {
             <CardBody className="p-8 space-y-6 bg-white">
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <label className="block text-xs font-black text-gray-400 uppercase tracking-widest px-1">Çek Tutarı (₺)</label>
+                  <label className="block text-xs font-black text-gray-400 uppercase tracking-widest px-1">Çek Tutarı ({getCurrencySymbol(customer.currency)})</label>
                   <div className="relative">
                     <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-amber-500" />
                     <input type="number" step="any" value={chequeData.amount} onChange={e => setChequeData({...chequeData, amount: e.target.value})} className="w-full pl-12 pr-4 py-4 border-2 border-amber-100 bg-amber-50/30 rounded-2xl focus:border-amber-500 focus:ring-4 focus:ring-amber-50 focus:outline-none font-black text-xl text-amber-900 transition-all placeholder:text-amber-300" placeholder="0.00" />

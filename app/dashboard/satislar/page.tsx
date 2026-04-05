@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button'
 import { Card, CardHeader, CardBody, CardTitle } from '@/components/ui/Card'
 import { useRouter } from 'next/navigation'
 import { toast } from 'react-hot-toast'
+import { CURRENCY_SYMBOLS } from '@/lib/currency'
 
 interface Sale {
   id: string
@@ -14,6 +15,7 @@ interface Sale {
   document_no: string
   order_no: string
   total_amount: number
+  currency?: string
   status: string
 }
 
@@ -338,7 +340,7 @@ export default function SalesPage() {
                         </span>
                       </td>
                       <td className="px-6 py-4 text-right text-sm font-bold text-gray-900">
-                        {sale.total_amount.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺
+                        {sale.total_amount.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} {CURRENCY_SYMBOLS[sale.currency || 'TRY']}
                       </td>
                       <td className="px-6 py-4 text-center">
                         <button

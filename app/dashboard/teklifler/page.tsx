@@ -14,6 +14,7 @@ interface Offer {
   document_no: string
   total_amount: number
   status: string
+  currency: string
 }
 
 export default function OffersPage() {
@@ -21,6 +22,15 @@ export default function OffersPage() {
   const [offers, setOffers] = useState<Offer[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
+
+  const getCurrencySymbol = (code: string) => {
+    switch (code) {
+      case 'USD': return '$'
+      case 'EUR': return '€'
+      case 'GBP': return '£'
+      default: return '₺'
+    }
+  }
 
   // Modal States
   const [showCustomerSearchModal, setShowCustomerSearchModal] = useState(false)
@@ -205,7 +215,7 @@ export default function OffersPage() {
                         </span>
                       </td>
                       <td className="px-6 py-4 text-right text-sm font-bold text-gray-900">
-                        {offer.total_amount.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺
+                        {offer.total_amount.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} {getCurrencySymbol(offer.currency)}
                       </td>
                       <td className="px-6 py-4 text-center">
                         {/* Actions could go here */}
