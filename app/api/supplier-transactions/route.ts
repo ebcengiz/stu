@@ -90,7 +90,7 @@ export async function POST(request: Request) {
 
     if (txError) throw txError
 
-    // 2. If it's a purchase, create transaction items and update stock
+    // 2. If it's a purchase, create transaction items, update stock, and create a purchases record
     if (type === 'purchase' && items && items.length > 0) {
       const itemsToInsert = items.map((item: any) => ({
         tenant_id: profile.tenant_id,
@@ -111,6 +111,46 @@ export async function POST(request: Request) {
 
       if (itemsError) throw itemsError
 
+      // Create a record in 'purchases' table so it shows up in Purchases page
+      const { data: purchaseData, error: purchaseError } = await supabase
+        .from('purchases')
+        .insert({
+          tenant_id: profile.tenant_id,
+          supplier_id: supplier_id,
+          purchase_date: transaction_date,
+          document_no: document_number || '',
+          order_no: '', 
+          total_amount: amount,
+          paid_amount: 0,
+          status: 'Faturalaşmış',
+          description: description || ''
+        })
+        .select()
+        .single()
+        
+      if (purchaseError) console.error('Purchase insertion error:', purchaseError)
+
+      // If purchase created successfully, create purchase_items
+      if (purchaseData) {
+        const purchaseItemsToInsert = items.map((item: any) => {
+          const subtotal = Number(item.quantity) * Number(item.unit_price)
+          const vatRate = Number(item.tax_rate) || 20
+          const vatAmount = subtotal * (vatRate / 100)
+          return {
+            purchase_id: purchaseData.id,
+            product_id: item.product_id,
+            warehouse_id: item.warehouse_id,
+            quantity: item.quantity,
+            unit_price: item.unit_price,
+            vat_rate: vatRate,
+            vat_amount: vatAmount,
+            total_price: item.total_price
+          }
+        })
+        const { error: purchaseItemsError } = await supabase.from('purchase_items').insert(purchaseItemsToInsert)
+        if (purchaseItemsError) console.error('Purchase items insertion error:', purchaseItemsError)
+      }
+
       // 3. Create stock movements for each item to increase stock (purchase = in)
       for (const item of items) {
         if (item.product_id) {
@@ -121,7 +161,8 @@ export async function POST(request: Request) {
             movement_type: 'in',
             quantity: item.quantity,
             reference_no: document_number || transaction.id,
-            notes: `Tedarikçi Alımı - ${supplierName}`
+            notes: `Tedarikçi Alımı - ${supplierName}`,
+            created_by: user.id
           })
           if (movementError) console.error('Stock movement error:', movementError)
         }

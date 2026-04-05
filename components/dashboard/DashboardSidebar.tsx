@@ -17,7 +17,8 @@ import {
   ChevronRight,
   Users,
   ChevronDown,
-  Tags
+  Tags,
+  ShoppingCart
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useState, useEffect } from 'react'
@@ -71,7 +72,8 @@ export default function DashboardSidebar({ profile }: { profile: Profile | null 
     { name: 'Müşteriler', href: '/dashboard/musteriler', icon: Users },
     { name: 'Tedarikçiler', href: '/dashboard/tedarikciler', icon: Warehouse },
     { name: 'Ürünler', href: '/dashboard/urunler', icon: Package },
-    { name: 'Satışlar', href: '/dashboard/satislar', icon: ArrowLeftRight }, // Using ArrowLeftRight for now, or something like ShoppingCart. Let's use a different icon if available, like ShoppingCart or ShoppingBag. Let me import ShoppingCart.
+    { name: 'Satışlar', href: '/dashboard/satislar', icon: ArrowLeftRight },
+    { name: 'Alışlar', href: '/dashboard/alislar', icon: ShoppingCart },
     { name: 'Kategoriler', href: '/dashboard/kategoriler', icon: FolderTree },
     { name: 'Depolar', href: '/dashboard/depolar', icon: Warehouse },
     { name: 'Raporlar', href: '/dashboard/raporlar', icon: BarChart3 },

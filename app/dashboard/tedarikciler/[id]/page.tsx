@@ -163,6 +163,13 @@ export default function SupplierDetailPage() {
       fetchProducts()
       fetchWarehouses()
     }
+
+    if (typeof window !== 'undefined') {
+      const searchParams = new URLSearchParams(window.location.search)
+      if (searchParams.get('tab') === 'transaction') {
+        setActiveTab('transaction')
+      }
+    }
   }, [supplierId])
 
   const fetchSupplierData = async () => {
