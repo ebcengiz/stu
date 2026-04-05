@@ -290,7 +290,7 @@ export default function SalesPage() {
                     onClick={() => handleSort('document_no')}
                   >
                     <div className="flex items-center">
-                      Sipariş / Belge No
+                      Belge No
                       <SortIcon column="document_no" />
                     </div>
                   </th>
@@ -330,8 +330,7 @@ export default function SalesPage() {
                         </span>
                       </td>
                       <td className="px-6 py-4">
-                        <div className="text-sm text-gray-900">{sale.order_no || '-'}</div>
-                        <div className="text-xs text-gray-500">{sale.document_no || '-'}</div>
+                        <div className="text-sm text-gray-900">{sale.document_no || '-'}</div>
                       </td>
                       <td className="px-6 py-4">
                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadge(sale.status)}`}>

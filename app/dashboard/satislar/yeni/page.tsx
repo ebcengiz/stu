@@ -49,7 +49,7 @@ function SaleEntryForm() {
     order_no: '',
     status: 'Bekliyor',
     description: '',
-    collected_amount: '' as string | number,
+    collected_amount: 0,
   })
 
   const [items, setItems] = useState<any[]>([])

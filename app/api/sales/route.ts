@@ -65,31 +65,34 @@ export async function POST(request: Request) {
         sale_date: body.sale_date,
         document_no: body.document_no,
         order_no: body.order_no,
-        total_amount: body.total_amount,
-        collected_amount: body.collected_amount,
+        total_amount: Number(body.total_amount) || 0,
+        collected_amount: Number(body.collected_amount) || 0,
         status: body.status,
         description: body.description
       })
       .select()
       .single()
 
-    if (saleError) throw saleError
+    if (saleError) {
+      console.error('Sale Insert Error:', saleError)
+      throw new Error(`Satış kaydı oluşturulamadı: ${saleError.message}`)
+    }
 
     // B. Sale Items Tablosuna Ekle
     if (body.items && body.items.length > 0) {
       const itemsToInsert = body.items.map((item: any) => {
-        const subtotal = Number(item.quantity) * Number(item.unit_price)
+        const quantity = Number(item.quantity) || 0
+        const unitPrice = Number(item.unit_price) || 0
         const vatRate = Number(item.vat_rate) || 0
+        const subtotal = quantity * unitPrice
         const vatAmount = subtotal * (vatRate / 100)
 
         return {
           sale_id: sale.id,
           product_id: item.product_id,
           warehouse_id: item.warehouse_id,
-          quantity: item.quantity,
-          unit_price: item.unit_price,
-          vat_rate: vatRate,
-          vat_amount: vatAmount,
+          quantity: quantity,
+          unit_price: unitPrice,
           total_price: item.total_price // KDV dahil
         }
       })
@@ -98,17 +101,22 @@ export async function POST(request: Request) {
         .from('sale_items')
         .insert(itemsToInsert)
 
-      if (itemsError) throw itemsError
+      if (itemsError) {
+        console.error('Sale Items Insert Error:', itemsError)
+        throw new Error(`Satış kalemleri kaydedilemedi: ${itemsError.message}`)
+      }
 
       // C. Stoktan Düş (stock_movements tablosuna 'out' kaydı ekle)
+      // Not: Veri tabanı trigger'ı otomatik olarak stok tablosunu günceller.
+      // Eksi stoğa izin verildiği için burada bir kontrol yapmıyoruz.
       const stockMovements = body.items.map((item: any) => ({
         tenant_id: profile.tenant_id,
         product_id: item.product_id,
         warehouse_id: item.warehouse_id,
         movement_type: 'out',
-        quantity: item.quantity,
-        reference_no: body.document_no || `Sipariş-${sale.id.substring(0,8)}`,
-        notes: `Satış: ${sale.id}`,
+        quantity: Number(item.quantity) || 0,
+        reference_no: body.document_no || `Satış-${sale.id.substring(0,8)}`,
+        notes: `Satış: ${sale.id} ${body.customer_id ? '' : '(Perakende)'}`,
         created_by: user.id
       }))
 
@@ -116,7 +124,10 @@ export async function POST(request: Request) {
         .from('stock_movements')
         .insert(stockMovements)
 
-      if (stockError) throw stockError
+      if (stockError) {
+        console.error('Stock Movement Error:', stockError)
+        throw new Error(`Stok hareketi işlenemedi: ${stockError.message}`)
+      }
     }
 
     // D. Eğer Kayıtlı Müşteri ise, Cari (Bakiye) İşlemi Yap
