@@ -1,6 +1,30 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 
+export async function GET(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const resolvedParams = await params
+    const id = resolvedParams.id
+    const supabase = await createClient()
+
+    const { data: customer, error } = await supabase
+      .from('customers')
+      .select('*')
+      .eq('id', id)
+      .single()
+
+    if (error) throw error
+    if (!customer) return NextResponse.json({ error: 'Customer not found' }, { status: 404 })
+
+    return NextResponse.json(customer)
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+}
+
 export async function PUT(
   request: Request,
   { params }: { params: Promise<{ id: string }> }

@@ -151,7 +151,7 @@ export default function CustomerDetailPage() {
 
   // Transaction Form State
   const [txForm, setTxForm] = useState({
-    type: 'sale' as 'sale' | 'payment',
+    type: 'sale' as 'sale' | 'payment' | 'offer',
     payment_method: 'cash' as 'cash' | 'credit_card' | 'cheque',
     amount: '',
     description: '',
@@ -543,9 +543,10 @@ export default function CustomerDetailPage() {
               <CardHeader className="border-b"><CardTitle>Yeni İşlem Kaydı</CardTitle></CardHeader>
               <CardBody className="pt-6">
                 <form onSubmit={handleAddTransaction} className="space-y-8">
-                  <div className="grid grid-cols-2 gap-6">
+                  <div className="grid grid-cols-3 gap-6">
                     <button type="button" onClick={() => setTxForm({...txForm, type: 'sale'})} className={`p-6 border-2 rounded-2xl flex flex-col items-center transition-all ${txForm.type === 'sale' ? 'border-blue-500 bg-blue-50 text-blue-700 ring-4 ring-blue-50' : 'border-gray-100 text-gray-400 hover:border-gray-300'}`}><ShoppingCart className="h-8 w-8 mb-3" /><span className="font-bold text-lg">Satış</span></button>
                     <button type="button" onClick={() => setTxForm({...txForm, type: 'payment'})} className={`p-6 border-2 rounded-2xl flex flex-col items-center transition-all ${txForm.type === 'payment' ? 'border-green-500 bg-green-50 text-green-700 ring-4 ring-green-50' : 'border-gray-100 text-gray-400 hover:border-gray-300'}`}><CreditCard className="h-8 w-8 mb-3" /><span className="font-bold text-lg">Tahsilat</span></button>
+                    <button type="button" onClick={() => router.push(`/dashboard/teklifler/yeni?customerId=${customerId}`)} className="p-6 border-2 border-gray-100 text-gray-400 rounded-2xl flex flex-col items-center transition-all hover:border-primary-300 hover:bg-primary-50 hover:text-primary-700"><FileText className="h-8 w-8 mb-3" /><span className="font-bold text-lg">Teklif Hazırla</span></button>
                   </div>
 
                   {txForm.type === 'sale' ? (
