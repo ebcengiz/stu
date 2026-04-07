@@ -482,31 +482,31 @@ export default function CustomerDetailPage() {
   const prevPurchases = transactions.filter(t => t.type === 'purchase' || t.type === 'return');
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto pb-12">
+    <div className="space-y-4 max-w-[1600px] w-full mx-auto pb-6">
       {/* Back & Header */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-1">
         <button onClick={() => router.push('/dashboard/musteriler')} className="p-2.5 bg-white border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50 transition-colors shadow-sm"><ArrowLeft className="h-5 w-5" /></button>
         <div className="text-sm font-bold text-gray-400">Müşteri Detayı</div>
       </div>
 
       {/* 1. Müşteri Bilgileri Kutucuğu */}
       <Card className="bg-white shadow-sm border-gray-200 rounded-2xl overflow-hidden">
-        <CardBody className="p-5 sm:p-6">
-          <div className="flex flex-col md:flex-row gap-6 items-start">
+        <CardBody className="p-4">
+          <div className="flex flex-col md:flex-row gap-4 items-start">
             {/* Logo */}
             <div className="flex-shrink-0">
               {customer.company_logo ? (
-                <img src={customer.company_logo} className="h-20 w-20 rounded-2xl object-cover border border-gray-100 shadow-sm" />
+                <img src={customer.company_logo} className="h-16 w-16 rounded-2xl object-cover border border-gray-100 shadow-sm" />
               ) : (
-                <div className="h-20 w-20 rounded-2xl bg-gradient-to-br from-primary-100 to-primary-200 flex items-center justify-center text-primary-700 text-2xl font-black border border-primary-100 shadow-sm">
+                <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-primary-100 to-primary-200 flex items-center justify-center text-primary-700 text-2xl font-black border border-primary-100 shadow-sm">
                   {customer.company_name.substring(0, 2).toUpperCase()}
                 </div>
               )}
             </div>
 
             {/* Info Grid */}
-            <div className="flex-1 w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-              <div className="space-y-3 col-span-1 md:col-span-2 lg:col-span-3">
+            <div className="flex-1 w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              <div className="space-y-2 col-span-1 md:col-span-2 lg:col-span-3">
                 <div className="flex flex-wrap items-center gap-3">
                   <h1 className="text-xl sm:text-2xl font-black text-gray-900 tracking-tight">{customer.company_name}</h1>
                   <div className="flex gap-2">
@@ -516,7 +516,7 @@ export default function CustomerDetailPage() {
                 </div>
               </div>
 
-              <div className="space-y-2.5">
+              <div className="space-y-1.5">
                 <div className="flex items-center gap-3 text-gray-600">
                   <div className="p-1.5 bg-gray-50 rounded-lg"><Phone className="h-3.5 w-3.5 text-gray-400" /></div>
                   <span className="font-medium text-sm">{customer.phone || 'Belirtilmemiş'}</span>
@@ -527,7 +527,7 @@ export default function CustomerDetailPage() {
                 </div>
               </div>
 
-              <div className="space-y-2.5">
+              <div className="space-y-1.5">
                 <div className="flex items-center gap-3 text-gray-600">
                   <div className="p-1.5 bg-gray-50 rounded-lg"><Building className="h-3.5 w-3.5 text-gray-400" /></div>
                   <div className="flex flex-col">
@@ -544,7 +544,7 @@ export default function CustomerDetailPage() {
                 </div>
               </div>
 
-              <div className="space-y-2.5 lg:col-span-1 md:col-span-2">
+              <div className="space-y-1.5 lg:col-span-1 md:col-span-2">
                 <div className="flex items-start gap-3 text-gray-600">
                   <div className="p-1.5 bg-gray-50 rounded-lg mt-0.5"><MapPin className="h-3.5 w-3.5 text-gray-400" /></div>
                   <div className="flex flex-col">
@@ -559,9 +559,9 @@ export default function CustomerDetailPage() {
       </Card>
 
       {/* 2. Three Metric Boxes */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         <Card className="bg-gradient-to-br from-primary-600 to-primary-700 text-white shadow-lg border-0 transform transition-all hover:scale-[1.02]">
-          <CardBody className="p-4 sm:p-5">
+          <CardBody className="p-4">
             <div className="flex justify-between items-start">
               <h3 className="text-primary-100 font-bold text-xs uppercase tracking-wider">Açık Bakiye</h3>
               <div className="p-1.5 bg-white/20 rounded-xl backdrop-blur-sm"><Scale className="h-4 w-4 text-white" /></div>
@@ -574,7 +574,7 @@ export default function CustomerDetailPage() {
         </Card>
 
         <Card className="bg-white shadow-sm border border-gray-200 transform transition-all hover:scale-[1.02]">
-          <CardBody className="p-4 sm:p-5">
+          <CardBody className="p-4">
             <div className="flex justify-between items-start">
               <h3 className="text-gray-500 font-bold text-xs uppercase tracking-wider">Alınan Çek Toplamı</h3>
               <div className="p-1.5 bg-amber-50 rounded-xl"><FileText className="h-4 w-4 text-amber-500" /></div>
@@ -587,7 +587,7 @@ export default function CustomerDetailPage() {
         </Card>
 
         <Card className="bg-white shadow-sm border border-gray-200 transform transition-all hover:scale-[1.02]">
-          <CardBody className="p-4 sm:p-5">
+          <CardBody className="p-4">
             <div className="flex justify-between items-start">
               <h3 className="text-gray-500 font-bold text-xs uppercase tracking-wider">Toplam Ciro (Satış)</h3>
               <div className="p-1.5 bg-green-50 rounded-xl"><ShoppingCart className="h-4 w-4 text-green-500" /></div>
@@ -603,21 +603,21 @@ export default function CustomerDetailPage() {
       {/* 3. 5 Action Boxes */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
         {/* Satış Yap */}
-        <button onClick={() => { setTxForm({...txForm, type: 'sale'}); setShowSaleModal(true); }} className="flex flex-col items-center justify-center p-4 bg-white rounded-xl border-2 border-gray-100 hover:border-primary-300 hover:bg-primary-50 transition-all group shadow-sm">
-          <div className="p-3 bg-primary-100/50 rounded-full group-hover:bg-primary-200/50 transition-colors mb-2"><ShoppingCart className="h-5 w-5 text-primary-600" /></div>
+        <button onClick={() => { setTxForm({...txForm, type: 'sale'}); setShowSaleModal(true); }} className="flex flex-col items-center justify-center p-3 bg-white rounded-xl border-2 border-gray-100 hover:border-primary-300 hover:bg-primary-50 transition-all group shadow-sm">
+          <div className="p-3 bg-primary-100/50 rounded-full group-hover:bg-primary-200/50 transition-colors mb-1"><ShoppingCart className="h-5 w-5 text-primary-600" /></div>
           <span className="font-bold text-[13px] text-gray-900 group-hover:text-primary-700">Satış Yap</span>
         </button>
 
         {/* Teklif Hazırla */}
-        <button onClick={() => router.push(`/dashboard/teklifler/yeni?customerId=${customerId}`)} className="flex flex-col items-center justify-center p-4 bg-white rounded-xl border-2 border-gray-100 hover:border-blue-300 hover:bg-blue-50 transition-all group shadow-sm">
-          <div className="p-3 bg-blue-100/50 rounded-full group-hover:bg-blue-200/50 transition-colors mb-2"><FileText className="h-5 w-5 text-blue-600" /></div>
+        <button onClick={() => router.push(`/dashboard/teklifler/yeni?customerId=${customerId}`)} className="flex flex-col items-center justify-center p-3 bg-white rounded-xl border-2 border-gray-100 hover:border-blue-300 hover:bg-blue-50 transition-all group shadow-sm">
+          <div className="p-3 bg-blue-100/50 rounded-full group-hover:bg-blue-200/50 transition-colors mb-1"><FileText className="h-5 w-5 text-blue-600" /></div>
           <span className="font-bold text-[13px] text-gray-900 group-hover:text-blue-700">Teklif Hazırla</span>
         </button>
 
         {/* Tahsilat/Ödeme (Accordion/Dropdown) */}
         <div className="relative">
-          <button onClick={() => { setShowPaymentMenu(!showPaymentMenu); setShowOtherMenu(false); }} className={`w-full h-full flex flex-col items-center justify-center p-4 bg-white rounded-xl border-2 transition-all group shadow-sm ${showPaymentMenu ? 'border-emerald-300 bg-emerald-50' : 'border-gray-100 hover:border-emerald-300 hover:bg-emerald-50'}`}>
-            <div className={`p-3 rounded-full transition-colors mb-2 ${showPaymentMenu ? 'bg-emerald-200/50' : 'bg-emerald-100/50 group-hover:bg-emerald-200/50'}`}><CreditCard className="h-5 w-5 text-emerald-600" /></div>
+          <button onClick={() => { setShowPaymentMenu(!showPaymentMenu); setShowOtherMenu(false); }} className={`w-full h-full flex flex-col items-center justify-center p-3 bg-white rounded-xl border-2 transition-all group shadow-sm ${showPaymentMenu ? 'border-emerald-300 bg-emerald-50' : 'border-gray-100 hover:border-emerald-300 hover:bg-emerald-50'}`}>
+            <div className={`p-3 rounded-full transition-colors mb-1 ${showPaymentMenu ? 'bg-emerald-200/50' : 'bg-emerald-100/50 group-hover:bg-emerald-200/50'}`}><CreditCard className="h-5 w-5 text-emerald-600" /></div>
             <div className="flex items-center gap-1 font-bold text-[13px] text-gray-900 group-hover:text-emerald-700">Tahsilat / Ödeme <ChevronDown className="h-3.5 w-3.5" /></div>
           </button>
           
@@ -634,15 +634,15 @@ export default function CustomerDetailPage() {
         </div>
 
         {/* Hesap Ekstresi */}
-        <button onClick={() => setShowLedgerModal(true)} className="flex flex-col items-center justify-center p-4 bg-white rounded-xl border-2 border-gray-100 hover:border-purple-300 hover:bg-purple-50 transition-all group shadow-sm">
-          <div className="p-3 bg-purple-100/50 rounded-full group-hover:bg-purple-200/50 transition-colors mb-2"><History className="h-5 w-5 text-purple-600" /></div>
+        <button onClick={() => setShowLedgerModal(true)} className="flex flex-col items-center justify-center p-3 bg-white rounded-xl border-2 border-gray-100 hover:border-purple-300 hover:bg-purple-50 transition-all group shadow-sm">
+          <div className="p-3 bg-purple-100/50 rounded-full group-hover:bg-purple-200/50 transition-colors mb-1"><History className="h-5 w-5 text-purple-600" /></div>
           <span className="font-bold text-[13px] text-gray-900 group-hover:text-purple-700">Hesap Ekstresi</span>
         </button>
 
         {/* Diğer İşlemler (Accordion/Dropdown) */}
         <div className="relative">
-          <button onClick={() => { setShowOtherMenu(!showOtherMenu); setShowPaymentMenu(false); }} className={`w-full h-full flex flex-col items-center justify-center p-4 bg-white rounded-xl border-2 transition-all group shadow-sm ${showOtherMenu ? 'border-gray-300 bg-gray-50' : 'border-gray-100 hover:border-gray-300 hover:bg-gray-50'}`}>
-            <div className={`p-3 rounded-full transition-colors mb-2 ${showOtherMenu ? 'bg-gray-200' : 'bg-gray-100 group-hover:bg-gray-200'}`}><MoreVertical className="h-5 w-5 text-gray-600" /></div>
+          <button onClick={() => { setShowOtherMenu(!showOtherMenu); setShowPaymentMenu(false); }} className={`w-full h-full flex flex-col items-center justify-center p-3 bg-white rounded-xl border-2 transition-all group shadow-sm ${showOtherMenu ? 'border-gray-300 bg-gray-50' : 'border-gray-100 hover:border-gray-300 hover:bg-gray-50'}`}>
+            <div className={`p-3 rounded-full transition-colors mb-1 ${showOtherMenu ? 'bg-gray-200' : 'bg-gray-100 group-hover:bg-gray-200'}`}><MoreVertical className="h-5 w-5 text-gray-600" /></div>
             <div className="flex items-center gap-1 font-bold text-[13px] text-gray-900 group-hover:text-gray-700">Diğer İşlemler <ChevronDown className="h-3.5 w-3.5" /></div>
           </button>
 
@@ -660,25 +660,25 @@ export default function CustomerDetailPage() {
       </div>
 
       {/* 4. Three Lists (Önceki Satışlar, Önceki Ödemeleri, Alışlar/İadeler) */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 pt-6">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 pt-3">
         
         {/* Önceki Satışlar */}
         <Card className="shadow-sm border-gray-200">
-          <CardHeader className="bg-gray-50/50 border-b py-5">
+          <CardHeader className="bg-gray-50/50 border-b py-3">
             <CardTitle className="text-base font-bold text-gray-900 flex items-center gap-2"><ShoppingCart className="h-5 w-5 text-primary-500" /> Önceki Satışlar</CardTitle>
           </CardHeader>
           <CardBody className="p-0">
-            <div className="max-h-[600px] overflow-y-auto">
+            <div className="max-h-[400px] overflow-y-auto">
               <table className="min-w-full divide-y divide-gray-100">
-                <thead className="bg-gray-50 sticky top-0"><tr><th className="px-5 py-3 text-left text-xs font-black text-gray-400 uppercase">Tarih</th><th className="px-5 py-3 text-left text-xs font-black text-gray-400 uppercase">Belge No</th><th className="px-5 py-3 text-right text-xs font-black text-gray-400 uppercase">Tutar</th></tr></thead>
+                <thead className="bg-gray-50 sticky top-0"><tr><th className="px-4 py-2 text-left text-xs font-black text-gray-400 uppercase">Tarih</th><th className="px-4 py-2 text-left text-xs font-black text-gray-400 uppercase">Belge No</th><th className="px-4 py-2 text-right text-xs font-black text-gray-400 uppercase">Tutar</th></tr></thead>
                 <tbody className="bg-white divide-y divide-gray-50">
                   {prevSales.length > 0 ? prevSales.slice(0, 20).map(t => (
                     <tr key={t.id} onClick={() => { setSelectedTx(t); setShowTxDetailModal(true); }} className="hover:bg-gray-50 cursor-pointer">
-                      <td className="px-5 py-4 text-sm text-gray-600 font-medium">{new Date(t.transaction_date || t.date || '').toLocaleDateString('tr-TR')}</td>
-                      <td className="px-5 py-4 text-sm text-gray-500">{t.document_number || t.document_no || '-'}</td>
-                      <td className="px-5 py-4 text-sm font-bold text-right text-gray-900">{Number(t.amount).toLocaleString('tr-TR', { minimumFractionDigits: 2 })} {getCurrencySymbol(t.currency)}</td>
+                      <td className="px-4 py-2.5 text-sm text-gray-600 font-medium">{new Date(t.transaction_date || t.date || '').toLocaleDateString('tr-TR')}</td>
+                      <td className="px-4 py-2.5 text-sm text-gray-500">{t.document_number || t.document_no || '-'}</td>
+                      <td className="px-4 py-2.5 text-sm font-bold text-right text-gray-900">{Number(t.amount).toLocaleString('tr-TR', { minimumFractionDigits: 2 })} {getCurrencySymbol(t.currency)}</td>
                     </tr>
-                  )) : <tr><td colSpan={3} className="px-5 py-10 text-center text-sm text-gray-500">Kayıt bulunamadı.</td></tr>}
+                  )) : <tr><td colSpan={3} className="px-4 py-6 text-center text-sm text-gray-500">Kayıt bulunamadı.</td></tr>}
                 </tbody>
               </table>
             </div>
@@ -687,21 +687,21 @@ export default function CustomerDetailPage() {
 
         {/* Önceki Ödemeler */}
         <Card className="shadow-sm border-gray-200">
-          <CardHeader className="bg-gray-50/50 border-b py-5">
+          <CardHeader className="bg-gray-50/50 border-b py-3">
             <CardTitle className="text-base font-bold text-gray-900 flex items-center gap-2"><CreditCard className="h-5 w-5 text-emerald-500" /> Önceki Ödemeleri</CardTitle>
           </CardHeader>
           <CardBody className="p-0">
-            <div className="max-h-[600px] overflow-y-auto">
+            <div className="max-h-[400px] overflow-y-auto">
               <table className="min-w-full divide-y divide-gray-100">
-                <thead className="bg-gray-50 sticky top-0"><tr><th className="px-5 py-3 text-left text-xs font-black text-gray-400 uppercase">Tarih</th><th className="px-5 py-3 text-left text-xs font-black text-gray-400 uppercase">Yöntem</th><th className="px-5 py-3 text-right text-xs font-black text-gray-400 uppercase">Tutar</th></tr></thead>
+                <thead className="bg-gray-50 sticky top-0"><tr><th className="px-4 py-2 text-left text-xs font-black text-gray-400 uppercase">Tarih</th><th className="px-4 py-2 text-left text-xs font-black text-gray-400 uppercase">Yöntem</th><th className="px-4 py-2 text-right text-xs font-black text-gray-400 uppercase">Tutar</th></tr></thead>
                 <tbody className="bg-white divide-y divide-gray-50">
                   {prevPayments.length > 0 ? prevPayments.slice(0, 20).map(t => (
                     <tr key={t.id} onClick={() => { setSelectedTx(t); setShowTxDetailModal(true); }} className="hover:bg-gray-50 cursor-pointer">
-                      <td className="px-5 py-4 text-sm text-gray-600 font-medium">{new Date(t.transaction_date || t.date || '').toLocaleDateString('tr-TR')}</td>
-                      <td className="px-5 py-4 text-xs font-bold text-gray-500 uppercase">{t.payment_method === 'cash' ? 'Nakit' : t.payment_method === 'cheque' ? 'Çek' : t.payment_method === 'credit_card' ? 'K.Kartı' : 'Diğer'}</td>
-                      <td className="px-5 py-4 text-sm font-bold text-right text-emerald-600">{Number(t.amount).toLocaleString('tr-TR', { minimumFractionDigits: 2 })} {getCurrencySymbol(t.currency)}</td>
+                      <td className="px-4 py-2.5 text-sm text-gray-600 font-medium">{new Date(t.transaction_date || t.date || '').toLocaleDateString('tr-TR')}</td>
+                      <td className="px-4 py-2.5 text-xs font-bold text-gray-500 uppercase">{t.payment_method === 'cash' ? 'Nakit' : t.payment_method === 'cheque' ? 'Çek' : t.payment_method === 'credit_card' ? 'K.Kartı' : 'Diğer'}</td>
+                      <td className="px-4 py-2.5 text-sm font-bold text-right text-emerald-600">{Number(t.amount).toLocaleString('tr-TR', { minimumFractionDigits: 2 })} {getCurrencySymbol(t.currency)}</td>
                     </tr>
-                  )) : <tr><td colSpan={3} className="px-5 py-10 text-center text-sm text-gray-500">Kayıt bulunamadı.</td></tr>}
+                  )) : <tr><td colSpan={3} className="px-4 py-6 text-center text-sm text-gray-500">Kayıt bulunamadı.</td></tr>}
                 </tbody>
               </table>
             </div>
@@ -710,21 +710,21 @@ export default function CustomerDetailPage() {
 
         {/* Alışlar / İadeler */}
         <Card className="shadow-sm border-gray-200">
-          <CardHeader className="bg-gray-50/50 border-b py-5">
+          <CardHeader className="bg-gray-50/50 border-b py-3">
             <CardTitle className="text-base font-bold text-gray-900 flex items-center gap-2"><Package className="h-5 w-5 text-purple-500" /> Alışlar / İadeler</CardTitle>
           </CardHeader>
           <CardBody className="p-0">
-            <div className="max-h-[600px] overflow-y-auto">
+            <div className="max-h-[400px] overflow-y-auto">
               <table className="min-w-full divide-y divide-gray-100">
-                <thead className="bg-gray-50 sticky top-0"><tr><th className="px-5 py-3 text-left text-xs font-black text-gray-400 uppercase">Tarih</th><th className="px-5 py-3 text-left text-xs font-black text-gray-400 uppercase">Tip</th><th className="px-5 py-3 text-right text-xs font-black text-gray-400 uppercase">Tutar</th></tr></thead>
+                <thead className="bg-gray-50 sticky top-0"><tr><th className="px-4 py-2 text-left text-xs font-black text-gray-400 uppercase">Tarih</th><th className="px-4 py-2 text-left text-xs font-black text-gray-400 uppercase">Tip</th><th className="px-4 py-2 text-right text-xs font-black text-gray-400 uppercase">Tutar</th></tr></thead>
                 <tbody className="bg-white divide-y divide-gray-50">
                   {prevPurchases.length > 0 ? prevPurchases.slice(0, 20).map(t => (
                     <tr key={t.id} onClick={() => { setSelectedTx(t); setShowTxDetailModal(true); }} className="hover:bg-gray-50 cursor-pointer">
-                      <td className="px-5 py-4 text-sm text-gray-600 font-medium">{new Date(t.transaction_date || t.date || '').toLocaleDateString('tr-TR')}</td>
-                      <td className="px-5 py-4 text-xs font-bold text-gray-500 uppercase">{t.type === 'purchase' ? 'Alış' : 'İade'}</td>
-                      <td className="px-5 py-4 text-sm font-bold text-right text-gray-900">{Number(t.amount).toLocaleString('tr-TR', { minimumFractionDigits: 2 })} {getCurrencySymbol(t.currency)}</td>
+                      <td className="px-4 py-2.5 text-sm text-gray-600 font-medium">{new Date(t.transaction_date || t.date || '').toLocaleDateString('tr-TR')}</td>
+                      <td className="px-4 py-2.5 text-xs font-bold text-gray-500 uppercase">{t.type === 'purchase' ? 'Alış' : 'İade'}</td>
+                      <td className="px-4 py-2.5 text-sm font-bold text-right text-gray-900">{Number(t.amount).toLocaleString('tr-TR', { minimumFractionDigits: 2 })} {getCurrencySymbol(t.currency)}</td>
                     </tr>
-                  )) : <tr><td colSpan={3} className="px-5 py-10 text-center text-sm text-gray-500">Kayıt bulunamadı.</td></tr>}
+                  )) : <tr><td colSpan={3} className="px-4 py-6 text-center text-sm text-gray-500">Kayıt bulunamadı.</td></tr>}
                 </tbody>
               </table>
             </div>
@@ -739,7 +739,7 @@ export default function CustomerDetailPage() {
       {showSaleModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
           <Card className="w-full max-w-5xl max-h-[90vh] overflow-y-auto shadow-2xl rounded-3xl border-0 animate-in zoom-in slide-in-from-bottom-4 duration-300">
-            <CardHeader className="sticky top-0 z-10 bg-white border-b py-5 px-8 flex flex-row items-center justify-between">
+            <CardHeader className="sticky top-0 z-10 bg-white border-b py-3 px-8 flex flex-row items-center justify-between">
               <CardTitle className="text-xl font-bold flex items-center gap-3"><ShoppingCart className="h-6 w-6 text-primary-600" /> Satış İşlemi</CardTitle>
               <button onClick={() => setShowSaleModal(false)} className="p-2 hover:bg-gray-100 rounded-full"><X className="h-6 w-6 text-gray-500" /></button>
             </CardHeader>
@@ -778,18 +778,18 @@ export default function CustomerDetailPage() {
                     <div className="border rounded-2xl overflow-hidden bg-white shadow-sm">
                       <table className="min-w-full divide-y divide-gray-100">
                         <thead className="bg-gray-50/80">
-                          <tr><th className="px-5 py-3 text-left text-[10px] font-bold text-gray-500 uppercase">Ürün</th><th className="px-5 py-3 text-left text-[10px] font-bold text-gray-500 uppercase">Depo</th><th className="px-5 py-3 text-center text-[10px] font-bold text-gray-500 uppercase">Miktar</th><th className="px-5 py-3 text-center text-[10px] font-bold text-gray-500 uppercase">B.Fiyat</th><th className="px-5 py-3 text-center text-[10px] font-bold text-gray-500 uppercase">KDV Tutarı</th><th className="px-5 py-3 text-right text-[10px] font-bold text-gray-500 uppercase">Toplam</th><th className="px-5 py-3 w-10"></th></tr>
+                          <tr><th className="px-4 py-2 text-left text-[10px] font-bold text-gray-500 uppercase">Ürün</th><th className="px-4 py-2 text-left text-[10px] font-bold text-gray-500 uppercase">Depo</th><th className="px-4 py-2 text-center text-[10px] font-bold text-gray-500 uppercase">Miktar</th><th className="px-4 py-2 text-center text-[10px] font-bold text-gray-500 uppercase">B.Fiyat</th><th className="px-4 py-2 text-center text-[10px] font-bold text-gray-500 uppercase">KDV Tutarı</th><th className="px-4 py-2 text-right text-[10px] font-bold text-gray-500 uppercase">Toplam</th><th className="px-4 py-2 w-10"></th></tr>
                         </thead>
                         <tbody className="divide-y divide-gray-50">
                           {selectedItems.map((item, idx) => (
                             <tr key={idx} className="hover:bg-gray-50/50 transition-colors">
-                              <td className="px-5 py-4 text-sm font-medium text-gray-900">{item.product_name}</td>
-                              <td className="px-5 py-4 text-xs font-bold text-primary-600">{item.warehouse_name}</td>
-                              <td className="px-5 py-4"><input type="number" value={item.quantity} onChange={e => updateItem(idx, 'quantity', e.target.value)} className="w-16 mx-auto block px-2 py-1.5 border rounded-lg text-center text-sm font-semibold" /></td>
-                              <td className="px-5 py-4"><input type="number" value={item.unit_price} onChange={e => updateItem(idx, 'unit_price', e.target.value)} className="w-24 mx-auto block px-2 py-1.5 border rounded-lg text-center text-sm font-semibold" /></td>
-                              <td className="px-5 py-4 text-xs font-bold text-center text-gray-500">{item.tax_amount.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} {getCurrencySymbol(customer.currency)} <span className="text-[10px] text-gray-400">(%{item.tax_rate})</span></td>
-                              <td className="px-5 py-4 text-sm font-bold text-right text-gray-900">{item.total_price.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} {getCurrencySymbol(customer.currency)}</td>
-                              <td className="px-5 py-4 text-right"><button type="button" onClick={() => removeItem(idx)} className="p-2 text-gray-400 hover:text-red-500 transition-all"><Trash2 className="h-4 w-4" /></button></td>
+                              <td className="px-4 py-2.5 text-sm font-medium text-gray-900">{item.product_name}</td>
+                              <td className="px-4 py-2.5 text-xs font-bold text-primary-600">{item.warehouse_name}</td>
+                              <td className="px-4 py-2.5"><input type="number" value={item.quantity} onChange={e => updateItem(idx, 'quantity', e.target.value)} className="w-16 mx-auto block px-2 py-1.5 border rounded-lg text-center text-sm font-semibold" /></td>
+                              <td className="px-4 py-2.5"><input type="number" value={item.unit_price} onChange={e => updateItem(idx, 'unit_price', e.target.value)} className="w-24 mx-auto block px-2 py-1.5 border rounded-lg text-center text-sm font-semibold" /></td>
+                              <td className="px-4 py-2.5 text-xs font-bold text-center text-gray-500">{item.tax_amount.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} {getCurrencySymbol(customer.currency)} <span className="text-[10px] text-gray-400">(%{item.tax_rate})</span></td>
+                              <td className="px-4 py-2.5 text-sm font-bold text-right text-gray-900">{item.total_price.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} {getCurrencySymbol(customer.currency)}</td>
+                              <td className="px-4 py-2.5 text-right"><button type="button" onClick={() => removeItem(idx)} className="p-2 text-gray-400 hover:text-red-500 transition-all"><Trash2 className="h-4 w-4" /></button></td>
                             </tr>
                           ))}
                         </tbody>
@@ -798,12 +798,12 @@ export default function CustomerDetailPage() {
                   )}
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 border-t border-gray-100">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-3 border-t border-gray-100">
                   <div className="space-y-1.5"><label className="text-xs font-bold text-gray-500 uppercase px-1">Belge No</label><input type="text" value={txForm.document_number} onChange={e => setTxForm({...txForm, document_number: e.target.value})} className="w-full px-4 py-3 border border-gray-200 rounded-xl outline-none" /></div>
                   <div className="space-y-1.5"><label className="text-xs font-bold text-gray-500 uppercase px-1">İrsaliye No</label><input type="text" value={txForm.waybill_number} onChange={e => setTxForm({...txForm, waybill_number: e.target.value})} className="w-full px-4 py-3 border border-gray-200 rounded-xl outline-none" /></div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 border-t border-gray-100">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-3 border-t border-gray-100">
                   <div className="space-y-2"><label className="block text-xs font-black text-gray-400 uppercase tracking-widest px-1">İşlem Tarihi</label><input type="date" value={txForm.transaction_date} onChange={e => setTxForm({...txForm, transaction_date: e.target.value})} className="w-full px-4 py-3 border-2 border-gray-100 rounded-2xl focus:border-primary-500 outline-none font-bold" /></div>
                   <div className="space-y-2"><label className="block text-xs font-black text-gray-400 uppercase tracking-widest px-1">Genel Toplam</label><input type="number" value={txForm.amount} readOnly className="w-full px-4 py-3 border-2 border-primary-100 rounded-2xl bg-primary-50/30 font-black text-xl text-primary-900 outline-none" /></div>
                 </div>
@@ -925,7 +925,7 @@ export default function CustomerDetailPage() {
       {showLedgerModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
           <Card className="w-full max-w-5xl h-[85vh] flex flex-col shadow-2xl rounded-3xl border-0 animate-in zoom-in slide-in-from-bottom-4 duration-300">
-            <CardHeader className="bg-white border-b py-5 px-8 flex flex-row items-center justify-between rounded-t-3xl shrink-0">
+            <CardHeader className="bg-white border-b py-3 px-8 flex flex-row items-center justify-between rounded-t-3xl shrink-0">
               <CardTitle className="text-xl font-bold flex items-center gap-3"><FileText className="h-6 w-6 text-primary-600" /> Hesap Ekstresi</CardTitle>
               <button onClick={() => setShowLedgerModal(false)} className="p-2 hover:bg-gray-100 rounded-full"><X className="h-6 w-6 text-gray-500" /></button>
             </CardHeader>
@@ -955,7 +955,7 @@ export default function CustomerDetailPage() {
       {showEditCustomerModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
           <Card className="w-full max-w-3xl max-h-[90vh] overflow-y-auto shadow-2xl rounded-3xl border-0 animate-in zoom-in duration-300">
-            <CardHeader className="bg-white border-b py-5 px-8 flex flex-row items-center justify-between sticky top-0 z-10">
+            <CardHeader className="bg-white border-b py-3 px-8 flex flex-row items-center justify-between sticky top-0 z-10">
               <CardTitle className="text-xl font-bold flex items-center gap-3"><Edit2 className="h-6 w-6 text-primary-600" /> Müşteri Bilgilerini Düzenle</CardTitle>
               <button onClick={() => setShowEditCustomerModal(false)} className="p-2 hover:bg-gray-100 rounded-full"><X className="h-6 w-6 text-gray-500" /></button>
             </CardHeader>
@@ -1050,7 +1050,7 @@ export default function CustomerDetailPage() {
       {showChequeModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[140] p-4 animate-in fade-in duration-300">
           <Card className="w-full max-w-md shadow-2xl animate-in zoom-in duration-300 rounded-3xl overflow-hidden border-0">
-            <CardHeader className="bg-amber-600 text-white py-5 px-6"><CardTitle className="text-xl font-bold">Çek Bilgileri</CardTitle></CardHeader>
+            <CardHeader className="bg-amber-600 text-white py-3 px-6"><CardTitle className="text-xl font-bold">Çek Bilgileri</CardTitle></CardHeader>
             <CardBody className="p-8 space-y-4">
                <div className="space-y-2"><label className="block text-xs font-black text-gray-400 uppercase tracking-widest px-1">Banka Adı</label><input type="text" value={chequeData.bank} onChange={e => setChequeData({...chequeData, bank: e.target.value})} className="w-full px-4 py-3 border-2 border-gray-100 rounded-2xl outline-none" /></div>
                <div className="space-y-2"><label className="block text-xs font-black text-gray-400 uppercase tracking-widest px-1">Seri No</label><input type="text" value={chequeData.serial_number} onChange={e => setChequeData({...chequeData, serial_number: e.target.value})} className="w-full px-4 py-3 border-2 border-gray-100 rounded-2xl outline-none" /></div>
@@ -1065,7 +1065,7 @@ export default function CustomerDetailPage() {
       {showItemDetailModal && currentItem && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[100] p-4 animate-in fade-in duration-300">
           <Card className="w-full max-w-lg shadow-2xl animate-in zoom-in duration-300 overflow-hidden border-0 rounded-3xl">
-            <CardHeader className="bg-primary-600 text-white flex flex-row items-center justify-between py-5 px-6 border-0">
+            <CardHeader className="bg-primary-600 text-white flex flex-row items-center justify-between py-3 px-6 border-0">
               <div>
                 <CardTitle className="text-xl font-bold">{currentItem.name}</CardTitle>
                 <div className="flex items-center gap-3 mt-1">
