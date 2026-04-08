@@ -625,7 +625,7 @@ export default function CustomerDetailPage() {
             <>
               <div className="fixed inset-0 z-40" onClick={() => setShowPaymentMenu(false)} />
               <div className="absolute top-full left-0 w-full mt-2 bg-white rounded-xl shadow-xl border border-gray-100 z-50 overflow-hidden animate-in fade-in slide-in-from-top-2">
-                <button onClick={() => { setShowPaymentMenu(false); setTxForm({...txForm, type: 'payment', payment_method: 'cash'}); setShowPaymentModal(true); }} className="w-full text-left px-4 py-3 font-bold text-sm text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 border-b border-gray-50 flex items-center gap-3"><DollarSign className="h-4 w-4" /> Nakit / Banka</button>
+                <button onClick={() => { setShowPaymentMenu(false); setTxForm({...txForm, type: 'payment', payment_method: 'cash'}); setShowPaymentModal(true); }} className="w-full text-left px-4 py-3 font-bold text-sm text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 border-b border-gray-50 flex items-center gap-3"><DollarSign className="h-4 w-4" /> Nakit - Banka - Kredi Kartı</button>
                 <button onClick={() => { setShowPaymentMenu(false); setTxForm({...txForm, type: 'payment', payment_method: 'cheque'}); setShowPaymentModal(true); setShowChequeModal(true); }} className="w-full text-left px-4 py-3 font-bold text-sm text-gray-700 hover:bg-amber-50 hover:text-amber-700 border-b border-gray-50 flex items-center gap-3"><FileText className="h-4 w-4" /> Çek Girişi</button>
                 <button onClick={() => { setShowPaymentMenu(false); setShowBalanceFixModal(true); }} className="w-full text-left px-4 py-3 font-bold text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-700 flex items-center gap-3"><Scale className="h-4 w-4" /> Bakiye Düzelt</button>
               </div>
@@ -831,12 +831,11 @@ export default function CustomerDetailPage() {
               <form onSubmit={handleAddTransaction} className="space-y-6">
                 <div className="space-y-4">
                   <label className="block text-xs font-black text-gray-400 uppercase tracking-widest px-1">Ödeme Yöntemi</label>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     {[
                       { id: 'cash', label: 'Nakit' },
                       { id: 'credit_card', label: 'Kredi Kartı' },
-                      { id: 'bank_transfer', label: 'Banka' },
-                      { id: 'cheque', label: 'Çek / Senet' }
+                      { id: 'bank_transfer', label: 'Banka' }
                     ].map(m => (
                       <button key={m.id} type="button" onClick={() => { setTxForm({...txForm, payment_method: m.id as any}); if (m.id === 'cheque') setShowChequeModal(true); }} className={`p-3 border-2 rounded-xl text-sm font-bold transition-all ${txForm.payment_method === m.id ? 'border-emerald-500 bg-emerald-50 text-emerald-700' : 'border-gray-100 text-gray-500 hover:border-gray-300'}`}>{m.label}</button>
                     ))}
