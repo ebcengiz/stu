@@ -19,7 +19,9 @@ import {
   ChevronDown,
   Tags,
   ShoppingCart,
-  FileText
+  FileText,
+  DollarSign,
+  Wallet
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useState, useEffect } from 'react'
@@ -39,8 +41,10 @@ export default function DashboardSidebar({ profile }: { profile: Profile | null 
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [isMounted, setIsMounted] = useState(false)
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
+  const [isCashManagementOpen, setIsCashManagementOpen] = useState(false)
 
   useEffect(() => {
+    console.log("Sidebar mounted/updated")
     setIsMounted(true)
     const savedState = localStorage.getItem('sidebarCollapsed')
     if (savedState !== null) {
@@ -50,6 +54,9 @@ export default function DashboardSidebar({ profile }: { profile: Profile | null 
     // Auto-open settings if pathname matches sub-items
     if (pathname.includes('/dashboard/ayarlar') || pathname.includes('/dashboard/tanimlar')) {
       setIsSettingsOpen(true)
+    }
+    if (pathname.includes('/dashboard/hesaplarim')) {
+      setIsCashManagementOpen(true)
     }
   }, [pathname])
 
@@ -117,7 +124,67 @@ export default function DashboardSidebar({ profile }: { profile: Profile | null 
         )}
 
         <div className={`flex-1 overflow-y-auto py-4 space-y-1 ${collapsed ? 'px-2' : 'px-3'}`}>
-          {navigation.map((item) => {
+          {navigation.slice(0, 7).map((item) => {
+            const Icon = item.icon
+            const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
+            return (
+              <Link
+                key={item.name}
+                href={item.href}
+                title={collapsed ? item.name : undefined}
+                className={`flex items-center py-2.5 text-sm font-medium rounded-md transition-all duration-300 ${
+                  isActive
+                    ? 'bg-primary-50 text-primary-700'
+                    : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
+                } ${collapsed ? 'justify-center px-0' : 'px-3'}`}
+                onClick={() => isMobile && setIsMobileMenuOpen(false)}
+              >
+                <Icon className={`h-5 w-5 flex-shrink-0 ${collapsed ? '' : 'mr-3'}`} />
+                {!collapsed && <span>{item.name}</span>}
+              </Link>
+            )
+          })}
+
+          {/* Nakit Yönetimi Accordion */}
+          <div className="space-y-1">
+            <button
+              onClick={() => {
+                if (collapsed) {
+                  setIsCollapsed(false)
+                  setIsCashManagementOpen(true)
+                } else {
+                  setIsCashManagementOpen(!isCashManagementOpen)
+                }
+              }}
+              className={`w-full flex items-center py-2.5 text-sm font-medium rounded-md transition-all duration-300 text-gray-700 hover:bg-gray-50 hover:text-gray-900 ${collapsed ? 'justify-center px-0' : 'px-3'}`}
+              title={collapsed ? 'Nakit Yönetimi' : undefined}
+            >
+              <DollarSign className={`h-5 w-5 flex-shrink-0 ${collapsed ? '' : 'mr-3'}`} />
+              {!collapsed && (
+                <>
+                  <span className="flex-1 text-left text-gray-700">Nakit Yönetimi</span>
+                  <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isCashManagementOpen ? 'rotate-180' : ''}`} />
+                </>
+              )}
+            </button>
+            
+            {isCashManagementOpen && !collapsed && (
+              <div className="ml-9 space-y-1 animate-in fade-in slide-in-from-top-1 duration-200">
+                <Link
+                  href="/dashboard/hesaplarim"
+                  className={`flex items-center py-2 text-sm font-medium rounded-md transition-colors ${
+                    pathname === '/dashboard/hesaplarim' ? 'text-primary-700 bg-primary-50' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                  } px-3`}
+                  onClick={() => isMobile && setIsMobileMenuOpen(false)}
+                >
+                  <Wallet className="h-4 w-4 mr-2" />
+                  Hesaplarım
+                </Link>
+              </div>
+            )}
+          </div>
+
+          {navigation.slice(7).map((item) => {
             const Icon = item.icon
             const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
             return (
