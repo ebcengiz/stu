@@ -6,10 +6,9 @@ import { Card, CardHeader, CardBody, CardTitle } from '@/components/ui/Card'
 import { TagSelector } from '@/components/admin/TagSelector'
 import { useRouter } from 'next/navigation'
 import { toast } from 'react-hot-toast'
+import { CURRENCY_SYMBOLS } from '@/lib/currency'
 
 interface Supplier {
-// ...
-
   id: string
   company_name: string
   company_logo: string | null
@@ -22,6 +21,7 @@ interface Supplier {
   notes: string | null
   category1: string | null
   category2: string | null
+  currency?: string
   balance: number
   is_active: boolean
   created_at: string
@@ -52,6 +52,7 @@ export default function SuppliersPage() {
     notes: '',
     category1: '',
     category2: '',
+    currency: 'TRY',
     is_active: true
   })
 
@@ -382,7 +383,7 @@ export default function SuppliersPage() {
                       </td>
                       <td className="px-6 py-4 text-right whitespace-nowrap">
                         <div className={`text-sm font-bold ${supplier.balance > 0 ? 'text-red-600' : supplier.balance < 0 ? 'text-green-600' : 'text-gray-900'}`}>
-                          {(supplier.balance || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺
+                          {(supplier.balance || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2 })} {CURRENCY_SYMBOLS[supplier.currency || 'TRY'] || '₺'}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -493,6 +494,23 @@ export default function SuppliersPage() {
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                       />
                     </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Para Birimi
+                    </label>
+                    <select
+                      value={formData.currency}
+                      onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white"
+                    >
+                      {Object.keys(CURRENCY_SYMBOLS).map((currencyCode) => (
+                        <option key={currencyCode} value={currencyCode}>
+                          {currencyCode} ({CURRENCY_SYMBOLS[currencyCode]})
+                        </option>
+                      ))}
+                    </select>
                   </div>
                 </div>
 
@@ -613,3 +631,4 @@ export default function SuppliersPage() {
     </div>
   )
 }
+
