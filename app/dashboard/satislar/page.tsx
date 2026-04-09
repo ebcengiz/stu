@@ -186,8 +186,8 @@ export default function SalesPage() {
       s.customers?.company_name?.toLowerCase().includes(searchTerm.toLowerCase())
     )
     .sort((a, b) => {
-      let aValue: any = a[sortColumn]
-      let bValue: any = b[sortColumn]
+      let aValue: any = (a as any)[sortColumn]
+      let bValue: any = (b as any)[sortColumn]
 
       if (sortColumn === 'company_name') {
         aValue = a.customers?.company_name || 'Perakende Müşteri'

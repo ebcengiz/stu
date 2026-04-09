@@ -89,6 +89,7 @@ export default function SuppliersPage() {
       notes: '',
       category1: '',
       category2: '',
+      currency: 'TRY',
       is_active: true
     })
   }
@@ -114,6 +115,7 @@ export default function SuppliersPage() {
       notes: supplier.notes || '',
       category1: supplier.category1 || '',
       category2: supplier.category2 || '',
+      currency: (supplier as any).currency || 'TRY',
       is_active: supplier.is_active
     })
     setShowModal(true)

@@ -39,7 +39,7 @@ export async function PATCH(
       const tableName = oldTag.entity_type === 'supplier' ? 'suppliers' : 'customers'
       const columnName = oldTag.type // 'category1' veya 'category2'
 
-      await supabase
+      await (supabase as any)
         .from(tableName)
         .update({ [columnName]: newName })
         .eq(columnName, oldTag.name)
@@ -86,7 +86,7 @@ export async function DELETE(
       const tableName = oldTag.entity_type === 'supplier' ? 'suppliers' : 'customers'
       const columnName = oldTag.type
 
-      await supabase
+      await (supabase as any)
         .from(tableName)
         .update({ [columnName]: null })
         .eq(columnName, oldTag.name)
