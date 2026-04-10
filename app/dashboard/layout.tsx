@@ -1,8 +1,7 @@
 'use client'
 
-import { createClient } from '@/lib/supabase/client'
-import { redirect, useRouter } from 'next/navigation'
 import DashboardSidebar from '@/components/dashboard/DashboardSidebar'
+import { useDashboardProfile } from '@/hooks/useDashboardProfile'
 import { useEffect, useState } from 'react'
 
 export default function DashboardLayout({
@@ -10,32 +9,12 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode
 }) {
-  const router = useRouter()
-  const [profile, setProfile] = useState<any>(null)
+  const profile = useDashboardProfile()
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
   const [isMounted, setIsMounted] = useState(false)
 
   useEffect(() => {
     setIsMounted(true)
-    const checkAuth = async () => {
-      const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
-
-      if (!user) {
-        router.push('/login')
-        return
-      }
-
-      const { data: userProfile } = await supabase
-        .from('profiles')
-        .select('*, tenants(*)')
-        .eq('id', user.id)
-        .single()
-      
-      setProfile(userProfile)
-    }
-    
-    checkAuth()
 
     const savedState = localStorage.getItem('sidebarCollapsed')
     if (savedState !== null) {
@@ -43,13 +22,13 @@ export default function DashboardLayout({
     }
 
     const handleSidebarToggle = (e: Event) => {
-      const customEvent = e as CustomEvent
+      const customEvent = e as CustomEvent<boolean>
       setIsSidebarCollapsed(customEvent.detail)
     }
 
     window.addEventListener('sidebarToggle', handleSidebarToggle)
     return () => window.removeEventListener('sidebarToggle', handleSidebarToggle)
-  }, [router])
+  }, [])
 
   // Use a fallback margin to prevent flicker before mounting, matching the default uncollapsed state
   const marginClass = isMounted && isSidebarCollapsed ? 'lg:pl-20' : 'lg:pl-64'

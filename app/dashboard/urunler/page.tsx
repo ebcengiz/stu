@@ -9,6 +9,7 @@ import dynamic from 'next/dynamic'
 import BarcodeScanner from '@/components/barcode/BarcodeScanner'
 import BarcodeDisplay from '@/components/barcode/BarcodeDisplay'
 import { CURRENCY_SYMBOLS } from '@/lib/currency'
+import { calculateTotalStock } from '@/lib/domain/stock'
 // @ts-ignore
 import { toast } from 'react-hot-toast'
 
@@ -56,22 +57,6 @@ interface Product {
     }
   }>
   created_at: string
-}
-
-// Helper function to calculate total stock correctly (handles duplicates)
-function calculateTotalStock(stockRecords?: Array<{ warehouse_id?: string; quantity: number; last_updated: string }>) {
-  if (!stockRecords || stockRecords.length === 0) return 0
-
-  const uniqueStockByWarehouse = new Map<string, number>()
-
-  stockRecords.forEach(record => {
-    const warehouseId = record.warehouse_id || 'default'
-    if (!uniqueStockByWarehouse.has(warehouseId)) {
-      uniqueStockByWarehouse.set(warehouseId, Number(record.quantity || 0))
-    }
-  })
-
-  return Array.from(uniqueStockByWarehouse.values()).reduce((sum, qty) => sum + qty, 0)
 }
 
 function ProductsPageContent() {

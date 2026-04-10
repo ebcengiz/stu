@@ -24,17 +24,10 @@ import {
   Wallet
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, memo } from 'react'
+import type { DashboardProfile } from '@/hooks/useDashboardProfile'
 
-interface Profile {
-  full_name: string
-  role: string
-  tenants: {
-    name: string
-  }
-}
-
-export default function DashboardSidebar({ profile }: { profile: Profile | null }) {
+function DashboardSidebarInner({ profile }: { profile: DashboardProfile | null }) {
   const pathname = usePathname()
   const router = useRouter()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
@@ -44,7 +37,6 @@ export default function DashboardSidebar({ profile }: { profile: Profile | null 
   const [isCashManagementOpen, setIsCashManagementOpen] = useState(false)
 
   useEffect(() => {
-    console.log("Sidebar mounted/updated")
     setIsMounted(true)
     const savedState = localStorage.getItem('sidebarCollapsed')
     if (savedState !== null) {
@@ -322,3 +314,6 @@ export default function DashboardSidebar({ profile }: { profile: Profile | null 
     </>
   )
 }
+
+const DashboardSidebar = memo(DashboardSidebarInner)
+export default DashboardSidebar

@@ -179,6 +179,23 @@ export default function SalesPage() {
     return sortDirection === 'asc' ? <ChevronUp className="h-4 w-4 ml-1 text-primary-600" /> : <ChevronDown className="h-4 w-4 ml-1 text-primary-600" />
   }
 
+  const saleSortValue = (s: Sale, column: SortColumn): string | number => {
+    switch (column) {
+      case 'company_name':
+        return s.customers?.company_name || 'Perakende Müşteri'
+      case 'sale_date':
+        return s.sale_date
+      case 'document_no':
+        return s.document_no
+      case 'status':
+        return s.status
+      case 'total_amount':
+        return s.total_amount
+      default:
+        return ''
+    }
+  }
+
   const filteredSales = [...sales]
     .filter(s => 
       s.document_no?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -186,13 +203,8 @@ export default function SalesPage() {
       s.customers?.company_name?.toLowerCase().includes(searchTerm.toLowerCase())
     )
     .sort((a, b) => {
-      let aValue: any = a[sortColumn]
-      let bValue: any = b[sortColumn]
-
-      if (sortColumn === 'company_name') {
-        aValue = a.customers?.company_name || 'Perakende Müşteri'
-        bValue = b.customers?.company_name || 'Perakende Müşteri'
-      }
+      const aValue = saleSortValue(a, sortColumn)
+      const bValue = saleSortValue(b, sortColumn)
 
       if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1
       if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1

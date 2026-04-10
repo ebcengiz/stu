@@ -14,6 +14,7 @@ interface Purchase {
   purchase_date: string
   suppliers: { company_name: string } | null
   document_no: string
+  order_no?: string | null
   total_amount: number
   currency?: string
   status: string
@@ -179,6 +180,23 @@ export default function PurchasesPage() {
     return sortDirection === 'asc' ? <ChevronUp className="h-4 w-4 ml-1 text-primary-600" /> : <ChevronDown className="h-4 w-4 ml-1 text-primary-600" />
   }
 
+  const purchaseSortValue = (p: Purchase, column: SortColumn): string | number => {
+    switch (column) {
+      case 'company_name':
+        return p.suppliers?.company_name || 'Hızlı Alış'
+      case 'purchase_date':
+        return p.purchase_date
+      case 'document_no':
+        return p.document_no
+      case 'status':
+        return p.status
+      case 'total_amount':
+        return p.total_amount
+      default:
+        return ''
+    }
+  }
+
   const filteredPurchases = [...purchases]
     .filter(p => 
       p.document_no?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -186,13 +204,8 @@ export default function PurchasesPage() {
       p.suppliers?.company_name?.toLowerCase().includes(searchTerm.toLowerCase())
     )
     .sort((a, b) => {
-      let aValue: any = a[sortColumn]
-      let bValue: any = b[sortColumn]
-
-      if (sortColumn === 'company_name') {
-        aValue = a.suppliers?.company_name || 'Hızlı Alış'
-        bValue = b.suppliers?.company_name || 'Hızlı Alış'
-      }
+      const aValue = purchaseSortValue(a, sortColumn)
+      const bValue = purchaseSortValue(b, sortColumn)
 
       if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1
       if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1

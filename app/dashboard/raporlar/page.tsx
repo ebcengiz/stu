@@ -1,6 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { calculateTotalStock } from '@/lib/domain/stock'
+import { getMovementTypeLabel } from '@/lib/domain/stock-movements'
 import { Card, CardHeader, CardBody, CardTitle } from '@/components/ui/Card'
 import { FileText, Package, TrendingDown, Calendar } from 'lucide-react'
 
@@ -26,27 +28,6 @@ interface Movement {
   created_at: string
   products?: { name: string }
   warehouses?: { name: string }
-}
-
-// Helper function to calculate total stock correctly (handles duplicates)
-function calculateTotalStock(stockRecords?: Array<{ warehouse_id?: string; quantity: number; last_updated: string }>) {
-  if (!stockRecords || stockRecords.length === 0) return 0
-
-  // Group by warehouse_id and keep only the most recent record for each warehouse
-  const uniqueStockByWarehouse = new Map<string, number>()
-
-  stockRecords.forEach(record => {
-    const warehouseId = record.warehouse_id || 'default'
-    const existingRecord = uniqueStockByWarehouse.get(warehouseId)
-
-    // If no existing record or this record is more recent, use this one
-    if (!existingRecord) {
-      uniqueStockByWarehouse.set(warehouseId, Number(record.quantity || 0))
-    }
-  })
-
-  // Sum up the quantities from unique warehouses
-  return Array.from(uniqueStockByWarehouse.values()).reduce((sum, qty) => sum + qty, 0)
 }
 
 export default function ReportsPage() {
@@ -84,16 +65,6 @@ export default function ReportsPage() {
       const totalStock = calculateTotalStock(product.stock)
       return totalStock <= product.min_stock_level
     })
-  }
-
-  const getMovementTypeLabel = (type: string) => {
-    const types: Record<string, string> = {
-      'in': 'Giriş',
-      'out': 'Çıkış',
-      'transfer': 'Transfer',
-      'adjustment': 'Düzeltme'
-    }
-    return types[type] || type
   }
 
   if (loading) {

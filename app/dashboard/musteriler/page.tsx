@@ -166,8 +166,12 @@ export default function CustomersPage() {
     setShowModal(true)
   }
 
-  const categories = Array.from(new Set(customers.map(c => c.category1).filter(Boolean)))
-  const labels = Array.from(new Set(customers.map(c => c.category2).filter(Boolean)))
+  const categories = Array.from(
+    new Set(customers.map((c) => c.category1).filter((x): x is string => Boolean(x)))
+  )
+  const labels = Array.from(
+    new Set(customers.map((c) => c.category2).filter((x): x is string => Boolean(x)))
+  )
 
   const filteredCustomers = customers.filter(customer => {
     const searchLower = searchTerm.toLowerCase()
