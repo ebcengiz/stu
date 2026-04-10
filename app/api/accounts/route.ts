@@ -17,27 +17,18 @@ export async function GET() {
       return NextResponse.json({ error: 'Profile not found' }, { status: 400 })
     }
 
-    let { data: accounts, error } = await supabase
+    const { error: rpcErr } = await supabase.rpc('ensure_default_accounts', {
+      p_tenant_id: profile.tenant_id,
+    })
+    if (rpcErr) console.error('ensure_default_accounts:', rpcErr)
+
+    const { data: accounts, error } = await supabase
       .from('accounts')
       .select('*')
       .order('type', { ascending: true })
       .order('name', { ascending: true })
 
     if (error) throw error
-
-    if (!accounts?.length) {
-      const { error: rpcErr } = await supabase.rpc('ensure_default_accounts', {
-        p_tenant_id: profile.tenant_id,
-      })
-      if (rpcErr) console.error('ensure_default_accounts:', rpcErr)
-      const again = await supabase
-        .from('accounts')
-        .select('*')
-        .order('type', { ascending: true })
-        .order('name', { ascending: true })
-      if (again.error) throw again.error
-      accounts = again.data
-    }
 
     return NextResponse.json(accounts ?? [])
   } catch (error: any) {
