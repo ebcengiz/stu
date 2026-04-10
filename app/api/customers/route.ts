@@ -21,8 +21,13 @@ export async function GET() {
     // Calculate balance for each customer
     const customersWithBalance = customers.map((customer: any) => {
       const balance = (customer.customer_transactions || []).reduce((acc: number, tx: any) => {
-        if (tx.type === 'sale') return acc + Number(tx.amount)
+        // Borç artırır: satış / fatura / uygun bakiye düzeltmesi; tahsilat düşer
+        if (tx.type === 'sale' || tx.type === 'invoice') return acc + Number(tx.amount)
         if (tx.type === 'payment') return acc - Number(tx.amount)
+        if (tx.type === 'balance_fix' && String(tx.description || '').includes('BORÇ')) {
+          return acc + Number(tx.amount)
+        }
+        if (tx.type === 'balance_fix') return acc - Number(tx.amount)
         return acc
       }, 0)
 

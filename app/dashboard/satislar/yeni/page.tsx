@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button'
 import { Card, CardBody, CardHeader, CardTitle } from '@/components/ui/Card'
 import { toast } from 'react-hot-toast'
 import { CURRENCY_SYMBOLS } from '@/lib/currency'
+import { isOdemeHesabi } from '@/lib/account-sections'
 
 interface Product {
   id: string
@@ -33,6 +34,15 @@ interface Customer {
   currency?: string
 }
 
+interface CashAccount {
+  id: string
+  name: string
+  type: string
+  currency: string
+  balance: number
+  is_active?: boolean
+}
+
 function SaleEntryForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -52,17 +62,20 @@ function SaleEntryForm() {
     status: 'Bekliyor',
     description: '',
     collected_amount: 0,
+    collection_account_id: '',
     currency: 'TRY'
   })
 
   const [items, setItems] = useState<any[]>([])
+  const [cashAccounts, setCashAccounts] = useState<CashAccount[]>([])
 
   useEffect(() => {
     const initData = async () => {
       try {
-        const [productsRes, warehousesRes] = await Promise.all([
+        const [productsRes, warehousesRes, accountsRes] = await Promise.all([
           fetch('/api/products'),
-          fetch('/api/warehouses')
+          fetch('/api/warehouses'),
+          fetch('/api/accounts'),
         ])
         
         const productsData = await productsRes.json()
@@ -70,6 +83,11 @@ function SaleEntryForm() {
 
         setProducts(Array.isArray(productsData) ? productsData : [])
         setWarehouses(Array.isArray(warehousesData) ? warehousesData : [])
+
+        if (accountsRes.ok) {
+          const acc = await accountsRes.json()
+          setCashAccounts(Array.isArray(acc) ? acc.filter((a: CashAccount) => a.is_active !== false) : [])
+        }
 
         if (customerId) {
           const custRes = await fetch(`/api/customers/${customerId}`)
@@ -145,10 +163,21 @@ function SaleEntryForm() {
 
     setSaving(true)
 
+    if (
+      customerId &&
+      formData.collected_amount > 0 &&
+      !formData.collection_account_id
+    ) {
+      toast.error('Tahsilat için paranın yatırılacağı kasa veya banka hesabını seçin')
+      setSaving(false)
+      return
+    }
+
     const payload = {
       ...formData,
       customer_id: customerId || null,
       total_amount: calculateTotal(),
+      collection_account_id: formData.collection_account_id || undefined,
       items: items.map(item => ({
         ...item,
         total_price: calculateRowTotal(item)
@@ -209,8 +238,35 @@ function SaleEntryForm() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Tahsil Edilen Tutar ({getCurrencySymbol()})</label>
-                <input type="number" step="0.01" value={formData.collected_amount} onChange={(e) => setFormData({...formData, collected_amount: parseFloat(e.target.value) || 0})} className="w-full px-3 py-2 border border-green-300 bg-green-50 rounded-lg font-bold text-green-700" />
+                <input type="number" step="0.01" value={formData.collected_amount} onChange={(e) => {
+                  const v = parseFloat(e.target.value) || 0
+                  setFormData(prev => ({
+                    ...prev,
+                    collected_amount: v,
+                    collection_account_id: v > 0 ? prev.collection_account_id : ''
+                  }))
+                }} className="w-full px-3 py-2 border border-green-300 bg-green-50 rounded-lg font-bold text-green-700" />
               </div>
+              {customerId && formData.collected_amount > 0 && (
+                <div className="md:col-span-3">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Tahsilatın yatırılacağı hesap *</label>
+                  <select
+                    required
+                    value={formData.collection_account_id}
+                    onChange={e => setFormData({ ...formData, collection_account_id: e.target.value })}
+                    className="w-full px-3 py-2 border border-green-300 bg-white rounded-lg font-semibold"
+                  >
+                    <option value="">Kasa veya banka seçin</option>
+                    {cashAccounts
+                      .filter(a => isOdemeHesabi(a.type) && a.currency === formData.currency)
+                      .map(a => (
+                        <option key={a.id} value={a.id}>
+                          {a.name} ({a.type}) — {Number(a.balance).toLocaleString('tr-TR', { minimumFractionDigits: 2 })}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+              )}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Belge No</label>
                 <input type="text" value={formData.document_no} onChange={(e) => setFormData({...formData, document_no: e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-lg" />

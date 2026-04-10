@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
+import { adjustAccountBalance } from '@/lib/account-balance'
 
 export async function GET(request: Request) {
   try {
@@ -52,6 +53,15 @@ export async function POST(request: Request) {
 
     if (!profile) throw new Error('Profile not found')
 
+    const currency = body.currency || 'TRY'
+    const collected = Number(body.collected_amount) || 0
+    if (body.customer_id && collected > 0 && !body.collection_account_id) {
+      return NextResponse.json(
+        { error: 'Tahsilat tutarı girildiğinde paranın yatırılacağı hesabı seçmelisiniz' },
+        { status: 400 }
+      )
+    }
+
     // 1. Transaction başlatmak yerine Supabase RPC kullanabiliriz ama basitlik için sırayla ekleyeceğiz.
     // Eğer biri başarısız olursa, manuel rollback veya Supabase RPC (Stored Procedure) önerilir.
     // Şimdilik standart ardışık ekleme yapıyoruz.
@@ -67,7 +77,7 @@ export async function POST(request: Request) {
         order_no: body.order_no,
         total_amount: Number(body.total_amount) || 0,
         collected_amount: Number(body.collected_amount) || 0,
-        currency: body.currency || 'TRY',
+        currency,
         status: body.status,
         description: body.description
       })
@@ -92,7 +102,7 @@ export async function POST(request: Request) {
             customer_id: body.customer_id,
             type: 'invoice', // Satış Faturası
             amount: body.total_amount,
-            currency: body.currency || 'TRY',
+            currency,
             date: body.sale_date,
             document_no: body.document_no,
             description: `Satış Faturası - Sipariş No: ${body.order_no || sale.id.substring(0,8)}`,
@@ -102,21 +112,41 @@ export async function POST(request: Request) {
       }
 
       // Tahsilat (Alacaklandırma / Ödeme)
-      if (body.collected_amount > 0) {
-        const { error: payError } = await supabase
+      if (collected > 0) {
+        const { data: payRow, error: payError } = await supabase
           .from('customer_transactions')
           .insert({
             tenant_id: profile.tenant_id,
             customer_id: body.customer_id,
             type: 'payment', // Tahsilat
-            amount: body.collected_amount,
-            currency: body.currency || 'TRY',
+            amount: collected,
+            currency,
             date: body.sale_date,
             document_no: body.document_no,
-            description: `Satış Tahsilatı - Sipariş No: ${body.order_no || sale.id.substring(0,8)}`,
-            is_debt: false
+            description: `Satış Tahsilatı - Sipariş No: ${body.order_no || sale.id.substring(0, 8)}`,
+            is_debt: false,
+            account_id: body.collection_account_id || null,
+            payment_method: 'cash',
           })
-          if (payError) throw payError
+          .select('id')
+          .single()
+        if (payError) throw payError
+
+        if (body.collection_account_id) {
+          try {
+            await adjustAccountBalance(supabase, {
+              tenantId: profile.tenant_id,
+              accountId: body.collection_account_id,
+              delta: collected,
+              currency,
+            })
+          } catch (e: any) {
+            if (payRow?.id) {
+              await supabase.from('customer_transactions').delete().eq('id', payRow.id)
+            }
+            throw e
+          }
+        }
       }
     }
 

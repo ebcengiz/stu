@@ -1,5 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
+import { adjustAccountBalance, requiresAccountForPayment } from '@/lib/account-balance'
+import { isMissingColumnSchemaError } from '@/lib/db-errors'
 
 export async function GET(request: Request) {
   try {
@@ -43,8 +45,12 @@ export async function POST(request: Request) {
       cheque_due_date,
       cheque_bank,
       cheque_serial_number,
-      items // Array of { product_id, product_name, quantity, unit_price, total_price, warehouse_id }
+      items, // Array of { product_id, product_name, quantity, unit_price, total_price, warehouse_id }
+      account_id,
+      currency: bodyCurrency,
     } = body
+
+    const currency = bodyCurrency || 'TRY'
 
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) throw new Error('Unauthorized')
@@ -57,6 +63,17 @@ export async function POST(request: Request) {
 
     if (!profile) throw new Error('Profile not found')
 
+    if (
+      type === 'payment' &&
+      requiresAccountForPayment(payment_method) &&
+      !account_id
+    ) {
+      return NextResponse.json(
+        { error: 'Ödemenin çekileceği kasa veya banka hesabını seçin' },
+        { status: 400 }
+      )
+    }
+
     // Get supplier name for stock movement notes
     const { data: supplier } = await supabase
       .from('suppliers')
@@ -66,29 +83,63 @@ export async function POST(request: Request) {
 
     const supplierName = supplier?.company_name || 'Bilinmeyen Tedarikçi'
 
-    // 1. Create the main transaction
-    const { data: transaction, error: txError } = await supabase
+    // 1. Create the main transaction (currency sütunu yoksa migration 024; yine de insert'i currency'siz dene)
+    const insertBase = {
+      supplier_id,
+      tenant_id: profile.tenant_id,
+      type,
+      amount,
+      description,
+      transaction_date,
+      payment_method: type === 'payment' ? payment_method : null,
+      document_number,
+      waybill_number,
+      shipment_date,
+      order_date,
+      cheque_due_date: type === 'payment' && payment_method === 'cheque' ? cheque_due_date : null,
+      cheque_bank: type === 'payment' && payment_method === 'cheque' ? cheque_bank : null,
+      cheque_serial_number: type === 'payment' && payment_method === 'cheque' ? cheque_serial_number : null,
+      account_id: account_id || null,
+    }
+
+    let { data: transaction, error: txError } = await supabase
       .from('supplier_transactions')
-      .insert({
-        supplier_id,
-        tenant_id: profile.tenant_id,
-        type,
-        amount,
-        description,
-        transaction_date,
-        payment_method: type === 'payment' ? payment_method : null,
-        document_number,
-        waybill_number,
-        shipment_date,
-        order_date,
-        cheque_due_date: type === 'payment' && payment_method === 'cheque' ? cheque_due_date : null,
-        cheque_bank: type === 'payment' && payment_method === 'cheque' ? cheque_bank : null,
-        cheque_serial_number: type === 'payment' && payment_method === 'cheque' ? cheque_serial_number : null
-      })
+      .insert({ ...insertBase, currency })
       .select()
       .single()
 
+    if (txError && isMissingColumnSchemaError(txError, 'currency')) {
+      const retry = await supabase
+        .from('supplier_transactions')
+        .insert(insertBase)
+        .select()
+        .single()
+      transaction = retry.data
+      txError = retry.error
+    }
+
     if (txError) throw txError
+
+    if (
+      type === 'payment' &&
+      account_id &&
+      requiresAccountForPayment(payment_method)
+    ) {
+      try {
+        await adjustAccountBalance(supabase, {
+          tenantId: profile.tenant_id,
+          accountId: account_id,
+          delta: -Number(amount),
+          currency,
+        })
+      } catch (balanceErr: any) {
+        await supabase.from('supplier_transactions').delete().eq('id', transaction.id)
+        return NextResponse.json(
+          { error: balanceErr.message || 'Hesap bakiyesi güncellenemedi' },
+          { status: 400 }
+        )
+      }
+    }
 
     // 2. If it's a purchase, create transaction items, update stock, and create a purchases record
     if (type === 'purchase' && items && items.length > 0) {

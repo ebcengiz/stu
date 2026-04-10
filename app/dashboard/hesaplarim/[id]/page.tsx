@@ -10,7 +10,7 @@ import { toast } from 'react-hot-toast'
 interface Account {
   id: string
   name: string
-  type: string // 'kasa', 'banka', 'pos', 'kredi_karti'
+  type: string // DB account_type: cash | bank | pos | other
   currency: string // 'TRY', 'USD', 'EUR'
   balance: number
   is_active: boolean
@@ -59,7 +59,7 @@ export default function AccountDetailPage() {
   })
 
   const [formData, setFormData] = useState({
-    name: '', type: 'banka', currency: 'TRY', bank_name: '', iban: '', credit_limit: 0, is_active: true
+    name: '', type: 'bank', currency: 'TRY', bank_name: '', iban: '', credit_limit: 0, is_active: true
   })
 
   // Dummy target accounts for transfer
@@ -108,11 +108,13 @@ export default function AccountDetailPage() {
         const data = await response.json()
         setTransactions(Array.isArray(data) ? data : [])
       } else {
-        setTransactions(mockTransactions)
+        setTransactions([])
+        const err = await response.json().catch(() => ({}))
+        console.error('Hesap hareketleri yüklenemedi', err?.error || response.status)
       }
     } catch (error) { 
       console.error(error)
-      setTransactions(mockTransactions)
+      setTransactions([])
     }
   }
 
@@ -148,31 +150,17 @@ export default function AccountDetailPage() {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
       })
       
-      if (!res.ok) throw new Error('İşlem kaydedilemedi')
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}))
+        throw new Error(err?.error || 'İşlem kaydedilemedi')
+      }
       
       toast.success('İşlem başarıyla eklendi!')
       resetTxForm()
       fetchTransactions()
       fetchAccountData()
     } catch (err: any) { 
-      // Local Mock fallback
-      const amountNum = parseFloat(txForm.amount)
-      const newTx: AccountTransaction = {
-        id: Math.random().toString(),
-        account_id: accountId,
-        type: txForm.type as any,
-        amount: amountNum,
-        currency: account?.currency || 'TRY',
-        description: txForm.description || (txForm.type === 'inflow' ? 'Para Girişi' : txForm.type === 'outflow' ? 'Para Çıkışı' : 'Transfer'),
-        transaction_date: new Date(txForm.transaction_date).toISOString(),
-        balance_after: account ? (txForm.type === 'inflow' || txForm.type === 'transfer_in' ? account.balance + amountNum : account.balance - amountNum) : 0
-      }
-      setTransactions([newTx, ...transactions])
-      if (account) {
-        setAccount({ ...account, balance: newTx.balance_after })
-      }
-      toast.success('İşlem başarıyla eklendi! (Yerel Önizleme)')
-      resetTxForm()
+      toast.error(err?.message || 'İşlem kaydedilemedi')
     } finally { 
       setSaving(false) 
     }
@@ -229,16 +217,16 @@ export default function AccountDetailPage() {
   }
 
   const getAccountIcon = (type: string) => {
-    if (type === 'kasa') return <Banknote className="h-8 w-8 text-emerald-600" />
+    if (type === 'cash' || type === 'kasa') return <Banknote className="h-8 w-8 text-emerald-600" />
     if (type === 'pos') return <Calculator className="h-8 w-8 text-amber-600" />
-    if (type === 'kredi_karti') return <CreditCard className="h-8 w-8 text-purple-600" />
+    if (type === 'other' || type === 'kredi_karti') return <CreditCard className="h-8 w-8 text-purple-600" />
     return <Building className="h-8 w-8 text-blue-600" />
   }
 
   const getAccountBg = (type: string) => {
-    if (type === 'kasa') return 'bg-emerald-100 border-emerald-200'
+    if (type === 'cash' || type === 'kasa') return 'bg-emerald-100 border-emerald-200'
     if (type === 'pos') return 'bg-amber-100 border-amber-200'
-    if (type === 'kredi_karti') return 'bg-purple-100 border-purple-200'
+    if (type === 'other' || type === 'kredi_karti') return 'bg-purple-100 border-purple-200'
     return 'bg-blue-100 border-blue-200'
   }
 
@@ -266,13 +254,19 @@ export default function AccountDetailPage() {
                 <div className="flex items-center gap-3">
                   <h1 className="text-2xl font-black text-gray-900 tracking-tight">{account.name}</h1>
                   <span className="inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-bold bg-gray-100 text-gray-600 border border-gray-200 uppercase tracking-widest">
-                    {account.type === 'kasa' ? 'Kasa' : account.type === 'pos' ? 'POS' : account.type === 'kredi_karti' ? 'Kredi Kartı' : 'Banka Hesabı'}
+                    {account.type === 'cash' || account.type === 'kasa'
+                      ? 'Kasa'
+                      : account.type === 'pos'
+                        ? 'POS'
+                        : account.type === 'other' || account.type === 'kredi_karti'
+                          ? 'Kredi kartı / diğer'
+                          : 'Banka Hesabı'}
                   </span>
                 </div>
-                {account.type === 'banka' && account.bank_name && (
+                {(account.type === 'bank' || account.type === 'banka') && account.bank_name && (
                   <p className="text-sm font-medium text-gray-500">{account.bank_name} {account.iban ? `- ${account.iban}` : ''}</p>
                 )}
-                {account.type === 'kredi_karti' && account.credit_limit && (
+                {(account.type === 'other' || account.type === 'kredi_karti') && account.credit_limit && (
                   <p className="text-sm font-medium text-gray-500">Kart Limiti: {account.credit_limit.toLocaleString('tr-TR')} {getCurrencySymbol(account.currency)}</p>
                 )}
               </div>
@@ -530,13 +524,13 @@ export default function AccountDetailPage() {
                   <label className="block text-xs font-semibold text-gray-600 mb-1">Hesap Adı *</label>
                   <input type="text" required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm" />
                 </div>
-                {(formData.type === 'banka' || formData.type === 'pos') && (
+                {(formData.type === 'bank' || formData.type === 'banka' || formData.type === 'pos') && (
                   <>
                     <div>
                       <label className="block text-xs font-semibold text-gray-600 mb-1">Banka Adı</label>
                       <input type="text" value={formData.bank_name} onChange={e => setFormData({...formData, bank_name: e.target.value})} className="w-full px-3 py-2.5 border border-gray-300 rounded-lg outline-none text-sm" />
                     </div>
-                    {formData.type === 'banka' && (
+                    {(formData.type === 'bank' || formData.type === 'banka') && (
                       <div>
                         <label className="block text-xs font-semibold text-gray-600 mb-1">IBAN</label>
                         <input type="text" value={formData.iban} onChange={e => setFormData({...formData, iban: e.target.value})} className="w-full px-3 py-2.5 border border-gray-300 rounded-lg outline-none text-sm" />
@@ -544,7 +538,7 @@ export default function AccountDetailPage() {
                     )}
                   </>
                 )}
-                {formData.type === 'kredi_karti' && (
+                {(formData.type === 'other' || formData.type === 'kredi_karti') && (
                   <div>
                     <label className="block text-xs font-semibold text-gray-600 mb-1">Kart Limiti</label>
                     <input type="number" value={formData.credit_limit} onChange={e => setFormData({...formData, credit_limit: Number(e.target.value)})} className="w-full px-3 py-2.5 border border-gray-300 rounded-lg outline-none text-sm" />
@@ -565,13 +559,7 @@ export default function AccountDetailPage() {
 }
 
 const mockAccounts: Account[] = [
-  { id: '1', name: 'Merkez Kasa', type: 'kasa', currency: 'TRY', balance: 45250.00, is_active: true },
-  { id: '2', name: 'Vadesiz TL Hesabı', type: 'banka', currency: 'TRY', bank_name: 'Ziraat Bankası', iban: 'TR12 3456 7890', balance: 125000.00, is_active: true },
-  { id: '3', name: 'Dolar (USD) Hesabı', type: 'banka', currency: 'USD', bank_name: 'Garanti BBVA', balance: 15400.00, is_active: true }
-]
-
-const mockTransactions: AccountTransaction[] = [
-  { id: 't1', account_id: '1', type: 'inflow', amount: 15000, currency: 'TRY', description: 'Müşteri Nakit Tahsilatı', transaction_date: new Date().toISOString(), balance_after: 45250 },
-  { id: 't2', account_id: '1', type: 'outflow', amount: 5000, currency: 'TRY', description: 'Ofis Giderleri', transaction_date: new Date(Date.now() - 86400000).toISOString(), balance_after: 30250 },
-  { id: 't3', account_id: '1', type: 'transfer_in', amount: 10000, currency: 'TRY', description: 'Bankadan Nakit Çekim', transaction_date: new Date(Date.now() - 86400000*2).toISOString(), balance_after: 35250 },
+  { id: '1', name: 'Merkez Kasa', type: 'cash', currency: 'TRY', balance: 45250.00, is_active: true },
+  { id: '2', name: 'Vadesiz TL Hesabı', type: 'bank', currency: 'TRY', bank_name: 'Ziraat Bankası', iban: 'TR12 3456 7890', balance: 125000.00, is_active: true },
+  { id: '3', name: 'Dolar (USD) Hesabı', type: 'bank', currency: 'USD', bank_name: 'Garanti BBVA', balance: 15400.00, is_active: true }
 ]

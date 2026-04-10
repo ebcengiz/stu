@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
+import { adjustAccountBalance, requiresAccountForPayment } from '@/lib/account-balance'
 
 export async function GET(request: Request) {
   try {
@@ -43,8 +44,12 @@ export async function POST(request: Request) {
       cheque_due_date,
       cheque_bank,
       cheque_serial_number,
-      items // Array of { product_id, product_name, quantity, unit_price, total_price }
+      items, // Array of { product_id, product_name, quantity, unit_price, total_price }
+      account_id,
+      currency: bodyCurrency,
     } = body
+
+    const currency = bodyCurrency || 'TRY'
 
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) throw new Error('Unauthorized')
@@ -56,6 +61,17 @@ export async function POST(request: Request) {
       .single()
 
     if (!profile) throw new Error('Profile not found')
+
+    if (
+      type === 'payment' &&
+      requiresAccountForPayment(payment_method) &&
+      !account_id
+    ) {
+      return NextResponse.json(
+        { error: 'Tahsilatın yatırılacağı kasa veya banka hesabını seçin' },
+        { status: 400 }
+      )
+    }
 
     // Get customer name for stock movement notes
     const { data: customer } = await supabase
@@ -83,12 +99,35 @@ export async function POST(request: Request) {
         order_date,
         cheque_due_date: type === 'payment' && payment_method === 'cheque' ? cheque_due_date : null,
         cheque_bank: type === 'payment' && payment_method === 'cheque' ? cheque_bank : null,
-        cheque_serial_number: type === 'payment' && payment_method === 'cheque' ? cheque_serial_number : null
+        cheque_serial_number: type === 'payment' && payment_method === 'cheque' ? cheque_serial_number : null,
+        account_id: account_id || null,
+        currency,
       })
       .select()
       .single()
 
     if (txError) throw txError
+
+    if (
+      type === 'payment' &&
+      account_id &&
+      requiresAccountForPayment(payment_method)
+    ) {
+      try {
+        await adjustAccountBalance(supabase, {
+          tenantId: profile.tenant_id,
+          accountId: account_id,
+          delta: Number(amount),
+          currency,
+        })
+      } catch (balanceErr: any) {
+        await supabase.from('customer_transactions').delete().eq('id', transaction.id)
+        return NextResponse.json(
+          { error: balanceErr.message || 'Hesap bakiyesi güncellenemedi' },
+          { status: 400 }
+        )
+      }
+    }
 
     // 2. If it's a sale, create transaction items, update stock, and create a sales record
     if (type === 'sale' && items && items.length > 0) {

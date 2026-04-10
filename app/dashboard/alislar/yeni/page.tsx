@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button'
 import { Card, CardBody, CardHeader, CardTitle } from '@/components/ui/Card'
 import { toast } from 'react-hot-toast'
 import { CURRENCY_SYMBOLS } from '@/lib/currency'
+import { isOdemeHesabi } from '@/lib/account-sections'
 
 interface Product {
   id: string
@@ -28,6 +29,15 @@ interface Supplier {
   currency?: string
 }
 
+interface CashAccount {
+  id: string
+  name: string
+  type: string
+  currency: string
+  balance: number
+  is_active?: boolean
+}
+
 function PurchaseEntryForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -47,21 +57,28 @@ function PurchaseEntryForm() {
     status: 'Faturalaşmış',
     description: '',
     paid_amount: 0,
+    payment_account_id: '',
     currency: 'TRY'
   })
 
   const [items, setItems] = useState<any[]>([])
+  const [cashAccounts, setCashAccounts] = useState<CashAccount[]>([])
 
   useEffect(() => {
     const initData = async () => {
       try {
-        const [productsRes, warehousesRes] = await Promise.all([
+        const [productsRes, warehousesRes, accountsRes] = await Promise.all([
           fetch('/api/products'),
-          fetch('/api/warehouses')
+          fetch('/api/warehouses'),
+          fetch('/api/accounts'),
         ])
         
         setProducts(await productsRes.json())
         setWarehouses(await warehousesRes.json())
+        if (accountsRes.ok) {
+          const acc = await accountsRes.json()
+          setCashAccounts(Array.isArray(acc) ? acc.filter((a: CashAccount) => a.is_active !== false) : [])
+        }
 
         if (supplierId) {
           const suppRes = await fetch(`/api/suppliers/${supplierId}`)
@@ -121,10 +138,21 @@ function PurchaseEntryForm() {
 
     setSaving(true)
 
+    if (
+      supplierId &&
+      formData.paid_amount > 0 &&
+      !formData.payment_account_id
+    ) {
+      toast.error('Ödeme için paranın çekileceği kasa veya banka hesabını seçin')
+      setSaving(false)
+      return
+    }
+
     const payload = {
       ...formData,
       supplier_id: supplierId || null,
       total_amount: calculateTotal(),
+      payment_account_id: formData.payment_account_id || undefined,
       items: items.map(item => ({
         ...item,
         total_price: calculateRowTotal(item)
@@ -182,8 +210,35 @@ function PurchaseEntryForm() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Ödenen Tutar ({getCurrencySymbol()})</label>
-                <input type="number" step="0.01" value={formData.paid_amount} onChange={(e) => setFormData({...formData, paid_amount: parseFloat(e.target.value) || 0})} className="w-full px-3 py-2 border border-blue-300 bg-blue-50 rounded-lg font-bold text-blue-700" />
+                <input type="number" step="0.01" value={formData.paid_amount} onChange={(e) => {
+                  const v = parseFloat(e.target.value) || 0
+                  setFormData(prev => ({
+                    ...prev,
+                    paid_amount: v,
+                    payment_account_id: v > 0 ? prev.payment_account_id : ''
+                  }))
+                }} className="w-full px-3 py-2 border border-blue-300 bg-blue-50 rounded-lg font-bold text-blue-700" />
               </div>
+              {supplierId && formData.paid_amount > 0 && (
+                <div className="md:col-span-3">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Ödemenin çekileceği hesap *</label>
+                  <select
+                    required
+                    value={formData.payment_account_id}
+                    onChange={e => setFormData({ ...formData, payment_account_id: e.target.value })}
+                    className="w-full px-3 py-2 border border-blue-300 bg-white rounded-lg font-semibold"
+                  >
+                    <option value="">Kasa veya banka seçin</option>
+                    {cashAccounts
+                      .filter(a => isOdemeHesabi(a.type) && a.currency === formData.currency)
+                      .map(a => (
+                        <option key={a.id} value={a.id}>
+                          {a.name} ({a.type}) — {Number(a.balance).toLocaleString('tr-TR', { minimumFractionDigits: 2 })}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+              )}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Belge No</label>
                 <input type="text" value={formData.document_no} onChange={(e) => setFormData({...formData, document_no: e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-lg" />
