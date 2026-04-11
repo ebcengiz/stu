@@ -136,11 +136,31 @@ export async function POST(
       return null
     }
 
-    if (entry_type === 'payment') {
+    if (entry_type === 'payment' || entry_type === 'advance_given') {
       const err = await validateCariCashBankAccount(
         'Ödemeyi yaptığınız kasa veya banka hesabını seçin'
       )
       if (err) return err
+      if (signed_amount <= 0) {
+        return NextResponse.json(
+          { error: 'Tutar sıfırdan büyük olmalıdır' },
+          { status: 400 }
+        )
+      }
+    }
+
+    if (entry_type === 'expense' && signed_amount >= 0) {
+      return NextResponse.json(
+        { error: 'Masraf tutarı negatif olmalıdır (alacak sütunu)' },
+        { status: 400 }
+      )
+    }
+
+    if (entry_type === 'salary_accrual' && signed_amount >= 0) {
+      return NextResponse.json(
+        { error: 'Tahakkuk tutarı negatif olmalıdır (şirket borcu artar)' },
+        { status: 400 }
+      )
     }
 
     if (entry_type === 'advance_refund') {
@@ -148,9 +168,10 @@ export async function POST(
         'İadeyi aldığınız kasa veya banka hesabını seçin'
       )
       if (err) return err
-      if (signed_amount <= 0) {
+      /** Cari: negatif — çalışan borcu azalır. Kasa: para girişi (+) */
+      if (signed_amount >= 0) {
         return NextResponse.json(
-          { error: 'İade tutarı sıfırdan büyük olmalıdır' },
+          { error: 'İade caride negatif tutar olmalıdır (borç azalır)' },
           { status: 400 }
         )
       }
@@ -180,12 +201,13 @@ export async function POST(
 
     if (error) throw error
 
-    if (entry_type === 'payment' && account_id && row) {
+    if ((entry_type === 'payment' || entry_type === 'advance_given') && account_id && row) {
       try {
+        /** Kasadan çıkış: maaş/avans caride pozitif (Borç); hesap bakiyesi azalır */
         await adjustAccountBalance(supabase, {
           tenantId: t.tenantId,
           accountId: account_id,
-          delta: signed_amount,
+          delta: -Math.abs(signed_amount),
           currency,
         })
       } catch (balErr: any) {
@@ -202,7 +224,7 @@ export async function POST(
         await adjustAccountBalance(supabase, {
           tenantId: t.tenantId,
           accountId: account_id,
-          delta: signed_amount,
+          delta: Math.abs(signed_amount),
           currency,
         })
       } catch (balErr: any) {

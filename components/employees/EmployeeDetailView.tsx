@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -21,10 +21,13 @@ import {
   X,
   AlertTriangle,
   Check,
+  Trash2,
 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { toast } from 'react-hot-toast'
 import { isOdemeHesabi } from '@/lib/account-sections'
+import type { MasrafGroup } from '@/lib/masraf-kalemleri'
+import { MASRAF_GROUPS, findMasrafLabel, KDV_ORAN_OPTIONS } from '@/lib/masraf-kalemleri'
 
 interface Employee {
   id: string
@@ -44,76 +47,14 @@ interface CariTx {
   description: string | null
   transaction_date: string
   expense_item?: string | null
+  created_at?: string
+  account_id?: string | null
 }
-
-type MasrafGroup = { group: string; items: { value: string; label: string }[] }
-
-/** Görsellerdeki masraf kalemleri — gruplar + optgroup */
-const MASRAF_GROUPS: MasrafGroup[] = [
-  {
-    group: 'Araç Giderleri',
-    items: [
-      { value: 'arac_bakim_onarim', label: 'Bakım/Onarım' },
-      { value: 'arac_ceza', label: 'Ceza' },
-      { value: 'arac_kasko_sigorta', label: 'Kasko/Sigorta' },
-      { value: 'arac_kiralama', label: 'Kiralama' },
-      { value: 'arac_muayene', label: 'Muayene' },
-      { value: 'arac_vergi', label: 'Vergi' },
-      { value: 'arac_yakit', label: 'Yakıt' },
-    ],
-  },
-  {
-    group: 'İşletme Giderleri',
-    items: [
-      { value: 'isletme_aidat', label: 'Aidat' },
-      { value: 'isletme_elektrik', label: 'Elektrik' },
-      { value: 'isletme_isinma', label: 'Isınma' },
-      { value: 'isletme_iletisim', label: 'İletişim' },
-      { value: 'isletme_kirtasiye', label: 'Kırtasiye' },
-      { value: 'isletme_kira', label: 'Kira' },
-      { value: 'isletme_su', label: 'Su' },
-      { value: 'isletme_temizlik', label: 'Temizlik' },
-    ],
-  },
-  {
-    group: 'Mali Giderler',
-    items: [
-      { value: 'mali_banka_masraflari', label: 'Banka Masrafları' },
-      { value: 'mali_faiz', label: 'Faiz' },
-      { value: 'mali_kdv', label: 'KDV' },
-      { value: 'mali_kur_farki', label: 'Kur Farkı' },
-      { value: 'mali_kurumlar_vergisi', label: 'Kurumlar Vergisi' },
-      { value: 'mali_mali_musavir', label: 'Mali Müşavir' },
-      { value: 'mali_noter', label: 'Noter' },
-      { value: 'mali_stopaj', label: 'Stopaj' },
-    ],
-  },
-  {
-    group: 'Personel Giderleri',
-    items: [
-      { value: 'pers_maas', label: 'Maaş' },
-      { value: 'pers_prim', label: 'Prim' },
-      { value: 'pers_tazminat', label: 'Tazminat' },
-      { value: 'pers_ulasim', label: 'Ulaşım' },
-      { value: 'pers_vergi_ssk', label: 'Vergi/SSK' },
-      { value: 'pers_yemek', label: 'Yemek' },
-    ],
-  },
-]
-
-function findMasrafLabel(value: string): string {
-  for (const g of MASRAF_GROUPS) {
-    const it = g.items.find((i) => i.value === value)
-    if (it) return `${g.group} › ${it.label}`
-  }
-  return value
-}
-
-const KDV_ORAN_OPTIONS = ['0', '1', '8', '10', '18', '20'] as const
 
 const ENTRY_LABELS: Record<string, string> = {
   salary_accrual: 'Maaş/Prim Tahakkuku',
-  payment: 'Ödeme',
+  payment: 'Maaş/Prim Ödemesi',
+  advance_given: 'Avans',
   expense: 'Masraf',
   advance_refund: 'Avans İadesi',
   debt_credit: 'Borç-Alacak Fişi',
@@ -134,9 +75,12 @@ export default function EmployeeDetailView({ employeeId }: { employeeId: string 
   const [txs, setTxs] = useState<CariTx[]>([])
   const [currency, setCurrency] = useState('TRY')
   const [loading, setLoading] = useState(true)
+  const [deletingCariId, setDeletingCariId] = useState<string | null>(null)
   const [paymentMenuOpen, setPaymentMenuOpen] = useState(false)
   const [cariOpen, setCariOpen] = useState(true)
-  const [modal, setModal] = useState<null | { kind: 'accrual' | 'payment' | 'expense' | 'advance' | 'slip' }>(null)
+  const [modal, setModal] = useState<
+    null | { kind: 'accrual' | 'payment' | 'advance_given' | 'expense' | 'advance' | 'slip' }
+  >(null)
   const [amountStr, setAmountStr] = useState('')
   const [descStr, setDescStr] = useState('')
   const [accrualDate, setAccrualDate] = useState(() => new Date().toISOString().slice(0, 10))
@@ -159,7 +103,7 @@ export default function EmployeeDetailView({ employeeId }: { employeeId: string 
   const [advanceAmountStr, setAdvanceAmountStr] = useState('')
   const [advanceDesc, setAdvanceDesc] = useState('')
 
-  /** alacak: bakiye artar (+), borç: bakiye azalır (−) — cari toplamı signed_amount */
+  /** Bakiye = Σ signed. Negatif: şirket çalışana borçlu (alacak). Pozitif: çalışan şirkete borçlu (borç). Masraf/tahakkuk: negatif signed → Alacak sütunu. Maaş ödemesi: pozitif → Borç. Avans: pozitif → Borç (çalışan borçlanır). */
   const [slipKind, setSlipKind] = useState<'alacak' | 'borc'>('alacak')
   const [slipDate, setSlipDate] = useState(() => new Date().toISOString().slice(0, 10))
   const [slipAmountStr, setSlipAmountStr] = useState('')
@@ -171,6 +115,8 @@ export default function EmployeeDetailView({ employeeId }: { employeeId: string 
   const [expenseGrossStr, setExpenseGrossStr] = useState('')
   const [expenseVatRate, setExpenseVatRate] = useState('0')
   const [expenseNote, setExpenseNote] = useState('')
+
+  const [masrafGroups, setMasrafGroups] = useState<MasrafGroup[]>(MASRAF_GROUPS)
 
   const closeModal = () => {
     setModal(null)
@@ -198,6 +144,61 @@ export default function EmployeeDetailView({ employeeId }: { employeeId: string 
     setExpenseGrossStr('')
     setExpenseVatRate('0')
     setExpenseNote('')
+  }
+
+  const performDeleteCariTx = async (txId: string) => {
+    setDeletingCariId(txId)
+    try {
+      const res = await fetch(`/api/employees/${employeeId}/cari/${txId}`, { method: 'DELETE' })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(data.error || 'Silinemedi')
+      toast.success('Hareket silindi')
+      await load()
+      router.refresh()
+    } catch (e: any) {
+      toast.error(e.message || 'Silinemedi')
+    } finally {
+      setDeletingCariId(null)
+    }
+  }
+
+  const handleDeleteCariTx = (txId: string) => {
+    toast.custom(
+      (t) => (
+        <div
+          className="pointer-events-auto max-w-sm rounded-xl border border-slate-200/80 bg-white px-4 py-3 shadow-lg ring-1 ring-black/5"
+          role="dialog"
+          aria-labelledby={`cari-del-title-${t.id}`}
+        >
+          <p id={`cari-del-title-${t.id}`} className="text-sm font-semibold text-slate-900">
+            Bu hareketi silmek istiyor musunuz?
+          </p>
+          <p className="mt-1.5 text-xs leading-relaxed text-slate-600">
+            Kasa veya banka hesabı bağlıysa bakiye otomatik güncellenir.
+          </p>
+          <div className="mt-4 flex justify-end gap-2">
+            <button
+              type="button"
+              className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
+              onClick={() => toast.dismiss(t.id)}
+            >
+              İptal
+            </button>
+            <button
+              type="button"
+              className="rounded-lg bg-red-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-red-700"
+              onClick={() => {
+                toast.dismiss(t.id)
+                void performDeleteCariTx(txId)
+              }}
+            >
+              Sil
+            </button>
+          </div>
+        </div>
+      ),
+      { duration: Infinity, position: 'top-center' }
+    )
   }
 
   const load = async () => {
@@ -232,7 +233,26 @@ export default function EmployeeDetailView({ employeeId }: { employeeId: string 
   }, [employeeId])
 
   useEffect(() => {
-    if (modal?.kind !== 'payment') return
+    let cancelled = false
+    ;(async () => {
+      try {
+        const res = await fetch('/api/expense-items')
+        const data = await res.json().catch(() => ({}))
+        if (cancelled || !res.ok) return
+        if (Array.isArray(data.groups) && data.groups.length > 0) {
+          setMasrafGroups(data.groups)
+        }
+      } catch {
+        /* STATIC_MASRAF_GROUPS */
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  useEffect(() => {
+    if (modal?.kind !== 'payment' && modal?.kind !== 'advance_given') return
     setPaymentDate(new Date().toISOString().slice(0, 10))
     setPaymentAccountId('')
     setPaymentAmountStr('')
@@ -351,7 +371,7 @@ export default function EmployeeDetailView({ employeeId }: { employeeId: string 
       toast.error('Masraf kalemi seçin')
       return
     }
-    const label = findMasrafLabel(expenseItem)
+    const label = findMasrafLabel(expenseItem, masrafGroups)
     const userDesc = descStr.trim()
     const composed = userDesc
       ? `${userDesc} (Masraf kalemi: ${label})`
@@ -359,7 +379,7 @@ export default function EmployeeDetailView({ employeeId }: { employeeId: string 
     const txDate = accrualDate
       ? new Date(accrualDate + 'T12:00:00').toISOString()
       : undefined
-    return submitCari('salary_accrual', amt, composed, {
+    return submitCari('salary_accrual', -amt, composed, {
       transaction_date: txDate,
       expense_item: label,
     })
@@ -378,8 +398,28 @@ export default function EmployeeDetailView({ employeeId }: { employeeId: string 
     const txDate = paymentDate
       ? new Date(paymentDate + 'T12:00:00').toISOString()
       : undefined
-    const desc = paymentDesc.trim() || 'Maaş/Prim/Avans ödemesi'
-    return submitCari('payment', -amt, desc, {
+    const desc = paymentDesc.trim() || 'Maaş/Prim ödemesi'
+    return submitCari('payment', amt, desc, {
+      transaction_date: txDate,
+      account_id: paymentAccountId,
+    })
+  }
+
+  const handleAdvanceGivenSubmit = () => {
+    const amt = parseFloat(paymentAmountStr.replace(',', '.'))
+    if (!Number.isFinite(amt) || amt <= 0) {
+      toast.error('Geçerli avans tutarı girin')
+      return
+    }
+    if (!paymentAccountId) {
+      toast.error('Avansı verdiğiniz hesabı seçin')
+      return
+    }
+    const txDate = paymentDate
+      ? new Date(paymentDate + 'T12:00:00').toISOString()
+      : undefined
+    const desc = paymentDesc.trim() || 'Avans ödemesi'
+    return submitCari('advance_given', amt, desc, {
       transaction_date: txDate,
       account_id: paymentAccountId,
     })
@@ -399,7 +439,7 @@ export default function EmployeeDetailView({ employeeId }: { employeeId: string 
       ? new Date(advanceDate + 'T12:00:00').toISOString()
       : undefined
     const desc = advanceDesc.trim() || 'Avans iadesi'
-    return submitCari('advance_refund', amt, desc, {
+    return submitCari('advance_refund', -amt, desc, {
       transaction_date: txDate,
       account_id: advanceAccountId,
     })
@@ -411,7 +451,7 @@ export default function EmployeeDetailView({ employeeId }: { employeeId: string 
       toast.error('Geçerli tutar girin')
       return
     }
-    const signed = slipKind === 'alacak' ? amt : -amt
+    const signed = slipKind === 'alacak' ? -amt : amt
     const txDate = slipDate
       ? new Date(slipDate + 'T12:00:00').toISOString()
       : undefined
@@ -421,7 +461,7 @@ export default function EmployeeDetailView({ employeeId }: { employeeId: string 
     return submitCari('debt_credit', signed, desc, { transaction_date: txDate })
   }
 
-  /** Çalışanın ödediği masraf → caride alacak (+signed_amount). Tutar KDV dahil. */
+  /** Masraf → Alacak sütunu (negatif signed), bakiye azalır. Tutar KDV dahil. */
   const handleExpenseSubmit = () => {
     const amt = parseFloat(expenseGrossStr.replace(',', '.'))
     if (!Number.isFinite(amt) || amt <= 0) {
@@ -432,7 +472,7 @@ export default function EmployeeDetailView({ employeeId }: { employeeId: string 
       toast.error('Masraf kalemi seçin')
       return
     }
-    const label = findMasrafLabel(expenseCategory)
+    const label = findMasrafLabel(expenseCategory, masrafGroups)
     const txDate = expenseDate
       ? new Date(expenseDate + 'T12:00:00').toISOString()
       : undefined
@@ -444,7 +484,7 @@ export default function EmployeeDetailView({ employeeId }: { employeeId: string 
     if (expenseVatRate && expenseVatRate !== '0') bits.push(`KDV %${expenseVatRate}`)
     const head = bits.length ? bits.join(' · ') : 'Masraf girişi'
     const composed = `${head} (Masraf kalemi: ${label})`
-    return submitCari('expense', amt, composed, {
+    return submitCari('expense', -amt, composed, {
       transaction_date: txDate,
       expense_item: label,
     })
@@ -452,6 +492,29 @@ export default function EmployeeDetailView({ employeeId }: { employeeId: string 
 
   const selectedPaymentBalance = paymentAccounts.find((a) => a.id === paymentAccountId)?.balance
   const selectedAdvanceBalance = advanceAccounts.find((a) => a.id === advanceAccountId)?.balance
+
+  const cariTableRows = useMemo(() => {
+    const sorted = [...txs].sort((a, b) => {
+      const ta = new Date(a.transaction_date).getTime()
+      const tb = new Date(b.transaction_date).getTime()
+      if (ta !== tb) return ta - tb
+      const ca = a.created_at ? new Date(a.created_at).getTime() : 0
+      const cb = b.created_at ? new Date(b.created_at).getTime() : 0
+      return ca - cb
+    })
+    let run = 0
+    const asc = sorted.map((t) => {
+      const s = Number(t.signed_amount)
+      run += s
+      return {
+        t,
+        borc: s > 0 ? s : 0,
+        alacak: s < 0 ? Math.abs(s) : 0,
+        balance: run,
+      }
+    })
+    return asc.reverse()
+  }, [txs])
 
   if (loading || !emp) {
     return (
@@ -570,7 +633,18 @@ export default function EmployeeDetailView({ employeeId }: { employeeId: string 
                   }}
                 >
                   <Banknote className="h-4 w-4 text-emerald-600" />
-                  Ödeme Yap (Maaş/Prim/Avans)
+                  Maaş/Prim Ödemesi
+                </button>
+                <button
+                  type="button"
+                  className="w-full text-left px-4 py-3 text-sm font-semibold text-gray-800 hover:bg-amber-50 flex items-center gap-2 border-b border-gray-50"
+                  onClick={() => {
+                    setPaymentMenuOpen(false)
+                    setModal({ kind: 'advance_given' })
+                  }}
+                >
+                  <Banknote className="h-4 w-4 text-amber-600" />
+                  Avans Ver
                 </button>
                 <button
                   type="button"
@@ -646,18 +720,25 @@ export default function EmployeeDetailView({ employeeId }: { employeeId: string 
           onClick={() => setCariOpen(!cariOpen)}
           className="w-full flex items-center justify-between px-4 py-3 bg-slate-800 text-white font-black text-sm uppercase tracking-wider"
         >
-          <span>Önceki Cari</span>
+          <span>Önceki Cari İşlemleri</span>
           <ChevronDown className={`h-5 w-5 transition-transform ${cariOpen ? 'rotate-180' : ''}`} />
         </button>
         {cariOpen && (
           <div className="p-4 bg-amber-50/80 border-t border-amber-100/80">
             <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-              <p className="text-sm font-bold text-gray-800">
-                Güncel bakiye:{' '}
-                <span className={balance >= 0 ? 'text-emerald-700' : 'text-red-700'}>
-                  {formatMoney(balance, currency)}
-                </span>
-              </p>
+              <div className="space-y-1">
+                <p className="text-sm font-bold text-gray-800">
+                  Güncel bakiye:{' '}
+                  <span className={balance >= 0 ? 'text-emerald-700' : 'text-red-700'}>
+                    {formatMoney(balance, currency)}
+                  </span>
+                </p>
+                <p className="text-xs text-gray-600 leading-relaxed">
+                  Negatif: şirket çalışana borçlu (çalışanın alacağı). Pozitif: çalışan şirkete borçlu.
+                  Masraf ve tahakkuk <strong>Alacak</strong>, maaş ödemesi ve avans <strong>Borç</strong>{' '}
+                  sütununa düşer.
+                </p>
+              </div>
             </div>
             {txs.length === 0 ? (
               <p className="text-sm text-amber-900/80 leading-relaxed">
@@ -669,37 +750,54 @@ export default function EmployeeDetailView({ employeeId }: { employeeId: string 
                   <thead className="bg-gray-100 text-gray-600">
                     <tr>
                       <th className="px-3 py-2 text-left font-bold">Tarih</th>
-                      <th className="px-3 py-2 text-left font-bold">Tür</th>
+                      <th className="px-3 py-2 text-left font-bold">Kalem</th>
                       <th className="px-3 py-2 text-left font-bold">Açıklama</th>
-                      <th className="px-3 py-2 text-right font-bold">Tutar ({sym})</th>
+                      <th className="px-3 py-2 text-right font-bold whitespace-nowrap">Borç ({sym})</th>
+                      <th className="px-3 py-2 text-right font-bold whitespace-nowrap">Alacak ({sym})</th>
+                      <th className="px-3 py-2 text-right font-bold whitespace-nowrap">Bakiye ({sym})</th>
+                      <th className="px-2 py-2 text-center font-bold w-12">Sil</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
-                    {txs.map((t) => (
+                    {cariTableRows.map(({ t, borc, alacak, balance }) => (
                       <tr key={t.id} className="hover:bg-gray-50">
                         <td className="px-3 py-2 whitespace-nowrap text-gray-700">
                           {new Date(t.transaction_date).toLocaleDateString('tr-TR')}
                         </td>
-                        <td className="px-3 py-2 text-gray-800">
-                          {ENTRY_LABELS[t.entry_type] || t.entry_type}
+                        <td className="px-3 py-2 text-gray-800 max-w-[140px]">
+                          <span className="font-medium">
+                            {t.expense_item?.trim() || ENTRY_LABELS[t.entry_type] || t.entry_type}
+                          </span>
                         </td>
                         <td className="px-3 py-2 text-gray-600 max-w-md">
                           <div className="truncate" title={t.description || undefined}>
-                            {t.expense_item && (
-                              <span className="block text-[11px] font-semibold text-gray-500">
-                                {t.expense_item}
-                              </span>
-                            )}
                             <span className="truncate block">{t.description || '—'}</span>
                           </div>
                         </td>
+                        <td className="px-3 py-2 text-right tabular-nums text-gray-900">
+                          {borc > 0 ? formatMoney(borc, currency) : '—'}
+                        </td>
+                        <td className="px-3 py-2 text-right tabular-nums text-gray-900">
+                          {alacak > 0 ? formatMoney(alacak, currency) : '—'}
+                        </td>
                         <td
-                          className={`px-3 py-2 text-right font-semibold ${
-                            Number(t.signed_amount) >= 0 ? 'text-emerald-700' : 'text-red-700'
+                          className={`px-3 py-2 text-right font-semibold tabular-nums ${
+                            balance <= 0 ? 'text-red-700' : 'text-emerald-700'
                           }`}
                         >
-                          {Number(t.signed_amount) >= 0 ? '+' : ''}
-                          {Number(t.signed_amount).toLocaleString('tr-TR', { minimumFractionDigits: 2 })}
+                          {formatMoney(balance, currency)}
+                        </td>
+                        <td className="px-2 py-2 text-center">
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteCariTx(t.id)}
+                            disabled={deletingCariId === t.id}
+                            className="inline-flex rounded-md p-1.5 text-red-600 hover:bg-red-50 disabled:opacity-50"
+                            title="Sil"
+                            aria-label="Hareketi sil"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
                         </td>
                       </tr>
                     ))}
@@ -748,7 +846,7 @@ export default function EmployeeDetailView({ employeeId }: { employeeId: string 
                   <p className="text-sm font-semibold leading-snug">
                     Bu işlem kasa ya da banka hesabınızı etkilemez; sadece çalışanınızı
                     alacaklandırır. Ödeme yapmak için{' '}
-                    <strong>«Ödeme Yap (Maaş/Prim/Avans)»</strong> seçeneğini kullanın.
+                    <strong>«Maaş/Prim Ödemesi»</strong> seçeneğini kullanın.
                   </p>
                 </div>
               </div>
@@ -791,7 +889,7 @@ export default function EmployeeDetailView({ employeeId }: { employeeId: string 
                   onChange={(e) => setExpenseItem(e.target.value)}
                 >
                   <option value="">Seçiniz…</option>
-                  {MASRAF_GROUPS.map((g) => (
+                  {masrafGroups.map((g) => (
                     <optgroup key={g.group} label={g.group}>
                       {g.items.map((m) => (
                         <option key={m.value} value={m.value}>
@@ -829,12 +927,16 @@ export default function EmployeeDetailView({ employeeId }: { employeeId: string 
         </div>
       )}
 
-      {/* Maaş / Prim / Avans ödemesi */}
-      {modal?.kind === 'payment' && (
+      {/* Maaş/Prim ödemesi veya Avans verme */}
+      {(modal?.kind === 'payment' || modal?.kind === 'advance_given') && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50">
           <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden border border-gray-100">
-            <div className="flex items-center justify-between px-5 py-4 bg-emerald-600 text-white">
-              <h3 className="text-lg font-black tracking-tight">Maaş/Prim/Avans Ödemesi</h3>
+            <div
+              className={`flex items-center justify-between px-5 py-4 text-white ${modal?.kind === 'advance_given' ? 'bg-amber-600' : 'bg-emerald-600'}`}
+            >
+              <h3 className="text-lg font-black tracking-tight">
+                {modal?.kind === 'advance_given' ? 'Avans Ver' : 'Maaş/Prim Ödemesi'}
+              </h3>
               <button
                 type="button"
                 onClick={closeModal}
@@ -845,20 +947,35 @@ export default function EmployeeDetailView({ employeeId }: { employeeId: string 
               </button>
             </div>
             <div className="p-5 space-y-4 max-h-[85vh] overflow-y-auto">
-              <div className="rounded-xl border border-emerald-200/80 bg-emerald-50/90 px-4 py-3 text-sm text-gray-800 leading-relaxed space-y-3">
-                <p>
-                  Ödemeyi kaydettiğinizde sistem, seçtiğiniz kasa/banka hesabından{' '}
-                  <strong>«Ödediğiniz Net Tutar»</strong> kadar çıkış yapar ve bu tutar çalışan
-                  cari bakiyenizden düşülür.
-                </p>
-                <div className="flex gap-2 rounded-lg bg-amber-50 border border-amber-200 px-3 py-2.5 text-amber-950">
-                  <AlertTriangle className="h-5 w-5 shrink-0 text-amber-600 mt-0.5" />
-                  <p className="text-sm font-semibold leading-snug">
-                    Maaş ya da prim ödemesi yapmadan önce{' '}
-                    <strong>«Maaş/Prim Tahakkuku Yap»</strong> seçeneği ile çalışanınızı
-                    alacaklandırmayı ve şirketiniz için masraf oluşturmayı unutmayın.
+              <div
+                className={`rounded-xl border px-4 py-3 text-sm text-gray-800 leading-relaxed space-y-3 ${
+                  modal?.kind === 'advance_given'
+                    ? 'border-amber-200/80 bg-amber-50/90'
+                    : 'border-emerald-200/80 bg-emerald-50/90'
+                }`}
+              >
+                {modal?.kind === 'advance_given' ? (
+                  <p>
+                    Verdiğiniz avans, çalışan carisinde <strong>Borç</strong> sütununa yazılır: çalışan
+                    şirkete borçlanır. Seçtiğiniz hesaptan tutar çıkar.
                   </p>
-                </div>
+                ) : (
+                  <>
+                    <p>
+                      Ödemeyi kaydettiğinizde seçtiğiniz kasa/banka hesabından tutar çıkar; caride{' '}
+                      <strong>Borç</strong> olarak kaydedilir ve şirketin çalışana olan borcu azalır
+                      (bakiye yukarı çıkar).
+                    </p>
+                    <div className="flex gap-2 rounded-lg bg-amber-50 border border-amber-200 px-3 py-2.5 text-amber-950">
+                      <AlertTriangle className="h-5 w-5 shrink-0 text-amber-600 mt-0.5" />
+                      <p className="text-sm font-semibold leading-snug">
+                        Maaş ya da prim ödemesi yapmadan önce{' '}
+                        <strong>«Maaş/Prim Tahakkuku Yap»</strong> ile tahakkuk oluşturmayı
+                        unutmayın.
+                      </p>
+                    </div>
+                  </>
+                )}
               </div>
 
               <div>
@@ -907,7 +1024,7 @@ export default function EmployeeDetailView({ employeeId }: { employeeId: string 
 
               <div>
                 <label className="block text-xs font-bold text-gray-600 mb-1.5">
-                  Ödediğiniz Net Tutar
+                  {modal?.kind === 'advance_given' ? 'Avans Tutarı' : 'Ödediğiniz Net Tutar'}
                 </label>
                 <div className="flex rounded-lg border border-gray-200 overflow-hidden focus-within:ring-2 focus-within:ring-emerald-500">
                   <input
@@ -940,11 +1057,21 @@ export default function EmployeeDetailView({ employeeId }: { employeeId: string 
                 <button
                   type="button"
                   disabled={saving}
-                  onClick={handlePaymentSubmit}
-                  className="inline-flex items-center gap-2 rounded-lg px-5 py-3 font-black text-white bg-rose-500 hover:bg-rose-600 disabled:opacity-50 shadow-md"
+                  onClick={
+                    modal?.kind === 'advance_given' ? handleAdvanceGivenSubmit : handlePaymentSubmit
+                  }
+                  className={`inline-flex items-center gap-2 rounded-lg px-5 py-3 font-black text-white disabled:opacity-50 shadow-md ${
+                    modal?.kind === 'advance_given'
+                      ? 'bg-amber-600 hover:bg-amber-700'
+                      : 'bg-rose-500 hover:bg-rose-600'
+                  }`}
                 >
                   <Check className="h-5 w-5" />
-                  {saving ? 'Kaydediliyor...' : 'Ödemeyi Kaydet'}
+                  {saving
+                    ? 'Kaydediliyor...'
+                    : modal?.kind === 'advance_given'
+                      ? 'Avansı Kaydet'
+                      : 'Ödemeyi Kaydet'}
                 </button>
               </div>
             </div>
@@ -968,6 +1095,10 @@ export default function EmployeeDetailView({ employeeId }: { employeeId: string 
               </button>
             </div>
             <div className="p-5 space-y-4 max-h-[85vh] overflow-y-auto">
+              <p className="rounded-lg border border-teal-200 bg-teal-50/90 px-4 py-3 text-sm text-gray-800">
+                Çalışanın iade ettiği tutar caride <strong>Alacak</strong> tarafında işlenir; çalışanın
+                şirkete borcu azalır. Para seçtiğiniz hesaba girer.
+              </p>
               <div>
                 <label className="block text-xs font-bold text-gray-600 mb-1.5">İşlem Tarihi</label>
                 <input
@@ -1074,8 +1205,8 @@ export default function EmployeeDetailView({ employeeId }: { employeeId: string 
             <div className="p-5 space-y-4 max-h-[85vh] overflow-y-auto">
               <div className="rounded-xl border border-emerald-200/80 bg-emerald-50/90 px-4 py-3 text-sm text-emerald-950 leading-relaxed">
                 <p>
-                  Çalışanınızın size getirdiği masrafları buradan girebilirsiniz. Masraf kaydından
-                  sonra çalışan alacaklanır.
+                  Çalışanın ödediği masraf, caride <strong>Alacak</strong> sütununa yazılır: şirketin
+                  çalışana borcu (çalışanın alacağı) artar; bakiye aşağı iner.
                 </p>
               </div>
 
@@ -1108,7 +1239,7 @@ export default function EmployeeDetailView({ employeeId }: { employeeId: string 
                   onChange={(e) => setExpenseCategory(e.target.value)}
                 >
                   <option value="">Seçiniz…</option>
-                  {MASRAF_GROUPS.map((g) => (
+                  {masrafGroups.map((g) => (
                     <optgroup key={g.group} label={g.group}>
                       {g.items.map((m) => (
                         <option key={m.value} value={m.value}>

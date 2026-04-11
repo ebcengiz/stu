@@ -34,9 +34,10 @@ function dayFromInput(ymd: string): number {
 
 function formatMoney(n: number, currency: string) {
   const s = Math.abs(n).toLocaleString('tr-TR', { minimumFractionDigits: 2 })
-  if (currency === 'USD') return `$${s}`
-  if (currency === 'EUR') return `€${s}`
-  return `${s}`
+  const neg = n < 0 ? '-' : ''
+  if (currency === 'USD') return `${neg}$${s}`
+  if (currency === 'EUR') return `${neg}€${s}`
+  return `${neg}${s}`
 }
 
 export default function CalisanEkstrePage() {
@@ -123,8 +124,8 @@ export default function CalisanEkstrePage() {
       const amt = Number(t.signed_amount)
       inRange.push({
         tx: t,
-        borc: amt < 0 ? Math.abs(amt) : 0,
-        alacak: amt > 0 ? amt : 0,
+        borc: amt > 0 ? amt : 0,
+        alacak: amt < 0 ? Math.abs(amt) : 0,
       })
     }
 

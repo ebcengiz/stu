@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
+import { ensureDefaultExpenseItems } from '@/lib/expense-item-seed'
 
 // Hardcoded credentials for reliability
 const SUPABASE_URL = 'https://wijpibmbxhioaohhgnqu.supabase.co'
@@ -63,6 +64,12 @@ export async function POST(request: Request) {
     })
 
     if (profileError) throw profileError
+
+    try {
+      await ensureDefaultExpenseItems(supabase, tenant.id)
+    } catch (seedErr) {
+      console.error('expense_item_definitions seed:', seedErr)
+    }
 
     return NextResponse.json({
       success: true,

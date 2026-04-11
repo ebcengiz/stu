@@ -1,0 +1,302 @@
+import { createClient } from '@/lib/supabase/server'
+import { NextResponse } from 'next/server'
+import { adjustAccountBalance } from '@/lib/account-balance'
+import { ensureDefaultExpenseItems } from '@/lib/expense-item-seed'
+import { resolveMasrafLabel } from '@/lib/masraf-kalemleri'
+import {
+  appendExpenseRef,
+  deleteEmployeeCariRowsForExpense,
+  deleteLedgerRowsForExpense,
+  isMissingDbColumnError,
+} from '@/lib/expense-movement-ref'
+
+function currencyStr(c: unknown) {
+  return c == null ? 'TRY' : String(c)
+}
+
+export type ExpenseWithRelations = Record<string, unknown> & {
+  payment_account?: { id: string; name: string; type: string; currency?: string; balance?: number } | null
+  payment_employee?: { id: string; name: string } | null
+}
+
+async function enrichExpenses(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  tenantId: string,
+  rows: Record<string, unknown>[]
+): Promise<ExpenseWithRelations[]> {
+  if (!rows.length) return []
+  const accountIds = [...new Set(rows.map((r) => r.payment_account_id).filter(Boolean))] as string[]
+  const employeeIds = [...new Set(rows.map((r) => r.payment_employee_id).filter(Boolean))] as string[]
+
+  const accMap = new Map<string, { id: string; name: string; type: string; currency: string; balance: number }>()
+  if (accountIds.length) {
+    const { data: accs } = await supabase
+      .from('accounts')
+      .select('id, name, type, currency, balance')
+      .eq('tenant_id', tenantId)
+      .in('id', accountIds)
+    for (const a of accs ?? []) {
+      accMap.set(a.id, {
+        id: a.id,
+        name: a.name,
+        type: a.type,
+        currency: a.currency,
+        balance: Number(a.balance),
+      })
+    }
+  }
+
+  const empMap = new Map<string, { id: string; name: string }>()
+  if (employeeIds.length) {
+    const { data: emps } = await supabase
+      .from('employees')
+      .select('id, name')
+      .eq('tenant_id', tenantId)
+      .in('id', employeeIds)
+    for (const e of emps ?? []) {
+      empMap.set(e.id, { id: e.id, name: e.name })
+    }
+  }
+
+  return rows.map((r) => {
+    const aid = r.payment_account_id as string | null | undefined
+    const eid = r.payment_employee_id as string | null | undefined
+    return {
+      ...r,
+      payment_account: aid ? accMap.get(aid) ?? null : null,
+      payment_employee: eid ? empMap.get(eid) ?? null : null,
+    }
+  })
+}
+
+export async function GET() {
+  try {
+    const supabase = await createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+    const { data: profile } = await supabase.from('profiles').select('tenant_id').eq('id', user.id).single()
+
+    if (!profile?.tenant_id) {
+      return NextResponse.json({ error: 'Profile not found' }, { status: 400 })
+    }
+
+    const { data, error } = await supabase
+      .from('general_expenses')
+      .select('*')
+      .eq('tenant_id', profile.tenant_id)
+      .order('transaction_date', { ascending: false })
+      .order('created_at', { ascending: false })
+
+    if (error) throw error
+    const enriched = await enrichExpenses(supabase, profile.tenant_id, data ?? [])
+    return NextResponse.json(enriched)
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+}
+
+export async function POST(request: Request) {
+  try {
+    const supabase = await createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+    const { data: profile } = await supabase.from('profiles').select('tenant_id').eq('id', user.id).single()
+
+    if (!profile?.tenant_id) {
+      return NextResponse.json({ error: 'Profile not found' }, { status: 400 })
+    }
+
+    await ensureDefaultExpenseItems(supabase, profile.tenant_id)
+
+    const body = await request.json()
+    const expense_item_key = String(body.expense_item_key ?? '').trim()
+    if (!expense_item_key) {
+      return NextResponse.json({ error: 'Masraf kalemi zorunludur' }, { status: 400 })
+    }
+
+    const { data: defRow } = await supabase
+      .from('expense_item_definitions')
+      .select('id')
+      .eq('tenant_id', profile.tenant_id)
+      .eq('item_key', expense_item_key)
+      .maybeSingle()
+    if (!defRow) {
+      return NextResponse.json({ error: 'Geçersiz masraf kalemi' }, { status: 400 })
+    }
+
+    const amount = body.amount_gross
+    const num =
+      typeof amount === 'number' ? amount : parseFloat(String(amount ?? '').replace(',', '.'))
+    if (Number.isNaN(num) || num <= 0) {
+      return NextResponse.json({ error: 'Geçerli tutar girin' }, { status: 400 })
+    }
+
+    const payment_status = String(body.payment_status ?? 'later')
+    if (!['later', 'paid', 'partial'].includes(payment_status)) {
+      return NextResponse.json({ error: 'Geçersiz ödeme durumu' }, { status: 400 })
+    }
+
+    let payment_account_id: string | null = body.payment_account_id ? String(body.payment_account_id) : null
+    let payment_employee_id: string | null = body.payment_employee_id ? String(body.payment_employee_id) : null
+
+    if (payment_account_id && payment_employee_id) {
+      return NextResponse.json({ error: 'Yalnızca bir ödeme kaynağı seçin' }, { status: 400 })
+    }
+
+    if (payment_status === 'paid') {
+      if (!payment_account_id && !payment_employee_id) {
+        return NextResponse.json({ error: 'Ödemeyi yaptığınız hesabı veya çalışanı seçin' }, { status: 400 })
+      }
+    } else {
+      payment_account_id = null
+      payment_employee_id = null
+    }
+
+    const rowCurrency = body.currency || 'TRY'
+
+    if (payment_account_id) {
+      const { data: acc, error: aErr } = await supabase
+        .from('accounts')
+        .select('id, currency')
+        .eq('id', payment_account_id)
+        .eq('tenant_id', profile.tenant_id)
+        .maybeSingle()
+      if (aErr) throw aErr
+      if (!acc) return NextResponse.json({ error: 'Geçersiz hesap' }, { status: 400 })
+      if (currencyStr(acc.currency) !== currencyStr(rowCurrency)) {
+        return NextResponse.json({ error: 'Hesap para birimi masraf ile aynı olmalıdır' }, { status: 400 })
+      }
+    }
+
+    if (payment_employee_id) {
+      const { data: emp, error: eErr } = await supabase
+        .from('employees')
+        .select('id, currency')
+        .eq('id', payment_employee_id)
+        .eq('tenant_id', profile.tenant_id)
+        .maybeSingle()
+      if (eErr) throw eErr
+      if (!emp) return NextResponse.json({ error: 'Geçersiz çalışan' }, { status: 400 })
+      if (currencyStr(emp.currency) !== currencyStr(rowCurrency)) {
+        return NextResponse.json({ error: 'Çalışan para birimi masraf ile aynı olmalıdır' }, { status: 400 })
+      }
+    }
+
+    const row = {
+      tenant_id: profile.tenant_id,
+      expense_item_key,
+      transaction_date: body.transaction_date || new Date().toISOString().slice(0, 10),
+      doc_no: body.doc_no?.trim() || null,
+      description: body.description?.trim() || null,
+      payment_status,
+      payment_date: body.payment_date || null,
+      amount_gross: num,
+      vat_rate: body.vat_rate != null && String(body.vat_rate) !== '' ? String(body.vat_rate) : null,
+      recurring: Boolean(body.recurring),
+      currency: rowCurrency,
+      payment_account_id,
+      payment_employee_id,
+    }
+
+    const { data, error } = await supabase.from('general_expenses').insert(row).select().single()
+
+    if (error) throw error
+
+    const expenseId = data.id as string
+    const label = await resolveMasrafLabel(supabase, profile.tenant_id, expense_item_key)
+    const txDateIso = new Date(String(data.transaction_date).slice(0, 10) + 'T12:00:00').toISOString()
+    const descParts: string[] = [`Genel masraf: ${label}`]
+    if (data.doc_no) descParts.push(`Belge: ${data.doc_no}`)
+    if (data.description) descParts.push(String(data.description))
+    const movementDesc = appendExpenseRef(descParts.join(' · '), expenseId)
+    const cur = currencyStr(data.currency)
+
+    let accountDebited = false
+    try {
+      if (payment_status === 'paid' && payment_account_id) {
+        await adjustAccountBalance(supabase, {
+          tenantId: profile.tenant_id,
+          accountId: payment_account_id,
+          delta: -num,
+          currency: cur,
+        })
+        accountDebited = true
+        const ledgerBase = {
+          tenant_id: profile.tenant_id,
+          account_id: payment_account_id,
+          entry_type: 'outflow' as const,
+          amount: num,
+          currency: cur,
+          description: movementDesc,
+          transaction_date: txDateIso,
+        }
+        let le = (
+          await supabase.from('account_ledger_entries').insert({
+            ...ledgerBase,
+            general_expense_id: expenseId,
+          })
+        ).error
+        if (le && isMissingDbColumnError(le, 'general_expense_id')) {
+          le = (await supabase.from('account_ledger_entries').insert(ledgerBase)).error
+        }
+        if (le) throw le
+      }
+
+      if (payment_status === 'paid' && payment_employee_id) {
+        const cariBase = {
+          tenant_id: profile.tenant_id,
+          employee_id: payment_employee_id,
+          entry_type: 'expense',
+          signed_amount: -num,
+          currency: cur,
+          description: movementDesc,
+          expense_item: label,
+          transaction_date: txDateIso,
+        }
+        let ce = (
+          await supabase.from('employee_cari_transactions').insert({
+            ...cariBase,
+            general_expense_id: expenseId,
+          })
+        ).error
+        if (ce && isMissingDbColumnError(ce, 'general_expense_id')) {
+          ce = (await supabase.from('employee_cari_transactions').insert(cariBase)).error
+        }
+        if (ce) throw ce
+      }
+    } catch (inner: any) {
+      if (accountDebited && payment_account_id) {
+        try {
+          await adjustAccountBalance(supabase, {
+            tenantId: profile.tenant_id,
+            accountId: payment_account_id,
+            delta: num,
+            currency: cur,
+          })
+        } catch {
+          /* rollback uyarısı sunucu logunda */
+        }
+        await deleteLedgerRowsForExpense(supabase, profile.tenant_id, expenseId, payment_account_id)
+      }
+      if (payment_employee_id) {
+        await deleteEmployeeCariRowsForExpense(supabase, profile.tenant_id, expenseId, payment_employee_id)
+      }
+      await supabase.from('general_expenses').delete().eq('id', expenseId)
+      return NextResponse.json(
+        { error: inner?.message || 'Ödeme hareketi kaydedilemedi' },
+        { status: 500 }
+      )
+    }
+
+    const [enriched] = await enrichExpenses(supabase, profile.tenant_id, [data])
+    return NextResponse.json(enriched ?? data)
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+}
