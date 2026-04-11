@@ -55,10 +55,12 @@ export default function DashboardLayout({
   const marginClass = isMounted && isSidebarCollapsed ? 'lg:pl-20' : 'lg:pl-64'
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col lg:flex-row">
+    <div className="flex min-h-screen flex-col overflow-x-hidden bg-gray-50 lg:flex-row">
       <DashboardSidebar profile={profile} />
-      <div className={`flex-1 flex flex-col transition-all duration-300 ${marginClass}`}>
-        <main className="flex-1 p-3 sm:p-4 lg:p-6">
+      <div
+        className={`flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden transition-all duration-300 ${marginClass}`}
+      >
+        <main className="min-h-0 min-w-0 flex-1 overflow-x-hidden p-3 sm:p-4 lg:p-6">
           {children}
         </main>
       </div>

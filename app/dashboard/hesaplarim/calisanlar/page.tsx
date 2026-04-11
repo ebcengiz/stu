@@ -4,10 +4,11 @@ import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Plus, Pencil, Trash2, Users, Phone, Mail, Building2, User } from 'lucide-react'
+import { Plus, Users, Phone, Mail, Building2, User, FileBarChart2 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Card, CardBody } from '@/components/ui/Card'
 import { toast } from 'react-hot-toast'
+import { hasTerminationDate } from '@/lib/employeeStatus'
 
 interface Employee {
   id: string
@@ -17,6 +18,7 @@ interface Employee {
   department: string | null
   currency: string
   photo_url: string | null
+  leave_date?: string | null
   cari_balance?: number
 }
 
@@ -61,7 +63,7 @@ export default function CalisanlarPage() {
 
   const load = async () => {
     try {
-      const res = await fetch('/api/employees')
+      const res = await fetch('/api/employees', { cache: 'no-store' })
       if (!res.ok) throw new Error('Liste alınamadı')
       const data = await res.json()
       setRows(Array.isArray(data) ? data : [])
@@ -76,19 +78,6 @@ export default function CalisanlarPage() {
   useEffect(() => {
     load()
   }, [])
-
-  const handleDelete = async (id: string, name: string) => {
-    if (!confirm(`"${name}" silinsin mi?`)) return
-    try {
-      const res = await fetch(`/api/employees/${id}`, { method: 'DELETE' })
-      if (!res.ok) throw new Error('Silinemedi')
-      toast.success('Silindi')
-      load()
-      router.refresh()
-    } catch {
-      toast.error('Silinemedi')
-    }
-  }
 
   if (loading) {
     return (
@@ -108,12 +97,23 @@ export default function CalisanlarPage() {
           </h1>
           <p className="text-sm text-gray-500 mt-1">Nakit Yönetimi · Personel kayıtları</p>
         </div>
-        <Link href="/dashboard/hesaplarim/calisanlar/yeni">
-          <Button className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2 rounded-xl">
-            <Plus className="h-4 w-4" />
-            Yeni çalışan
-          </Button>
-        </Link>
+        <div className="flex flex-wrap items-center gap-2">
+          <Link href="/dashboard/hesaplarim/calisanlar/rapor">
+            <Button
+              variant="outline"
+              className="gap-2 rounded-xl border-blue-200 bg-white text-blue-700 hover:bg-blue-50"
+            >
+              <FileBarChart2 className="h-4 w-4" />
+              Rapor
+            </Button>
+          </Link>
+          <Link href="/dashboard/hesaplarim/calisanlar/yeni">
+            <Button className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2 rounded-xl">
+              <Plus className="h-4 w-4" />
+              Yeni çalışan
+            </Button>
+          </Link>
+        </div>
       </div>
 
       <Card className="border-gray-200 shadow-sm overflow-hidden">
@@ -137,15 +137,12 @@ export default function CalisanlarPage() {
                   <th className="px-6 py-3 text-right text-xs font-black text-gray-500 uppercase tracking-wider">
                     Cari
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-black text-gray-500 uppercase tracking-wider">
-                    İşlem
-                  </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-50">
                 {rows.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-6 py-16 text-center text-gray-500">
+                    <td colSpan={5} className="px-6 py-16 text-center text-gray-500">
                       <div className="flex flex-col items-center gap-2">
                         <User className="h-10 w-10 text-gray-300" />
                         <span>Henüz çalışan kaydı yok. Yeni çalışan ekleyin.</span>
@@ -156,7 +153,9 @@ export default function CalisanlarPage() {
                   rows.map((r) => (
                     <tr
                       key={r.id}
-                      className="hover:bg-gray-50/80 cursor-pointer"
+                      className={`hover:bg-gray-50/80 cursor-pointer ${
+                        hasTerminationDate(r.leave_date) ? 'text-gray-400' : ''
+                      }`}
                       onClick={() => router.push(`/dashboard/hesaplarim/calisanlar/${r.id}`)}
                     >
                       <td className="px-6 py-4">
@@ -197,27 +196,14 @@ export default function CalisanlarPage() {
                       </td>
                       <td
                         className={`px-6 py-4 text-right text-sm font-bold whitespace-nowrap ${
-                          (r.cari_balance ?? 0) >= 0 ? 'text-emerald-700' : 'text-red-700'
+                          hasTerminationDate(r.leave_date)
+                            ? 'text-gray-400'
+                            : (r.cari_balance ?? 0) >= 0
+                              ? 'text-emerald-700'
+                              : 'text-red-700'
                         }`}
                       >
                         {formatCariBalance(r.cari_balance, r.currency || 'TRY')}
-                      </td>
-                      <td className="px-6 py-4 text-right whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
-                        <Link
-                          href={`/dashboard/hesaplarim/calisanlar/${r.id}/duzenle`}
-                          className="inline-flex items-center justify-center p-2 rounded-lg text-emerald-700 hover:bg-emerald-50 mr-1"
-                          title="Düzenle"
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Link>
-                        <button
-                          type="button"
-                          onClick={() => handleDelete(r.id, r.name)}
-                          className="inline-flex items-center justify-center p-2 rounded-lg text-red-600 hover:bg-red-50"
-                          title="Sil"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
                       </td>
                     </tr>
                   ))
