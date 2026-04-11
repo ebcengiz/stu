@@ -24,6 +24,7 @@ import {
   Wallet,
   Briefcase,
   Receipt,
+  Banknote,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useState, useEffect } from 'react'
@@ -177,7 +178,8 @@ export default function DashboardSidebar({ profile }: { profile: Profile | null 
                   className={`flex items-center py-2 text-sm font-medium rounded-md transition-colors ${
                     pathname.startsWith('/dashboard/hesaplarim') &&
                     !pathname.startsWith('/dashboard/hesaplarim/calisanlar') &&
-                    !pathname.startsWith('/dashboard/hesaplarim/masraflar')
+                    !pathname.startsWith('/dashboard/hesaplarim/masraflar') &&
+                    !pathname.startsWith('/dashboard/hesaplarim/krediler')
                       ? 'text-primary-700 bg-primary-50'
                       : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                   } px-3`}
@@ -210,6 +212,19 @@ export default function DashboardSidebar({ profile }: { profile: Profile | null 
                 >
                   <Receipt className="h-4 w-4 mr-2" />
                   Masraflar
+                </Link>
+                <Link
+                  href="/dashboard/hesaplarim/krediler"
+                  className={`flex items-center py-2 text-sm font-medium rounded-md transition-colors ${
+                    pathname === '/dashboard/hesaplarim/krediler' ||
+                    pathname.startsWith('/dashboard/hesaplarim/krediler/')
+                      ? 'text-primary-700 bg-primary-50'
+                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                  } px-3`}
+                  onClick={() => isMobile && setIsMobileMenuOpen(false)}
+                >
+                  <Banknote className="h-4 w-4 mr-2" />
+                  Krediler
                 </Link>
               </div>
             )}
