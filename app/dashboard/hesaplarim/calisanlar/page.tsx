@@ -1,9 +1,10 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Plus, Pencil, Trash2, Users, Phone, Mail, Building2 } from 'lucide-react'
+import { Plus, Pencil, Trash2, Users, Phone, Mail, Building2, User } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Card, CardBody } from '@/components/ui/Card'
 import { toast } from 'react-hot-toast'
@@ -15,6 +16,42 @@ interface Employee {
   phone: string | null
   department: string | null
   currency: string
+  photo_url: string | null
+  cari_balance?: number
+}
+
+function formatCariBalance(n: number | undefined, currency: string) {
+  const v = Number(n ?? 0)
+  const s = Math.abs(v).toLocaleString('tr-TR', { minimumFractionDigits: 2 })
+  if (currency === 'USD') return `${v < 0 ? '-' : ''}$${s}`
+  if (currency === 'EUR') return `${v < 0 ? '-' : ''}€${s}`
+  return `${v < 0 ? '-' : ''}${s} ₺`
+}
+
+function EmployeeAvatar({ name, photoUrl }: { name: string; photoUrl: string | null | undefined }) {
+  const initial = name?.trim()?.charAt(0)?.toUpperCase() || '?'
+  if (photoUrl) {
+    return (
+      <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-full bg-gray-100 ring-2 ring-white shadow-sm">
+        <Image
+          src={photoUrl}
+          alt={name}
+          width={44}
+          height={44}
+          className="h-full w-full object-cover"
+          unoptimized
+        />
+      </div>
+    )
+  }
+  return (
+    <div
+      className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-sm font-black text-emerald-800 ring-2 ring-white shadow-sm"
+      aria-hidden
+    >
+      {initial}
+    </div>
+  )
 }
 
 export default function CalisanlarPage() {
@@ -86,7 +123,7 @@ export default function CalisanlarPage() {
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-black text-gray-500 uppercase tracking-wider">
-                    İsim
+                    Çalışan
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-black text-gray-500 uppercase tracking-wider">
                     Departman
@@ -98,6 +135,9 @@ export default function CalisanlarPage() {
                     E-posta
                   </th>
                   <th className="px-6 py-3 text-right text-xs font-black text-gray-500 uppercase tracking-wider">
+                    Cari
+                  </th>
+                  <th className="px-6 py-3 text-right text-xs font-black text-gray-500 uppercase tracking-wider">
                     İşlem
                   </th>
                 </tr>
@@ -105,14 +145,26 @@ export default function CalisanlarPage() {
               <tbody className="bg-white divide-y divide-gray-50">
                 {rows.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="px-6 py-16 text-center text-gray-500">
-                      Henüz çalışan kaydı yok. Yeni çalışan ekleyin.
+                    <td colSpan={6} className="px-6 py-16 text-center text-gray-500">
+                      <div className="flex flex-col items-center gap-2">
+                        <User className="h-10 w-10 text-gray-300" />
+                        <span>Henüz çalışan kaydı yok. Yeni çalışan ekleyin.</span>
+                      </div>
                     </td>
                   </tr>
                 ) : (
                   rows.map((r) => (
-                    <tr key={r.id} className="hover:bg-gray-50/80">
-                      <td className="px-6 py-4 font-semibold text-gray-900">{r.name}</td>
+                    <tr
+                      key={r.id}
+                      className="hover:bg-gray-50/80 cursor-pointer"
+                      onClick={() => router.push(`/dashboard/hesaplarim/calisanlar/${r.id}`)}
+                    >
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <EmployeeAvatar name={r.name} photoUrl={r.photo_url} />
+                          <span className="font-semibold text-gray-900 truncate">{r.name}</span>
+                        </div>
+                      </td>
                       <td className="px-6 py-4 text-sm text-gray-600">
                         {r.department ? (
                           <span className="inline-flex items-center gap-1">
@@ -143,9 +195,16 @@ export default function CalisanlarPage() {
                           '—'
                         )}
                       </td>
-                      <td className="px-6 py-4 text-right whitespace-nowrap">
+                      <td
+                        className={`px-6 py-4 text-right text-sm font-bold whitespace-nowrap ${
+                          (r.cari_balance ?? 0) >= 0 ? 'text-emerald-700' : 'text-red-700'
+                        }`}
+                      >
+                        {formatCariBalance(r.cari_balance, r.currency || 'TRY')}
+                      </td>
+                      <td className="px-6 py-4 text-right whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                         <Link
-                          href={`/dashboard/hesaplarim/calisanlar/${r.id}`}
+                          href={`/dashboard/hesaplarim/calisanlar/${r.id}/duzenle`}
                           className="inline-flex items-center justify-center p-2 rounded-lg text-emerald-700 hover:bg-emerald-50 mr-1"
                           title="Düzenle"
                         >

@@ -161,7 +161,11 @@ export default function EmployeeForm({ employeeId }: { employeeId?: string }) {
       const data = await res.json().catch(() => ({}))
       if (!res.ok) throw new Error(data.error || 'Kaydedilemedi')
       toast.success(employeeId ? 'Güncellendi' : 'Kaydedildi')
-      router.push('/dashboard/hesaplarim/calisanlar')
+      router.push(
+        employeeId
+          ? `/dashboard/hesaplarim/calisanlar/${employeeId}`
+          : '/dashboard/hesaplarim/calisanlar'
+      )
       router.refresh()
     } catch (err: any) {
       toast.error(err.message || 'Hata')
@@ -190,7 +194,11 @@ export default function EmployeeForm({ employeeId }: { employeeId?: string }) {
           Kaydet
         </Button>
         <Link
-          href="/dashboard/hesaplarim/calisanlar"
+          href={
+            employeeId
+              ? `/dashboard/hesaplarim/calisanlar/${employeeId}`
+              : '/dashboard/hesaplarim/calisanlar'
+          }
           className="inline-flex items-center justify-center px-5 h-11 gap-2 rounded-lg border border-sky-300 bg-white text-sky-700 hover:bg-sky-50 font-medium transition-colors"
         >
           <Undo2 className="h-4 w-4" />

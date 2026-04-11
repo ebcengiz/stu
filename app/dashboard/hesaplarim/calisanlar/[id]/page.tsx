@@ -1,14 +1,10 @@
-import EmployeeForm from '@/components/employees/EmployeeForm'
+import EmployeeDetailView from '@/components/employees/EmployeeDetailView'
 
-export default async function DuzenleCalisanPage({
+export default async function CalisanDetayPage({
   params,
 }: {
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
-  return (
-    <div className="pb-8 pt-2">
-      <EmployeeForm employeeId={id} />
-    </div>
-  )
+  return <EmployeeDetailView employeeId={id} />
 }

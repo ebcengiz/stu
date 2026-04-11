@@ -24,7 +24,29 @@ export async function GET() {
       .order('name', { ascending: true })
 
     if (error) throw error
-    return NextResponse.json(data ?? [])
+    const employees = data ?? []
+
+    const { data: cariRows, error: cariErr } = await supabase
+      .from('employee_cari_transactions')
+      .select('employee_id, signed_amount')
+      .eq('tenant_id', profile.tenant_id)
+
+    const balanceMap = new Map<string, number>()
+    if (cariErr) {
+      console.error('employee_cari_transactions list:', cariErr.message)
+    } else if (cariRows) {
+      for (const r of cariRows) {
+        const id = r.employee_id as string
+        balanceMap.set(id, (balanceMap.get(id) ?? 0) + Number(r.signed_amount))
+      }
+    }
+
+    const enriched = employees.map((e: { id: string }) => ({
+      ...e,
+      cari_balance: balanceMap.get(e.id) ?? 0,
+    }))
+
+    return NextResponse.json(enriched)
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
