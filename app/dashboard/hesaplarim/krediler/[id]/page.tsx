@@ -14,6 +14,7 @@ import {
 } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 import LoanModal, { type LoanModalValues } from '@/components/loans/LoanModal'
+import LoanPaymentModal from '@/components/loans/LoanPaymentModal'
 
 type InstallmentRow = {
   id: string
@@ -84,6 +85,9 @@ export default function KrediDetayPage() {
   const [instDate, setInstDate] = useState('')
   const [instAmount, setInstAmount] = useState('')
   const [instSaving, setInstSaving] = useState(false)
+
+  const [payModalInstId, setPayModalInstId] = useState<string | null>(null)
+  const [payModalMax, setPayModalMax] = useState(0)
 
   const load = useCallback(async () => {
     if (!id) return
@@ -159,20 +163,9 @@ export default function KrediDetayPage() {
     }
   }
 
-  const payInstallment = async (instId: string) => {
-    try {
-      const res = await fetch(`/api/loans/${id}/installments/${instId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({}),
-      })
-      const data = await res.json().catch(() => ({}))
-      if (!res.ok) throw new Error(data.error || 'Ödeme kaydedilemedi')
-      toast.success('Ödeme kaydedildi')
-      await load()
-    } catch (e: any) {
-      toast.error(e.message || 'Hata')
-    }
+  const openPayModal = (instId: string, unpaid: number) => {
+    setPayModalMax(unpaid)
+    setPayModalInstId(instId)
   }
 
   const submitNewInst = async (e: React.FormEvent) => {
@@ -244,7 +237,7 @@ export default function KrediDetayPage() {
           <div className="flex justify-between gap-3 text-sm sm:col-span-2">
             <span className="shrink-0 text-right font-medium text-slate-500">Ödeme hesabı</span>
             <span className="min-w-0 text-left font-semibold text-slate-900">
-              {loan.payment_account?.name ?? '—'}
+              {loan.payment_account?.name ?? 'Taksit ödemelerinde seçilir'}
             </span>
           </div>
           <div className="flex justify-between gap-3 text-sm">
@@ -364,7 +357,7 @@ export default function KrediDetayPage() {
                         ) : (
                           <button
                             type="button"
-                            onClick={() => void payInstallment(row.id)}
+                            onClick={() => openPayModal(row.id, unpaid)}
                             className="rounded-md bg-emerald-600 px-2 py-1 text-[11px] font-semibold text-white hover:bg-emerald-700"
                           >
                             ödeme yap
@@ -388,6 +381,16 @@ export default function KrediDetayPage() {
         initial={modalInitial}
         accounts={accounts}
         onSaved={load}
+      />
+
+      <LoanPaymentModal
+        open={payModalInstId != null}
+        onClose={() => setPayModalInstId(null)}
+        loanId={id}
+        installmentId={payModalInstId}
+        currency={cur}
+        maxPay={payModalMax}
+        onPaid={() => void load()}
       />
 
       {addInstOpen && (

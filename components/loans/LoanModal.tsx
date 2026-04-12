@@ -215,21 +215,23 @@ export default function LoanModal({
                 ))}
               </select>
             </div>
-            <div>
-              <label className="mb-1 block text-xs font-semibold text-slate-600">Ödediğiniz hesap</label>
-              <select
-                value={form.payment_account_id}
-                onChange={(e) => setForm((f) => ({ ...f, payment_account_id: e.target.value }))}
-                className={inputClass}
-              >
-                <option value="">Hesap seçin</option>
-                {activeAccounts.map((a) => (
-                  <option key={a.id} value={a.id}>
-                    {a.name}
-                  </option>
-                ))}
-              </select>
-            </div>
+            {initial?.id ? (
+              <div>
+                <label className="mb-1 block text-xs font-semibold text-slate-600">Ödediğiniz hesap</label>
+                <select
+                  value={form.payment_account_id}
+                  onChange={(e) => setForm((f) => ({ ...f, payment_account_id: e.target.value }))}
+                  className={inputClass}
+                >
+                  <option value="">Hesap seçin</option>
+                  {activeAccounts.map((a) => (
+                    <option key={a.id} value={a.id}>
+                      {a.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            ) : null}
             <div>
               <label className="mb-1 block text-xs font-semibold text-slate-600">Notlar</label>
               <textarea
