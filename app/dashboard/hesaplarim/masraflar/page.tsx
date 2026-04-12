@@ -17,6 +17,7 @@ import {
   Copy,
   Trash2,
   FilePlus,
+  Paperclip,
 } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 import type { MasrafGroup } from '@/lib/masraf-kalemleri'
@@ -45,6 +46,7 @@ interface ExpenseRow {
   payment_employee_id?: string | null
   payment_account?: { id: string; name: string; type: string } | null
   payment_employee?: { id: string; name: string } | null
+  attachment_url?: string | null
 }
 
 const STATUS_TABS: { id: StatusTab; label: string; danger?: boolean }[] = [
@@ -199,6 +201,8 @@ export default function MasraflarPage() {
   } | null>(null)
   const periodRef = useRef<HTMLDivElement>(null)
   const actionMenuPortalRef = useRef<HTMLDivElement>(null)
+  const attachmentInputRef = useRef<HTMLInputElement>(null)
+  const [attachmentTargetId, setAttachmentTargetId] = useState<string | null>(null)
 
   const [masrafGroups, setMasrafGroups] = useState<MasrafGroup[]>(MASRAF_GROUPS)
 
@@ -208,7 +212,7 @@ export default function MasraflarPage() {
     const h = (e: MouseEvent) => {
       const t = e.target as Node
       if (periodRef.current && !periodRef.current.contains(t)) setPeriodOpen(false)
-      const el = e.target as HTMLElement | null
+      const el = t instanceof Element ? t : (t as Node).parentElement
       if (
         actionMenuPortalRef.current?.contains(t) ||
         el?.closest?.('[data-expense-action-trigger]')
@@ -217,8 +221,8 @@ export default function MasraflarPage() {
       }
       setActionMenu(null)
     }
-    document.addEventListener('click', h)
-    return () => document.removeEventListener('click', h)
+    document.addEventListener('mousedown', h)
+    return () => document.removeEventListener('mousedown', h)
   }, [])
 
   useEffect(() => {
@@ -597,11 +601,32 @@ export default function MasraflarPage() {
                       </td>
                       <td className="whitespace-nowrap px-2 py-2.5 text-slate-700">{odemeLabel(r)}</td>
                       <td className="px-2 py-2.5">{statusBadge}</td>
-                      <td
-                        className="max-w-[200px] truncate px-2 py-2.5 text-slate-600"
-                        title={r.description ?? ''}
-                      >
-                        {r.description?.trim() || '—'}
+                      <td className="max-w-[220px] px-2 py-2.5 text-slate-600">
+                        <div className="flex min-w-0 items-start gap-1.5">
+                          {r.attachment_url ? (
+                            <a
+                              href={r.attachment_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="mt-0.5 shrink-0 rounded p-0.5 text-emerald-700 hover:bg-emerald-50 hover:text-emerald-900"
+                              title="Belgeyi aç"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <Paperclip className="h-4 w-4" aria-hidden />
+                            </a>
+                          ) : null}
+                          <span
+                            className="min-w-0 truncate"
+                            title={r.description?.trim() || (r.attachment_url ? 'Belge' : '')}
+                          >
+                            {r.description?.trim() ||
+                              (r.attachment_url ? (
+                                <span className="text-slate-400">(belge var)</span>
+                              ) : (
+                                '—'
+                              ))}
+                          </span>
+                        </div>
                       </td>
                       <td className="px-1 py-2 text-center">
                         <button
@@ -649,14 +674,40 @@ export default function MasraflarPage() {
         )}
       </div>
 
+      <input
+        ref={attachmentInputRef}
+        type="file"
+        className="hidden"
+        accept=".pdf,.jpg,.jpeg,.png,.gif,application/pdf,image/*"
+        onChange={async (e) => {
+          const id = attachmentTargetId
+          const file = e.target.files?.[0]
+          e.target.value = ''
+          setAttachmentTargetId(null)
+          if (!id || !file) return
+          try {
+            const fd = new FormData()
+            fd.append('file', file)
+            const res = await fetch(`/api/expenses/${id}/attachment`, { method: 'POST', body: fd })
+            const data = await res.json().catch(() => ({}))
+            if (!res.ok) throw new Error(data.error || 'Yüklenemedi')
+            toast.success('Belge eklendi')
+            loadRows()
+          } catch (err: any) {
+            toast.error(err.message || 'Yüklenemedi')
+          }
+        }}
+      />
+
       {typeof document !== 'undefined' &&
         actionMenu &&
         createPortal(
           <div
             ref={actionMenuPortalRef}
-            className="fixed z-[400] w-48 rounded-lg border border-amber-200/90 bg-[#f5f0e6] py-1 text-left shadow-xl"
+            className="fixed z-[500] w-48 rounded-lg border border-amber-200/90 bg-[#f5f0e6] py-1 text-left shadow-xl"
             style={{ top: actionMenu.top, right: actionMenu.right }}
             role="menu"
+            onMouseDown={(e) => e.stopPropagation()}
           >
             <button
               type="button"
@@ -673,8 +724,9 @@ export default function MasraflarPage() {
               type="button"
               className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-emerald-800 hover:bg-black/5"
               onClick={() => {
+                const eid = actionMenu.id
                 setActionMenu(null)
-                toast('Düzenleme yakında eklenecek', { icon: '✏️' })
+                router.push(`/dashboard/hesaplarim/masraflar/yeni?edit=${eid}`)
               }}
             >
               <Pencil className="h-4 w-4 shrink-0" />
@@ -708,8 +760,10 @@ export default function MasraflarPage() {
               type="button"
               className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-slate-800 hover:bg-black/5"
               onClick={() => {
+                const eid = actionMenu.id
                 setActionMenu(null)
-                toast('Belge ekleme yakında eklenecek', { icon: '📎' })
+                setAttachmentTargetId(eid)
+                requestAnimationFrame(() => attachmentInputRef.current?.click())
               }}
             >
               <FilePlus className="h-4 w-4 shrink-0" />

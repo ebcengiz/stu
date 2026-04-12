@@ -1,14 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
-import { adjustAccountBalance } from '@/lib/account-balance'
 import { ensureDefaultExpenseItems } from '@/lib/expense-item-seed'
-import { resolveMasrafLabel } from '@/lib/masraf-kalemleri'
-import {
-  appendExpenseRef,
-  deleteEmployeeCariRowsForExpense,
-  deleteLedgerRowsForExpense,
-  isMissingDbColumnError,
-} from '@/lib/expense-movement-ref'
+import { applyPaidExpenseMovements } from '@/lib/general-expense-payment-effects'
 
 function currencyStr(c: unknown) {
   return c == null ? 'TRY' : String(c)
@@ -209,84 +202,17 @@ export async function POST(request: Request) {
     if (error) throw error
 
     const expenseId = data.id as string
-    const label = await resolveMasrafLabel(supabase, profile.tenant_id, expense_item_key)
-    const txDateIso = new Date(String(data.transaction_date).slice(0, 10) + 'T12:00:00').toISOString()
-    const descParts: string[] = [`Genel masraf: ${label}`]
-    if (data.doc_no) descParts.push(`Belge: ${data.doc_no}`)
-    if (data.description) descParts.push(String(data.description))
-    const movementDesc = appendExpenseRef(descParts.join(' · '), expenseId)
-    const cur = currencyStr(data.currency)
 
-    let accountDebited = false
     try {
-      if (payment_status === 'paid' && payment_account_id) {
-        await adjustAccountBalance(supabase, {
-          tenantId: profile.tenant_id,
-          accountId: payment_account_id,
-          delta: -num,
-          currency: cur,
-        })
-        accountDebited = true
-        const ledgerBase = {
-          tenant_id: profile.tenant_id,
-          account_id: payment_account_id,
-          entry_type: 'outflow' as const,
-          amount: num,
-          currency: cur,
-          description: movementDesc,
-          transaction_date: txDateIso,
-        }
-        let le = (
-          await supabase.from('account_ledger_entries').insert({
-            ...ledgerBase,
-            general_expense_id: expenseId,
-          })
-        ).error
-        if (le && isMissingDbColumnError(le, 'general_expense_id')) {
-          le = (await supabase.from('account_ledger_entries').insert(ledgerBase)).error
-        }
-        if (le) throw le
-      }
-
-      if (payment_status === 'paid' && payment_employee_id) {
-        const cariBase = {
-          tenant_id: profile.tenant_id,
-          employee_id: payment_employee_id,
-          entry_type: 'expense',
-          signed_amount: -num,
-          currency: cur,
-          description: movementDesc,
-          expense_item: label,
-          transaction_date: txDateIso,
-        }
-        let ce = (
-          await supabase.from('employee_cari_transactions').insert({
-            ...cariBase,
-            general_expense_id: expenseId,
-          })
-        ).error
-        if (ce && isMissingDbColumnError(ce, 'general_expense_id')) {
-          ce = (await supabase.from('employee_cari_transactions').insert(cariBase)).error
-        }
-        if (ce) throw ce
-      }
+      await applyPaidExpenseMovements(
+        supabase,
+        profile.tenant_id,
+        data as Record<string, unknown>,
+        expenseId,
+        expense_item_key,
+        num
+      )
     } catch (inner: any) {
-      if (accountDebited && payment_account_id) {
-        try {
-          await adjustAccountBalance(supabase, {
-            tenantId: profile.tenant_id,
-            accountId: payment_account_id,
-            delta: num,
-            currency: cur,
-          })
-        } catch {
-          /* rollback uyarısı sunucu logunda */
-        }
-        await deleteLedgerRowsForExpense(supabase, profile.tenant_id, expenseId, payment_account_id)
-      }
-      if (payment_employee_id) {
-        await deleteEmployeeCariRowsForExpense(supabase, profile.tenant_id, expenseId, payment_employee_id)
-      }
       await supabase.from('general_expenses').delete().eq('id', expenseId)
       return NextResponse.json(
         { error: inner?.message || 'Ödeme hareketi kaydedilemedi' },

@@ -38,7 +38,9 @@ function YeniMasrafForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const archiveInputRef = useRef<HTMLInputElement>(null)
+  const archiveFileRef = useRef<File | null>(null)
   const [saving, setSaving] = useState(false)
+  const [existingAttachmentUrl, setExistingAttachmentUrl] = useState<string | null>(null)
 
   const [expenseItem, setExpenseItem] = useState('')
   const [txDate, setTxDate] = useState(() => new Date().toISOString().slice(0, 10))
@@ -54,6 +56,7 @@ function YeniMasrafForm() {
   const [vatRate, setVatRate] = useState('0')
 
   const [recurring, setRecurring] = useState(false)
+  const [currency, setCurrency] = useState('TRY')
 
   const [accounts, setAccounts] = useState<AccountRow[]>([])
   const [employees, setEmployees] = useState<EmployeeRow[]>([])
@@ -114,13 +117,16 @@ function YeniMasrafForm() {
     if (!showPaidAccount && paymentSource) setPaymentSource('')
   }, [showPaidAccount, paymentSource])
 
+  const editId = searchParams.get('edit')
   const copyFrom = searchParams.get('copyFrom')
+
   useEffect(() => {
-    if (!copyFrom) return
+    const sourceId = editId || copyFrom
+    if (!sourceId) return
     let cancelled = false
     ;(async () => {
       try {
-        const res = await fetch(`/api/expenses/${copyFrom}`)
+        const res = await fetch(`/api/expenses/${sourceId}`)
         const row = await res.json()
         if (!res.ok || cancelled) return
         setExpenseItem(String(row.expense_item_key ?? ''))
@@ -134,18 +140,27 @@ function YeniMasrafForm() {
         )
         setVatRate(row.vat_rate != null && row.vat_rate !== '' ? String(row.vat_rate) : '0')
         setRecurring(Boolean(row.recurring))
+        setCurrency(String(row.currency || 'TRY'))
         if (row.payment_account_id) setPaymentSource(`acc:${row.payment_account_id}`)
         else if (row.payment_employee_id) setPaymentSource(`emp:${row.payment_employee_id}`)
         else setPaymentSource('')
-        toast.success('Kayıt kopyalandı; düzenleyip kaydedebilirsiniz')
+        setExistingAttachmentUrl(row.attachment_url ? String(row.attachment_url) : null)
+        setArchiveName('')
+        archiveFileRef.current = null
+        if (editId) {
+          toast.success('Masraf kaydı yüklendi')
+        } else {
+          toast.success('Kayıt kopyalandı; düzenleyip kaydedebilirsiniz')
+        }
       } catch {
         /* ignore */
       }
     })()
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- initial load only for copy
-  }, [copyFrom])
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- initial load only for copy/edit
+  }, [editId, copyFrom])
 
   const handleArchive = (f: File | null) => {
+    archiveFileRef.current = f
     setArchiveName(f?.name ?? '')
   }
 
@@ -172,28 +187,44 @@ function YeniMasrafForm() {
     if (showPaidAccount && paymentSource.startsWith('acc:')) payment_account_id = paymentSource.slice(4)
     if (showPaidAccount && paymentSource.startsWith('emp:')) payment_employee_id = paymentSource.slice(4)
 
+    const payload = {
+      expense_item_key: expenseItem,
+      transaction_date: txDate,
+      doc_no: docNo || null,
+      description: description || null,
+      payment_status: paymentStatus,
+      payment_date: paymentDate || null,
+      amount_gross: amt,
+      vat_rate: vatRate,
+      recurring,
+      currency,
+      payment_account_id,
+      payment_employee_id,
+    }
+
     setSaving(true)
     try {
-      const res = await fetch('/api/expenses', {
-        method: 'POST',
+      const isEdit = Boolean(editId)
+      const res = await fetch(isEdit ? `/api/expenses/${editId}` : '/api/expenses', {
+        method: isEdit ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          expense_item_key: expenseItem,
-          transaction_date: txDate,
-          doc_no: docNo || null,
-          description: description || null,
-          payment_status: paymentStatus,
-          payment_date: paymentDate || null,
-          amount_gross: amt,
-          vat_rate: vatRate,
-          recurring,
-          payment_account_id,
-          payment_employee_id,
-        }),
+        body: JSON.stringify(payload),
       })
       const data = await res.json().catch(() => ({}))
       if (!res.ok) throw new Error(data.error || 'Kaydedilemedi')
-      toast.success('Masraf kaydı oluşturuldu')
+
+      const expenseId = isEdit ? editId! : (data.id as string)
+      const file = archiveFileRef.current
+      if (file && expenseId) {
+        const fd = new FormData()
+        fd.append('file', file)
+        const up = await fetch(`/api/expenses/${expenseId}/attachment`, { method: 'POST', body: fd })
+        const upJson = await up.json().catch(() => ({}))
+        if (!up.ok) throw new Error(upJson.error || 'Belge yüklenemedi')
+        setExistingAttachmentUrl(typeof upJson.url === 'string' ? upJson.url : null)
+      }
+
+      toast.success(isEdit ? 'Masraf güncellendi' : 'Masraf kaydı oluşturuldu')
       router.push('/dashboard/hesaplarim/masraflar')
       router.refresh()
     } catch (err: any) {
@@ -206,14 +237,18 @@ function YeniMasrafForm() {
   return (
     <div className="mx-auto w-full min-w-0 max-w-full space-y-4 overflow-x-hidden pb-4">
       <form onSubmit={handleSave} className="space-y-4">
-        <div className="flex flex-wrap gap-3">
+        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+          <h1 className="text-xl font-bold tracking-tight text-slate-900">
+            {editId ? 'Masraf düzenle' : 'Yeni masraf'}
+          </h1>
+          <div className="flex flex-wrap gap-3">
           <Button
             type="submit"
             disabled={saving || (showPaidAccount && sourcesLoading)}
             className="gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700"
           >
             <Check className="h-4 w-4" />
-            Kaydet
+            {editId ? 'Güncelle' : 'Kaydet'}
           </Button>
           <Link
             href="/dashboard/hesaplarim/masraflar"
@@ -222,6 +257,7 @@ function YeniMasrafForm() {
             <Undo2 className="h-4 w-4" />
             Geri Dön
           </Link>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:items-start">
@@ -308,13 +344,25 @@ function YeniMasrafForm() {
                   <Plus className="h-4 w-4" />
                   Arşiv belgesi yükle
                 </button>
+                {existingAttachmentUrl && !archiveName ? (
+                  <p className="mt-1.5 text-xs">
+                    <a
+                      href={existingAttachmentUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-medium text-emerald-700 underline hover:text-emerald-900"
+                    >
+                      Mevcut belgeyi aç
+                    </a>
+                  </p>
+                ) : null}
                 {archiveName ? (
                   <p className="mt-1.5 text-xs text-gray-600">Seçilen: {archiveName}</p>
-                ) : (
+                ) : !existingAttachmentUrl ? (
                   <p className="mt-1.5 text-xs text-gray-500">
                     Masraf ile ilgili belge varsa ekleyebilirsiniz
                   </p>
-                )}
+                ) : null}
               </div>
             </div>
           </div>
