@@ -10,6 +10,7 @@ import {
   Pencil,
   X,
   FileIcon,
+  FileText,
   Check,
 } from 'lucide-react'
 import { toast } from 'react-hot-toast'
@@ -236,44 +237,46 @@ export default function KrediDokumanlarPage() {
   const loanTitle = (loan?.name?.trim() || 'Kredi') as string
 
   return (
-    <div className="mx-auto w-full min-w-0 max-w-full space-y-4 overflow-x-hidden pb-4">
-      <div className="flex flex-wrap items-center gap-3">
-        <Link
-          href={`/dashboard/hesaplarim/krediler/${id}`}
-          className="inline-flex items-center gap-2 rounded-lg bg-orange-500 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-orange-600"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Geri Dön
-        </Link>
-      </div>
-
-      <div className="rounded-lg border border-gray-200 bg-white px-4 py-3 shadow-md ring-1 ring-gray-100">
-        <h1 className="break-words text-lg font-bold leading-snug tracking-tight text-slate-900 sm:text-xl">
-          {loanTitle}
-        </h1>
+    <div className="mx-auto w-full min-w-0 max-w-full space-y-6 overflow-x-hidden pb-8">
+      <div className="overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-sm ring-1 ring-slate-900/5">
+        <div className="border-b border-slate-100 bg-slate-50/80 px-4 py-3 sm:px-5">
+          <Link
+            href={`/dashboard/hesaplarim/krediler/${id}`}
+            className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50"
+          >
+            <ArrowLeft className="h-4 w-4 text-slate-500" />
+            Geri Dön
+          </Link>
+        </div>
+        <div className="px-4 py-4 sm:px-6 sm:py-5">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Kredi belgeleri</p>
+          <h1 className="mt-1 break-words text-xl font-semibold tracking-tight text-slate-900 sm:text-2xl">
+            {loanTitle}
+          </h1>
+        </div>
       </div>
 
       {loading ? (
         <p className="text-sm text-slate-500">Yükleniyor…</p>
       ) : loadError ? (
-        <p className="text-sm text-red-700">{loadError}</p>
+        <p className="rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-800">{loadError}</p>
       ) : docs.length === 0 ? (
-        <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-md">
-          <div className="flex gap-3 rounded-lg border border-amber-200/90 bg-amber-50/95 px-4 py-4 text-sm leading-relaxed text-amber-950">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-amber-100 text-amber-800">
-              <FileIcon className="h-5 w-5" />
+        <div className="rounded-2xl border border-slate-200/90 bg-white p-5 shadow-sm ring-1 ring-slate-900/5 sm:p-6">
+          <div className="flex gap-4">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100">
+              <FileIcon className="h-6 w-6" />
             </div>
-            <div className="min-w-0">
+            <div className="min-w-0 space-y-3 text-sm leading-relaxed text-slate-600">
               <p>
                 Kullandığınız kredi ile ilgili belgeleri (sözleşme, taahhütname, sigorta…) taratıp veya
                 resmini çekip buraya yükleyebilirsiniz. Dilediğiniz zaman da buradan tekrar indirebilirsiniz.
               </p>
-              <p className="mt-3 flex flex-wrap items-center gap-x-1.5 gap-y-2 text-amber-900/90">
+              <p className="flex flex-wrap items-center gap-x-1.5 gap-y-2 text-slate-600">
                 <span>Belge eklemek için</span>
                 <button
                   type="button"
                   onClick={openUploadModal}
-                  className="inline-flex items-center gap-1 rounded-md bg-emerald-600 px-2.5 py-1 text-xs font-semibold text-white shadow-sm transition hover:bg-emerald-700"
+                  className="inline-flex items-center gap-1.5 rounded-full bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-emerald-700"
                 >
                   <Plus className="h-3.5 w-3.5" />
                   Yeni belge ekle
@@ -284,66 +287,69 @@ export default function KrediDokumanlarPage() {
           </div>
         </div>
       ) : (
-        <div className="space-y-3">
-          <div className="flex flex-wrap items-center justify-end gap-2">
+        <div className="space-y-4">
+          <div className="flex flex-wrap items-center justify-end">
             <button
               type="button"
               onClick={openUploadModal}
-              className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700"
+              className="inline-flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50/90 px-4 py-2.5 text-sm font-semibold text-emerald-900 shadow-sm transition hover:border-emerald-300 hover:bg-emerald-100"
             >
               <Plus className="h-4 w-4" />
               Yeni belge ekle
             </button>
           </div>
-        <div className="overflow-hidden rounded-lg border border-gray-200 bg-white p-4 shadow-md">
           <div className="space-y-3">
             {docs.map((d) => (
               <div
                 key={d.id}
-                className="max-w-3xl rounded-lg border border-sky-700/30 bg-sky-600 px-4 py-3 text-white shadow-md"
+                className="group rounded-2xl border border-slate-200/90 bg-white p-4 shadow-sm ring-1 ring-slate-900/5 transition hover:border-slate-300 hover:shadow-md sm:p-5"
               >
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-bold">{d.file_name}</p>
-                    <p className="mt-0.5 text-xs font-normal text-sky-100">
-                      {d.description?.trim() || 'Açıklama yok'}
-                    </p>
-                  </div>
-                  <div className="flex shrink-0 flex-col items-start gap-2 sm:items-end">
-                    <span className="text-sm text-sky-100">{formatTrDate(d.document_date)}</span>
-                    <div className="flex flex-wrap gap-1.5">
-                      <a
-                        href={d.public_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 rounded-md bg-emerald-500 px-2.5 py-1.5 text-[11px] font-semibold text-white shadow-sm hover:bg-emerald-400"
-                      >
-                        <Download className="h-3.5 w-3.5" />
-                        İndir
-                      </a>
-                      <button
-                        type="button"
-                        onClick={() => openEdit(d)}
-                        className="inline-flex items-center gap-1 rounded-md bg-orange-500 px-2.5 py-1.5 text-[11px] font-semibold text-white shadow-sm hover:bg-orange-400"
-                      >
-                        <Pencil className="h-3.5 w-3.5" />
-                        Güncelle
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => confirmDelete(d)}
-                        className="inline-flex items-center gap-1 rounded-md bg-red-600 px-2.5 py-1.5 text-[11px] font-semibold text-white shadow-sm hover:bg-red-500"
-                      >
-                        <X className="h-3.5 w-3.5" />
-                        Sil
-                      </button>
+                <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                  <div className="flex min-w-0 gap-4">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-500 transition group-hover:bg-emerald-50 group-hover:text-emerald-700">
+                      <FileText className="h-6 w-6" />
                     </div>
+                    <div className="min-w-0">
+                      <p className="break-words font-medium leading-snug text-slate-900">{d.file_name}</p>
+                      <p className="mt-1 text-sm text-slate-500">
+                        {d.description?.trim() || 'Açıklama yok'}
+                      </p>
+                      <time className="mt-2 inline-flex text-xs font-medium tabular-nums text-slate-400">
+                        {formatTrDate(d.document_date)}
+                      </time>
+                    </div>
+                  </div>
+                  <div className="flex shrink-0 flex-wrap gap-2 border-t border-slate-100 pt-3 lg:border-t-0 lg:pt-0">
+                    <a
+                      href={d.public_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50/80 px-3 py-2 text-xs font-medium text-emerald-900 transition hover:bg-emerald-100"
+                    >
+                      <Download className="h-3.5 w-3.5" />
+                      İndir
+                    </a>
+                    <button
+                      type="button"
+                      onClick={() => openEdit(d)}
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
+                    >
+                      <Pencil className="h-3.5 w-3.5" />
+                      Güncelle
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => confirmDelete(d)}
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-red-100 bg-white px-3 py-2 text-xs font-medium text-red-700 transition hover:border-red-200 hover:bg-red-50"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                      Sil
+                    </button>
                   </div>
                 </div>
               </div>
             ))}
           </div>
-        </div>
         </div>
       )}
 
@@ -351,17 +357,17 @@ export default function KrediDokumanlarPage() {
 
       {uploadModalOpen && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-3"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-3 backdrop-blur-[2px]"
           onClick={tryCloseUploadModal}
         >
           <div
-            className="flex max-h-[min(90vh,640px)] w-full max-w-lg flex-col overflow-hidden rounded-lg border border-slate-200/90 bg-white shadow-2xl"
+            className="flex max-h-[min(90vh,640px)] w-full max-w-lg flex-col overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-2xl ring-1 ring-slate-900/10"
             onClick={(e) => e.stopPropagation()}
             role="dialog"
             aria-modal="true"
             aria-labelledby="loan-doc-upload-title"
           >
-            <div className="flex items-center justify-between bg-emerald-500 px-4 py-3">
+            <div className="flex items-center justify-between bg-gradient-to-r from-emerald-600 to-teal-700 px-5 py-4">
               <h2 id="loan-doc-upload-title" className="text-base font-semibold text-white">
                 Dosya Yükleme
               </h2>
@@ -369,50 +375,50 @@ export default function KrediDokumanlarPage() {
                 type="button"
                 onClick={tryCloseUploadModal}
                 disabled={uploadSaving}
-                className="rounded-md p-1 text-white hover:bg-white/15 disabled:opacity-50"
+                className="rounded-lg p-1.5 text-white/90 transition hover:bg-white/10 disabled:opacity-50"
                 aria-label="Kapat"
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
-            <div className="border-b border-amber-200/80 bg-amber-50 px-4 py-3 text-xs leading-relaxed text-amber-900">
+            <div className="border-b border-slate-100 bg-slate-50 px-5 py-3 text-xs leading-relaxed text-slate-600">
               Uzantısı doc, docx, xls, xlsx, pdf, jpg, gif, png, txt, webp olan dosyaları yükleyebilirsiniz. Dosya boyu
               5 MB’ı geçmemelidir.
             </div>
-            <form onSubmit={submitUpload} className="flex min-h-0 flex-1 flex-col overflow-y-auto bg-white p-4">
-              <div className="space-y-4">
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
-                  <label className="shrink-0 text-sm font-semibold text-slate-700 sm:w-40">Yüklenecek Dosya</label>
+            <form onSubmit={submitUpload} className="flex min-h-0 flex-1 flex-col overflow-y-auto bg-white p-5">
+              <div className="space-y-5">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:gap-4">
+                  <label className="shrink-0 pt-2 text-sm font-medium text-slate-700 sm:w-36">Yüklenecek Dosya</label>
                   <div className="min-w-0 flex-1">
                     <input
                       key={modalFileInputKey}
                       type="file"
                       onChange={onModalFileChange}
                       accept={LOAN_DOC_ACCEPT}
-                      className="block w-full text-sm text-slate-800 file:mr-3 file:rounded-md file:border-0 file:bg-slate-100 file:px-3 file:py-2 file:text-sm file:font-medium file:text-slate-800 hover:file:bg-slate-200"
+                      className="block w-full text-sm text-slate-800 file:mr-3 file:rounded-lg file:border-0 file:bg-slate-100 file:px-4 file:py-2.5 file:text-sm file:font-medium file:text-slate-700 hover:file:bg-slate-200"
                     />
                     {modalFile ? (
-                      <p className="mt-1 truncate text-xs text-slate-500">{modalFile.name}</p>
+                      <p className="mt-2 truncate text-xs text-slate-500">{modalFile.name}</p>
                     ) : null}
                   </div>
                 </div>
                 <div>
-                  <label className="mb-1 block text-sm font-semibold text-slate-700">Dosya Açıklaması</label>
+                  <label className="mb-1.5 block text-sm font-medium text-slate-700">Dosya Açıklaması</label>
                   <textarea
                     value={modalDesc}
                     onChange={(e) => setModalDesc(e.target.value)}
                     rows={4}
                     placeholder="kredi belgesi"
-                    className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-slate-900 outline-none ring-emerald-500/20 focus:border-emerald-500 focus:ring-2"
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2.5 text-sm text-slate-900 outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-2 focus:ring-emerald-500/20"
                   />
                 </div>
               </div>
-              <div className="mt-6 flex flex-wrap justify-end gap-2 border-t border-slate-100 pt-4">
+              <div className="mt-8 flex flex-wrap justify-end gap-2 border-t border-slate-100 pt-5">
                 <button
                   type="button"
                   disabled={uploadSaving}
                   onClick={tryCloseUploadModal}
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-orange-500 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-orange-600 disabled:opacity-50"
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:opacity-50"
                 >
                   <X className="h-4 w-4" />
                   Vazgeç
@@ -420,7 +426,7 @@ export default function KrediDokumanlarPage() {
                 <button
                   type="submit"
                   disabled={uploadSaving}
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700 disabled:opacity-50"
+                  className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 disabled:opacity-50"
                 >
                   <Check className="h-4 w-4" />
                   {uploadSaving ? 'Yükleniyor…' : 'Yükle'}
@@ -433,35 +439,37 @@ export default function KrediDokumanlarPage() {
 
       {editDoc && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-3"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-3 backdrop-blur-[2px]"
           onClick={() => !editSaving && setEditDoc(null)}
         >
           <div
-            className="w-full max-w-md rounded-lg border border-slate-200 bg-white p-4 shadow-xl"
+            className="w-full max-w-md overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-2xl ring-1 ring-slate-900/10"
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 className="text-sm font-semibold text-slate-900">Belgeyi güncelle</h3>
-            <p className="mt-1 truncate text-xs text-slate-600">{editDoc.file_name}</p>
-            <form onSubmit={submitEdit} className="mt-3 space-y-3">
+            <div className="border-b border-slate-100 bg-slate-50/90 px-5 py-4">
+              <h3 className="text-base font-semibold text-slate-900">Belgeyi güncelle</h3>
+              <p className="mt-1 truncate text-xs text-slate-500">{editDoc.file_name}</p>
+            </div>
+            <form onSubmit={submitEdit} className="space-y-4 p-5">
               <div>
-                <label className="mb-0.5 block text-xs font-medium text-slate-600">Açıklama</label>
+                <label className="mb-1 block text-xs font-medium text-slate-600">Açıklama</label>
                 <input
                   value={editDesc}
                   onChange={(e) => setEditDesc(e.target.value)}
-                  className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
+                  className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
                 />
               </div>
               <div>
-                <label className="mb-0.5 block text-xs font-medium text-slate-600">Belge tarihi</label>
+                <label className="mb-1 block text-xs font-medium text-slate-600">Belge tarihi</label>
                 <input
                   type="date"
                   value={editDate}
                   onChange={(e) => setEditDate(e.target.value)}
-                  className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
+                  className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
                 />
               </div>
               <div>
-                <label className="mb-0.5 block text-xs font-medium text-slate-600">Dosyayı değiştir (isteğe bağlı)</label>
+                <label className="mb-1 block text-xs font-medium text-slate-600">Dosyayı değiştir (isteğe bağlı)</label>
                 <input
                   ref={replaceFileRef}
                   type="file"
@@ -476,12 +484,12 @@ export default function KrediDokumanlarPage() {
                 <button
                   type="button"
                   onClick={() => replaceFileRef.current?.click()}
-                  className="text-xs font-medium text-emerald-700 hover:underline"
+                  className="text-sm font-medium text-emerald-700 hover:underline"
                 >
                   {replaceFile ? replaceFile.name : 'Dosya seç…'}
                 </button>
               </div>
-              <div className="flex justify-end gap-2 pt-1">
+              <div className="flex justify-end gap-2 border-t border-slate-100 pt-4">
                 <button
                   type="button"
                   disabled={editSaving}
@@ -489,14 +497,14 @@ export default function KrediDokumanlarPage() {
                     setEditDoc(null)
                     setReplaceFile(null)
                   }}
-                  className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium"
+                  className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
                 >
                   İptal
                 </button>
                 <button
                   type="submit"
                   disabled={editSaving}
-                  className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-50"
+                  className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
                 >
                   {editSaving ? 'Kaydediliyor…' : 'Kaydet'}
                 </button>
