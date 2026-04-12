@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { clearReferencesToAccount } from '@/lib/clear-account-references'
 import { NextResponse } from 'next/server'
 
 export async function GET(
@@ -72,8 +73,22 @@ export async function DELETE(
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-    const { error } = await supabase.from('accounts').delete().eq('id', id)
+    const { data: profile } = await supabase.from('profiles').select('tenant_id').eq('id', user.id).single()
+    if (!profile?.tenant_id) return NextResponse.json({ error: 'Profile not found' }, { status: 400 })
+
+    const tenantId = profile.tenant_id
+
+    await clearReferencesToAccount(supabase, tenantId, id)
+
+    const { error, count } = await supabase
+      .from('accounts')
+      .delete({ count: 'exact' })
+      .eq('id', id)
+      .eq('tenant_id', tenantId)
+
     if (error) throw error
+    if (!count) return NextResponse.json({ error: 'Hesap bulunamadı' }, { status: 404 })
+
     return NextResponse.json({ ok: true })
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 })

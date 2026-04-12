@@ -195,15 +195,16 @@ export default function AccountDetailPage() {
   }
 
   const handleDeleteAccount = async () => {
-    if(!confirm('Bu hesabı silmek istediğinize emin misiniz?')) return;
+    if (!confirm('Bu hesabı silmek istediğinize emin misiniz?')) return
     try {
       const response = await fetch(`/api/accounts/${accountId}`, { method: 'DELETE' })
-      if (!response.ok) throw new Error('Silinemedi')
-      toast.success('Hesap başarıyla silindi')
+      const data = await response.json().catch(() => ({}))
+      if (!response.ok) throw new Error(data.error || 'Silinemedi')
+      toast.success('Hesap silindi')
       router.push('/dashboard/hesaplarim')
-    } catch (error: any) { 
-      toast.success('Hesap silindi (Yerel Önizleme)')
-      router.push('/dashboard/hesaplarim')
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : 'Silinemedi'
+      toast.error(msg)
     }
   }
 

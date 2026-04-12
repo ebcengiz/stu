@@ -17,14 +17,27 @@ export async function GET() {
       return NextResponse.json({ error: 'Profile not found' }, { status: 400 })
     }
 
-    const { error: rpcErr } = await supabase.rpc('ensure_default_accounts', {
-      p_tenant_id: profile.tenant_id,
-    })
-    if (rpcErr) console.error('ensure_default_accounts:', rpcErr)
+    const tenantId = profile.tenant_id
+
+    const { count, error: countErr } = await supabase
+      .from('accounts')
+      .select('*', { count: 'exact', head: true })
+      .eq('tenant_id', tenantId)
+
+    if (countErr) throw countErr
+
+    /** Yalnızca hiç hesap yoksa varsayılanları ekle; aksi halde silinen varsayılanlar (ör. Banka TL) tekrar oluşur. */
+    if (count === 0) {
+      const { error: rpcErr } = await supabase.rpc('ensure_default_accounts', {
+        p_tenant_id: tenantId,
+      })
+      if (rpcErr) console.error('ensure_default_accounts:', rpcErr)
+    }
 
     const { data: accounts, error } = await supabase
       .from('accounts')
       .select('*')
+      .eq('tenant_id', tenantId)
       .order('type', { ascending: true })
       .order('name', { ascending: true })
 
