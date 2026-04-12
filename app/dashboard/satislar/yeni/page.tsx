@@ -8,6 +8,7 @@ import { Card, CardBody, CardHeader, CardTitle } from '@/components/ui/Card'
 import { toast } from 'react-hot-toast'
 import { CURRENCY_SYMBOLS } from '@/lib/currency'
 import { isOdemeHesabi } from '@/lib/account-sections'
+import ProjectSelect from '@/components/projects/ProjectSelect'
 
 interface Product {
   id: string
@@ -63,7 +64,8 @@ function SaleEntryForm() {
     description: '',
     collected_amount: 0,
     collection_account_id: '',
-    currency: 'TRY'
+    currency: 'TRY',
+    project_id: '',
   })
 
   const [items, setItems] = useState<any[]>([])
@@ -178,6 +180,7 @@ function SaleEntryForm() {
       customer_id: customerId || null,
       total_amount: calculateTotal(),
       collection_account_id: formData.collection_account_id || undefined,
+      project_id: formData.project_id || undefined,
       items: items.map(item => ({
         ...item,
         total_price: calculateRowTotal(item)
@@ -274,6 +277,12 @@ function SaleEntryForm() {
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-gray-700 mb-1">Açıklama</label>
                 <input type="text" value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-lg" />
+              </div>
+              <div className="md:col-span-3">
+                <ProjectSelect
+                  value={formData.project_id}
+                  onChange={(pid) => setFormData({ ...formData, project_id: pid })}
+                />
               </div>
             </div>
           </CardBody>

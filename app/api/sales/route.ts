@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import { adjustAccountBalance } from '@/lib/account-balance'
+import { resolveOptionalProjectId } from '@/lib/project-validation'
 
 export async function GET(request: Request) {
   try {
@@ -53,6 +54,15 @@ export async function POST(request: Request) {
 
     if (!profile) throw new Error('Profile not found')
 
+    const { projectId, invalid: badProject } = await resolveOptionalProjectId(
+      supabase,
+      profile.tenant_id,
+      body.project_id
+    )
+    if (badProject) {
+      return NextResponse.json({ error: 'Geçersiz proje' }, { status: 400 })
+    }
+
     const currency = body.currency || 'TRY'
     const collected = Number(body.collected_amount) || 0
     if (body.customer_id && collected > 0 && !body.collection_account_id) {
@@ -79,7 +89,8 @@ export async function POST(request: Request) {
         collected_amount: Number(body.collected_amount) || 0,
         currency,
         status: body.status,
-        description: body.description
+        description: body.description,
+        project_id: projectId,
       })
       .select()
       .single()
@@ -106,7 +117,8 @@ export async function POST(request: Request) {
             date: body.sale_date,
             document_no: body.document_no,
             description: `Satış Faturası - Sipariş No: ${body.order_no || sale.id.substring(0,8)}`,
-            is_debt: true
+            is_debt: true,
+            project_id: projectId,
           })
           if (transError) throw transError
       }
@@ -127,6 +139,7 @@ export async function POST(request: Request) {
             is_debt: false,
             account_id: body.collection_account_id || null,
             payment_method: 'cash',
+            project_id: projectId,
           })
           .select('id')
           .single()

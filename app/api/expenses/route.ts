@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import { ensureDefaultExpenseItems } from '@/lib/expense-item-seed'
 import { applyPaidExpenseMovements } from '@/lib/general-expense-payment-effects'
+import { resolveOptionalProjectId } from '@/lib/project-validation'
 
 function currencyStr(c: unknown) {
   return c == null ? 'TRY' : String(c)
@@ -108,6 +109,15 @@ export async function POST(request: Request) {
     await ensureDefaultExpenseItems(supabase, profile.tenant_id)
 
     const body = await request.json()
+
+    const { projectId, invalid: badProject } = await resolveOptionalProjectId(
+      supabase,
+      profile.tenant_id,
+      body.project_id
+    )
+    if (badProject) {
+      return NextResponse.json({ error: 'Geçersiz proje' }, { status: 400 })
+    }
     const expense_item_key = String(body.expense_item_key ?? '').trim()
     if (!expense_item_key) {
       return NextResponse.json({ error: 'Masraf kalemi zorunludur' }, { status: 400 })
@@ -195,6 +205,7 @@ export async function POST(request: Request) {
       currency: rowCurrency,
       payment_account_id,
       payment_employee_id,
+      project_id: projectId,
     }
 
     const { data, error } = await supabase.from('general_expenses').insert(row).select().single()

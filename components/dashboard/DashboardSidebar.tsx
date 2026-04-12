@@ -26,6 +26,7 @@ import {
   Receipt,
   Banknote,
   Armchair,
+  FolderKanban,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useState, useEffect } from 'react'
@@ -181,7 +182,8 @@ export default function DashboardSidebar({ profile }: { profile: Profile | null 
                     !pathname.startsWith('/dashboard/hesaplarim/calisanlar') &&
                     !pathname.startsWith('/dashboard/hesaplarim/masraflar') &&
                     !pathname.startsWith('/dashboard/hesaplarim/krediler') &&
-                    !pathname.startsWith('/dashboard/hesaplarim/demirbaslar')
+                    !pathname.startsWith('/dashboard/hesaplarim/demirbaslar') &&
+                    !pathname.startsWith('/dashboard/hesaplarim/projeler')
                       ? 'text-primary-700 bg-primary-50'
                       : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                   } px-3`}
@@ -240,6 +242,19 @@ export default function DashboardSidebar({ profile }: { profile: Profile | null 
                 >
                   <Armchair className="h-4 w-4 mr-2" />
                   Demirbaşlar
+                </Link>
+                <Link
+                  href="/dashboard/hesaplarim/projeler"
+                  className={`flex items-center py-2 text-sm font-medium rounded-md transition-colors ${
+                    pathname === '/dashboard/hesaplarim/projeler' ||
+                    pathname.startsWith('/dashboard/hesaplarim/projeler/')
+                      ? 'text-primary-700 bg-primary-50'
+                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                  } px-3`}
+                  onClick={() => isMobile && setIsMobileMenuOpen(false)}
+                >
+                  <FolderKanban className="h-4 w-4 mr-2" />
+                  Projeler
                 </Link>
               </div>
             )}

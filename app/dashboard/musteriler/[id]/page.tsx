@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button'
 import { Card, CardHeader, CardBody, CardTitle } from '@/components/ui/Card'
 import { TagSelector } from '@/components/admin/TagSelector'
 import { CURRENCY_SYMBOLS } from '@/lib/currency'
+import ProjectSelect from '@/components/projects/ProjectSelect'
 import { accountTypeLabel, isOdemeHesabi } from '@/lib/account-sections'
 // @ts-ignore
 import { toast } from 'react-hot-toast'
@@ -186,7 +187,8 @@ export default function CustomerDetailPage() {
     document_number: '',
     waybill_number: '',
     shipment_date: new Date().toISOString().split('T')[0],
-    order_date: new Date().toISOString().split('T')[0]
+    order_date: new Date().toISOString().split('T')[0],
+    project_id: '',
   })
 
   const [balanceFixForm, setBalanceFixForm] = useState({
@@ -417,7 +419,8 @@ export default function CustomerDetailPage() {
         cheque_due_date: txForm.type === 'payment' && txForm.payment_method === 'cheque' ? new Date(chequeData.due_date).toISOString() : null,
         cheque_bank: txForm.type === 'payment' && txForm.payment_method === 'cheque' ? chequeData.bank : null,
         cheque_serial_number: txForm.type === 'payment' && txForm.payment_method === 'cheque' ? chequeData.serial_number : null,
-        items: txForm.type === 'sale' ? selectedItems : []
+        items: txForm.type === 'sale' ? selectedItems : [],
+        project_id: txForm.project_id || undefined,
       }
       const res = await fetch('/api/customer-transactions', {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
@@ -429,7 +432,8 @@ export default function CustomerDetailPage() {
       setTxForm({ 
         ...txForm, amount: '', description: '', document_number: '', waybill_number: '',
         payment_account_id: '',
-        transaction_date: new Date().toISOString().split('T')[0], shipment_date: new Date().toISOString().split('T')[0], order_date: new Date().toISOString().split('T')[0]
+        transaction_date: new Date().toISOString().split('T')[0], shipment_date: new Date().toISOString().split('T')[0], order_date: new Date().toISOString().split('T')[0],
+        project_id: '',
       }); 
       setChequeData({ amount: '', due_date: new Date().toISOString().split('T')[0], bank: '', serial_number: '' });
       setSelectedItems([]); fetchTransactions(); fetchCustomerData();
@@ -850,6 +854,12 @@ export default function CustomerDetailPage() {
                   <div className="space-y-2"><label className="block text-xs font-black text-gray-400 uppercase tracking-widest px-1">İşlem Tarihi</label><input type="date" value={txForm.transaction_date} onChange={e => setTxForm({...txForm, transaction_date: e.target.value})} className="w-full px-4 py-3 border-2 border-gray-100 rounded-2xl focus:border-primary-500 outline-none font-bold" /></div>
                   <div className="space-y-2"><label className="block text-xs font-black text-gray-400 uppercase tracking-widest px-1">Genel Toplam</label><input type="number" value={txForm.amount} readOnly className="w-full px-4 py-3 border-2 border-primary-100 rounded-2xl bg-primary-50/30 font-black text-xl text-primary-900 outline-none" /></div>
                 </div>
+                <div className="pt-2">
+                  <ProjectSelect
+                    value={txForm.project_id}
+                    onChange={(pid) => setTxForm({ ...txForm, project_id: pid })}
+                  />
+                </div>
                 <textarea placeholder="Notlar..." value={txForm.description} onChange={e => setTxForm({...txForm, description: e.target.value})} className="w-full px-4 py-3 border border-gray-200 rounded-xl outline-none h-24 resize-none shadow-sm" />
                 
                 <div className="flex justify-end gap-3 pt-4 border-t"><Button type="button" variant="outline" onClick={() => setShowSaleModal(false)}>İptal</Button><Button type="submit" disabled={saving || selectedItems.length === 0}>{saving ? 'Kaydediliyor...' : 'Satışı Tamamla'}</Button></div>
@@ -926,6 +936,11 @@ export default function CustomerDetailPage() {
                     <input type="number" step="any" required value={txForm.amount} onChange={e => setTxForm({...txForm, amount: e.target.value})} className="w-full px-4 py-3.5 border-2 border-emerald-100 rounded-2xl bg-emerald-50/30 text-xl font-black text-emerald-900 focus:border-emerald-500 outline-none placeholder-emerald-200" placeholder="0.00" />
                   </div>
                 </div>
+
+                <ProjectSelect
+                  value={txForm.project_id}
+                  onChange={(pid) => setTxForm({ ...txForm, project_id: pid })}
+                />
 
                 {txForm.payment_method === 'cheque' && (
                    <div className="p-5 bg-amber-50 border border-amber-200 rounded-2xl flex items-center justify-between">

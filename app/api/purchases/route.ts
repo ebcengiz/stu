@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import { adjustAccountBalance } from '@/lib/account-balance'
 import { isMissingColumnSchemaError } from '@/lib/db-errors'
+import { resolveOptionalProjectId } from '@/lib/project-validation'
 
 export async function GET(request: Request) {
   try {
@@ -41,6 +42,15 @@ export async function POST(request: Request) {
 
     if (!profile) throw new Error('Profile not found')
 
+    const { projectId, invalid: badProject } = await resolveOptionalProjectId(
+      supabase,
+      profile.tenant_id,
+      body.project_id
+    )
+    if (badProject) {
+      return NextResponse.json({ error: 'Geçersiz proje' }, { status: 400 })
+    }
+
     const currency = body.currency || 'TRY'
     const paid = Number(body.paid_amount) || 0
     if (body.supplier_id && paid > 0 && !body.payment_account_id) {
@@ -63,7 +73,8 @@ export async function POST(request: Request) {
         paid_amount: body.paid_amount,
         currency,
         status: body.status,
-        description: body.description
+        description: body.description,
+        project_id: projectId,
       })
       .select()
       .single()
@@ -128,6 +139,7 @@ export async function POST(request: Request) {
           transaction_date: body.purchase_date,
           document_number: body.document_no,
           description: `Satın Alma Faturası - Belge No: ${body.document_no || purchase.id.substring(0, 8)}`,
+          project_id: projectId,
         }
         let { error: transError } = await supabase
           .from('supplier_transactions')
@@ -151,6 +163,7 @@ export async function POST(request: Request) {
           description: `Satın Alma Ödemesi - Belge No: ${body.document_no || purchase.id.substring(0, 8)}`,
           account_id: body.payment_account_id || null,
           payment_method: 'cash' as const,
+          project_id: projectId,
         }
         let { data: payRow, error: payError } = await supabase
           .from('supplier_transactions')

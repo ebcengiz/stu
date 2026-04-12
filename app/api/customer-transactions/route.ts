@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import { adjustAccountBalance, requiresAccountForPayment } from '@/lib/account-balance'
+import { resolveOptionalProjectId } from '@/lib/project-validation'
 
 export async function GET(request: Request) {
   try {
@@ -62,6 +63,15 @@ export async function POST(request: Request) {
 
     if (!profile) throw new Error('Profile not found')
 
+    const { projectId, invalid: badProject } = await resolveOptionalProjectId(
+      supabase,
+      profile.tenant_id,
+      body.project_id
+    )
+    if (badProject) {
+      return NextResponse.json({ error: 'Geçersiz proje' }, { status: 400 })
+    }
+
     if (
       type === 'payment' &&
       requiresAccountForPayment(payment_method) &&
@@ -102,6 +112,7 @@ export async function POST(request: Request) {
         cheque_serial_number: type === 'payment' && payment_method === 'cheque' ? cheque_serial_number : null,
         account_id: account_id || null,
         currency,
+        project_id: projectId,
       })
       .select()
       .single()
@@ -129,82 +140,98 @@ export async function POST(request: Request) {
       }
     }
 
-    // 2. If it's a sale, create transaction items, update stock, and create a sales record
-    if (type === 'sale' && items && items.length > 0) {
-      const itemsToInsert = items.map((item: any) => ({
-        transaction_id: transaction.id,
-        product_id: item.product_id,
-        product_name: item.product_name,
-        quantity: item.quantity,
-        unit_price: item.unit_price,
-        tax_rate: item.tax_rate || 0,
-        discount_rate: item.discount_rate || 0,
-        tax_amount: item.tax_amount || 0,
-        discount_amount: item.discount_amount || 0,
-        total_price: item.total_price
-      }))
+    // 2. Satış: kalemli veya kalemsiz — proje / satışlar listesi için her zaman `sales` satırı oluştur
+    if (type === 'sale') {
+      if (items && items.length > 0) {
+        const itemsToInsert = items.map((item: any) => ({
+          transaction_id: transaction.id,
+          product_id: item.product_id,
+          product_name: item.product_name,
+          quantity: item.quantity,
+          unit_price: item.unit_price,
+          tax_rate: item.tax_rate || 0,
+          discount_rate: item.discount_rate || 0,
+          tax_amount: item.tax_amount || 0,
+          discount_amount: item.discount_amount || 0,
+          total_price: item.total_price
+        }))
 
-      const { error: itemsError } = await supabase
-        .from('customer_transaction_items')
-        .insert(itemsToInsert)
+        const { error: itemsError } = await supabase
+          .from('customer_transaction_items')
+          .insert(itemsToInsert)
 
-      if (itemsError) throw itemsError
+        if (itemsError) throw itemsError
 
-      // Create a record in 'sales' table so it shows up in SalesPage
-      const { data: saleData, error: saleError } = await supabase
-        .from('sales')
-        .insert({
+        const { data: saleData, error: saleError } = await supabase
+          .from('sales')
+          .insert({
+            tenant_id: profile.tenant_id,
+            customer_id: customer_id,
+            sale_date: transaction_date,
+            document_no: document_number || '',
+            order_no: '',
+            total_amount: amount,
+            collected_amount: 0,
+            currency,
+            status: 'Faturalaşmış',
+            description: description || '',
+            project_id: projectId,
+          })
+          .select()
+          .single()
+
+        if (saleError) throw saleError
+
+        if (saleData) {
+          const saleItemsToInsert = items.map((item: any) => {
+            const subtotal = Number(item.quantity) * Number(item.unit_price)
+            const vatRate = Number(item.tax_rate) || 0
+            const vatAmount = subtotal * (vatRate / 100)
+            return {
+              sale_id: saleData.id,
+              product_id: item.product_id,
+              warehouse_id: item.warehouse_id,
+              quantity: item.quantity,
+              unit_price: item.unit_price,
+              vat_rate: vatRate,
+              vat_amount: vatAmount,
+              total_price: item.total_price
+            }
+          })
+          const { error: saleItemsError } = await supabase.from('sale_items').insert(saleItemsToInsert)
+          if (saleItemsError) throw saleItemsError
+        }
+
+        for (const item of items) {
+          if (item.product_id) {
+            const { error: movementError } = await supabase.from('stock_movements').insert({
+              tenant_id: profile.tenant_id,
+              product_id: item.product_id,
+              warehouse_id: item.warehouse_id,
+              movement_type: 'out',
+              quantity: item.quantity,
+              reference_no: document_number || transaction.id,
+              notes: `Müşteri Satışı - ${customerName}`,
+              created_by: user.id
+            })
+            if (movementError) console.error('Stock movement error:', movementError)
+          }
+        }
+      } else {
+        const { error: saleOnlyError } = await supabase.from('sales').insert({
           tenant_id: profile.tenant_id,
           customer_id: customer_id,
           sale_date: transaction_date,
           document_no: document_number || '',
-          order_no: '', 
+          order_no: '',
           total_amount: amount,
           collected_amount: 0,
+          currency,
           status: 'Faturalaşmış',
-          description: description || ''
+          description: description || '',
+          project_id: projectId,
         })
-        .select()
-        .single()
-        
-      if (saleError) console.error('Sale insertion error:', saleError)
-
-      // If sale created successfully, create sale_items
-      if (saleData) {
-        const saleItemsToInsert = items.map((item: any) => {
-          const subtotal = Number(item.quantity) * Number(item.unit_price)
-          const vatRate = Number(item.tax_rate) || 0
-          const vatAmount = subtotal * (vatRate / 100)
-          return {
-            sale_id: saleData.id,
-            product_id: item.product_id,
-            warehouse_id: item.warehouse_id,
-            quantity: item.quantity,
-            unit_price: item.unit_price,
-            vat_rate: vatRate,
-            vat_amount: vatAmount,
-            total_price: item.total_price
-          }
-        })
-        const { error: saleItemsError } = await supabase.from('sale_items').insert(saleItemsToInsert)
-        if (saleItemsError) console.error('Sale items insertion error:', saleItemsError)
-      }
-
-      // 3. Create stock movements for each item to deduct stock
-      for (const item of items) {
-        if (item.product_id) {
-          const { error: movementError } = await supabase.from('stock_movements').insert({
-            tenant_id: profile.tenant_id,
-            product_id: item.product_id,
-            warehouse_id: item.warehouse_id,
-            movement_type: 'out',
-            quantity: item.quantity,
-            reference_no: document_number || transaction.id,
-            notes: `Müşteri Satışı - ${customerName}`,
-            created_by: user.id
-          })
-          if (movementError) console.error('Stock movement error:', movementError)
-        }
+        if (saleOnlyError) throw saleOnlyError
       }
     }
 

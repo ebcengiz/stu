@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
+import { resolveOptionalProjectId } from '@/lib/project-validation'
 import { ensureDefaultExpenseItems } from '@/lib/expense-item-seed'
 import {
   applyPaidExpenseMovements,
@@ -112,6 +113,7 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
     if (!old) return NextResponse.json({ error: 'Bulunamadı' }, { status: 404 })
 
     const body = await request.json()
+
     const expense_item_key = String(body.expense_item_key ?? '').trim()
     if (!expense_item_key) {
       return NextResponse.json({ error: 'Masraf kalemi zorunludur' }, { status: 400 })
@@ -197,6 +199,19 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
           : String(body.attachment_url)
         : (old.attachment_url as string | null | undefined) ?? null
 
+    let resolvedProjectId: string | null | undefined
+    if (body.project_id !== undefined) {
+      const { projectId, invalid: badProject } = await resolveOptionalProjectId(
+        supabase,
+        tenantId,
+        body.project_id
+      )
+      if (badProject) {
+        return NextResponse.json({ error: 'Geçersiz proje' }, { status: 400 })
+      }
+      resolvedProjectId = projectId
+    }
+
     const updateRow = {
       expense_item_key,
       transaction_date: body.transaction_date || new Date().toISOString().slice(0, 10),
@@ -211,6 +226,7 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
       payment_account_id,
       payment_employee_id,
       attachment_url,
+      ...(resolvedProjectId !== undefined ? { project_id: resolvedProjectId } : {}),
     }
 
     const { data: updated, error: upErr } = await supabase

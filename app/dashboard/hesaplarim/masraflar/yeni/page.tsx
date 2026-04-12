@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/Button'
 import type { MasrafGroup } from '@/lib/masraf-kalemleri'
 import { KDV_ORAN_OPTIONS, MASRAF_GROUPS } from '@/lib/masraf-kalemleri'
 import { formatAccountBalance } from '@/lib/account-sections'
+import ProjectSelect from '@/components/projects/ProjectSelect'
 
 const PAYMENT_STATUS_OPTIONS = [
   { value: 'later', label: 'Daha sonra ödenecek' },
@@ -57,6 +58,7 @@ function YeniMasrafForm() {
 
   const [recurring, setRecurring] = useState(false)
   const [currency, setCurrency] = useState('TRY')
+  const [projectId, setProjectId] = useState('')
 
   const [accounts, setAccounts] = useState<AccountRow[]>([])
   const [employees, setEmployees] = useState<EmployeeRow[]>([])
@@ -145,6 +147,7 @@ function YeniMasrafForm() {
         else if (row.payment_employee_id) setPaymentSource(`emp:${row.payment_employee_id}`)
         else setPaymentSource('')
         setExistingAttachmentUrl(row.attachment_url ? String(row.attachment_url) : null)
+        setProjectId(row.project_id ? String(row.project_id) : '')
         setArchiveName('')
         archiveFileRef.current = null
         if (editId) {
@@ -200,6 +203,7 @@ function YeniMasrafForm() {
       currency,
       payment_account_id,
       payment_employee_id,
+      project_id: projectId || null,
     }
 
     setSaving(true)
@@ -326,6 +330,13 @@ function YeniMasrafForm() {
                   placeholder=""
                 />
               </div>
+
+              <ProjectSelect
+                includeInactive
+                value={projectId}
+                onChange={setProjectId}
+                className="[&_label]:text-xs [&_label]:font-semibold [&_label]:text-gray-600"
+              />
 
               <div>
                 <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-gray-500">Arşiv</p>
