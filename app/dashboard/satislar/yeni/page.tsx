@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Plus, Trash2, ArrowLeft, Save, Building, Store } from 'lucide-react'
+import { Plus, Trash2, ArrowLeft, Building, Store } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Card, CardBody, CardHeader, CardTitle } from '@/components/ui/Card'
 import { toast } from 'react-hot-toast'
@@ -308,7 +308,6 @@ function SaleEntryForm() {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {items.map((item, index) => {
-                    const availableStock = getAvailableStock(item.product_id, item.warehouse_id)
                     const unit = products.find(p => p.id === item.product_id)?.unit || 'adet'
                     return (
                       <tr key={index}>

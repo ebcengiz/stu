@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Card, CardHeader, CardBody, CardTitle } from '@/components/ui/Card'
-import { FileText, Package, TrendingDown, Calendar } from 'lucide-react'
+import { Package, TrendingDown, Calendar } from 'lucide-react'
 
 interface Product {
   id: string

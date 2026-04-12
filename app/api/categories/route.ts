@@ -30,7 +30,7 @@ export async function GET() {
       }, 0) || 0
 
       // Remove the heavy products data from the response
-      const { products, ...categoryData } = category
+      const { products: _products, ...categoryData } = category
       
       return {
         ...categoryData,

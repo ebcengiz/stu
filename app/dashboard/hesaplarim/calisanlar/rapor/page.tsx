@@ -135,7 +135,7 @@ function currencyLabel(code: string | null | undefined): string {
   return c
 }
 
-function formatMoney(n: number | null | undefined, currency: string): string {
+function formatMoney(n: number | null | undefined, _currency: string): string {
   if (n == null || Number.isNaN(Number(n))) return ''
   return Number(n).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }

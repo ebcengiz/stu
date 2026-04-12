@@ -1,9 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Plus, Search, Edit2, Trash2, X, Building, Mail, Phone, MapPin } from 'lucide-react'
+import { Plus, Search, Edit2, Trash2, X, Mail, Phone, MapPin } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
-import { Card, CardHeader, CardBody, CardTitle } from '@/components/ui/Card'
+import { Card, CardBody } from '@/components/ui/Card'
 import { useRouter } from 'next/navigation'
 import { TagSelector } from '@/components/admin/TagSelector'
 import { toast } from 'react-hot-toast'
@@ -66,8 +66,8 @@ export default function CustomersPage() {
       const response = await fetch('/api/customers')
       const data = await response.json()
       setCustomers(data)
-    } catch (error) {
-      console.error('Error fetching customers:', error)
+    } catch (_error) {
+      console.error('Error fetching customers:', _error)
     } finally {
       setLoading(false)
     }
@@ -83,7 +83,9 @@ export default function CustomersPage() {
       const response = await fetch('/api/upload', { method: 'POST', body: uploadData })
       const data = await response.json()
       setFormData(prev => ({ ...prev, company_logo: data.url }))
-    } catch (error: any) { toast.error('Logo yüklenemedi') }
+    } catch {
+      toast.error('Logo yüklenemedi')
+    }
     finally { setUploadingLogo(false) }
   }
 

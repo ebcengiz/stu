@@ -6,7 +6,6 @@ import { ArrowLeft, ImageIcon, X, UploadCloud, Loader2, Package, ChevronDown } f
 import Link from 'next/link'
 import { Button } from '@/components/ui/Button'
 import { Card, CardHeader, CardBody, CardTitle } from '@/components/ui/Card'
-// @ts-ignore
 import { toast } from 'react-hot-toast'
 
 export default function NewProductPage() {
@@ -15,7 +14,7 @@ export default function NewProductPage() {
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState('')
   const [categories, setCategories] = useState<{id: string, name: string}[]>([])
-  const [loadingCategories, setLoadingCategories] = useState(true)
+  const [, setLoadingCategories] = useState(true)
 
   const [formData, setFormData] = useState({
     name: '',

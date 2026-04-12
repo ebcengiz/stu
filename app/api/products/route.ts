@@ -69,7 +69,7 @@ export async function POST(request: Request) {
     if (!profile) throw new Error('Profile not found')
 
     // Stok bilgilerini ayır (movement_type da ayır - products tablosunda yok)
-    const { initial_quantity, warehouse_id, movement_type, ...productData } = body
+    const { initial_quantity, warehouse_id, movement_type: _movement_type, ...productData } = body
 
     // Convert empty strings to null for nullable fields
     const cleanData: any = {}

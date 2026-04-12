@@ -84,9 +84,6 @@ export default async function DashboardPage() {
 
   const warehouseStats = Array.from(warehouseStatsMap.values())
 
-  // 5. Calculate Total Stock Quantity (Global)
-  const totalStockQuantity = topProducts.reduce((sum, p) => sum + p.stock, 0) // Approximation from top products? No, let's recalculate properly
-  // Better calculation:
   const exactTotalStock = (products || []).reduce((sum, p) => sum + calculateTotalStock(p.stock), 0)
 
 

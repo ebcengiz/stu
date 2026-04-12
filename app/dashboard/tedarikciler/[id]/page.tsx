@@ -1,15 +1,14 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
-import { ArrowLeft, Building, CreditCard, FileText, ShoppingCart, Save, DollarSign, Plus, Search, Trash2, Package, X, Check, History, Tag, ChevronDown, Calendar, Phone, Mail, MapPin, MoreVertical, Edit2, Scale } from 'lucide-react'
+import { ArrowLeft, Building, CreditCard, FileText, ShoppingCart, DollarSign, Plus, Search, Trash2, Package, X, Check, History, ChevronDown, Calendar, Phone, Mail, MapPin, MoreVertical, Edit2, Scale } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Card, CardHeader, CardBody, CardTitle } from '@/components/ui/Card'
 import { TagSelector } from '@/components/admin/TagSelector'
 import { CURRENCY_SYMBOLS } from '@/lib/currency'
 import ProjectSelect from '@/components/projects/ProjectSelect'
 import { accountTypeLabel, isOdemeHesabi } from '@/lib/account-sections'
-// @ts-ignore
 import { toast } from 'react-hot-toast'
 
 interface Product {
@@ -213,6 +212,7 @@ export default function SupplierDetailPage() {
       fetchWarehouses()
       fetchCashAccounts()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- tedarikçi kimliği değişince veriler yenilenir
   }, [supplierId])
 
   const fetchSupplierData = async () => {
@@ -284,7 +284,7 @@ export default function SupplierDetailPage() {
       const res = await fetch('/api/upload', { method: 'POST', body: uploadData })
       const data = await res.json(); setFormData(prev => ({ ...prev, company_logo: data.url }))
       toast.success('Logo başarıyla yüklendi')
-    } catch (err) { toast.error('Yükleme başarısız') }
+    } catch { toast.error('Yükleme başarısız') }
     finally { setUploadingLogo(false) }
   }
 
@@ -490,10 +490,6 @@ export default function SupplierDetailPage() {
   let totalBalance = 0
   const ledgerData = [...transactions].reverse().map(tx => {
     // For suppliers: purchase increases what we owe them (debt to supplier increases). payment decreases it.
-    const isDebtToUs = tx.type === 'purchase' || tx.type === 'balance_fix' && tx.description.includes('BORÇ') || tx.description.includes('ALACAK') && !tx.description.includes('BORÇ') // simplified logic
-    // actually let's use exact types
-    const increasesBalance = tx.type === 'purchase' || (tx.type === 'balance_fix' && balanceFixForm.type === 'increase'); 
-    
     if (tx.type === 'purchase') totalBalance += Number(tx.amount)
     else if (tx.type === 'payment') totalBalance -= Number(tx.amount)
     else if (tx.type === 'balance_fix') {
@@ -536,7 +532,7 @@ export default function SupplierDetailPage() {
             {/* Logo */}
             <div className="flex-shrink-0">
               {supplier.company_logo ? (
-                <img src={supplier.company_logo} className="h-16 w-16 rounded-2xl object-cover border border-gray-100 shadow-sm" />
+                <img src={supplier.company_logo} alt="" className="h-16 w-16 rounded-2xl object-cover border border-gray-100 shadow-sm" />
               ) : (
                 <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center text-blue-700 text-2xl font-black border border-blue-100 shadow-sm">
                   {supplier.company_name.substring(0, 2).toUpperCase()}
@@ -1149,19 +1145,19 @@ export default function SupplierDetailPage() {
               <div className="grid grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <label className="block text-xs font-black text-gray-400 uppercase">Alış Fiyatı ({getCurrencySymbol(supplier.currency || 'TRY')})</label>
-                  <input type="number" step="any" value={itemFormData.unit_price} onFocus={e => itemFormData.unit_price === 0 && setItemFormData({...itemFormData, unit_price: '' as any})} onChange={e => setItemFormData({...itemFormData, unit_price: Number(e.target.value)})} className="w-full px-4 py-3 border-2 border-gray-100 rounded-2xl font-bold focus:border-blue-500 outline-none transition-all" />
+                  <input type="number" step="any" value={itemFormData.unit_price} onFocus={() => itemFormData.unit_price === 0 && setItemFormData({...itemFormData, unit_price: '' as any})} onChange={e => setItemFormData({...itemFormData, unit_price: Number(e.target.value)})} className="w-full px-4 py-3 border-2 border-gray-100 rounded-2xl font-bold focus:border-blue-500 outline-none transition-all" />
                 </div>
                 <div className="space-y-2">
                   <label className="block text-xs font-black text-gray-400 uppercase">Miktar ({currentItem.unit})</label>
-                  <input type="number" step="any" value={itemFormData.quantity} onFocus={e => itemFormData.quantity === 0 && setItemFormData({...itemFormData, quantity: '' as any})} onChange={e => setItemFormData({...itemFormData, quantity: Number(e.target.value)})} className="w-full px-4 py-3 border-2 border-gray-100 rounded-2xl font-bold focus:border-blue-500 outline-none transition-all" />
+                  <input type="number" step="any" value={itemFormData.quantity} onFocus={() => itemFormData.quantity === 0 && setItemFormData({...itemFormData, quantity: '' as any})} onChange={e => setItemFormData({...itemFormData, quantity: Number(e.target.value)})} className="w-full px-4 py-3 border-2 border-gray-100 rounded-2xl font-bold focus:border-blue-500 outline-none transition-all" />
                 </div>
                 <div className="space-y-2">
                   <label className="block text-xs font-black text-gray-400 uppercase">KDV Oranı (%)</label>
-                  <input type="number" min="0" max="100" value={itemFormData.tax_rate} onFocus={e => itemFormData.tax_rate === 0 && setItemFormData({...itemFormData, tax_rate: '' as any})} onChange={e => setItemFormData({...itemFormData, tax_rate: Number(e.target.value)})} className="w-full px-4 py-3 border-2 border-gray-100 rounded-2xl font-bold focus:border-blue-500 outline-none transition-all" />
+                  <input type="number" min="0" max="100" value={itemFormData.tax_rate} onFocus={() => itemFormData.tax_rate === 0 && setItemFormData({...itemFormData, tax_rate: '' as any})} onChange={e => setItemFormData({...itemFormData, tax_rate: Number(e.target.value)})} className="w-full px-4 py-3 border-2 border-gray-100 rounded-2xl font-bold focus:border-blue-500 outline-none transition-all" />
                 </div>
                 <div className="space-y-2">
                   <label className="block text-xs font-black text-gray-400 uppercase">İskonto (%)</label>
-                  <input type="number" min="0" max="100" value={itemFormData.discount_rate} onFocus={e => itemFormData.discount_rate === 0 && setItemFormData({...itemFormData, discount_rate: '' as any})} onChange={e => setItemFormData({...itemFormData, discount_rate: Number(e.target.value)})} className="w-full px-4 py-3 border-2 border-gray-100 rounded-2xl font-bold focus:border-blue-500 outline-none transition-all" />
+                  <input type="number" min="0" max="100" value={itemFormData.discount_rate} onFocus={() => itemFormData.discount_rate === 0 && setItemFormData({...itemFormData, discount_rate: '' as any})} onChange={e => setItemFormData({...itemFormData, discount_rate: Number(e.target.value)})} className="w-full px-4 py-3 border-2 border-gray-100 rounded-2xl font-bold focus:border-blue-500 outline-none transition-all" />
                 </div>
               </div>
 

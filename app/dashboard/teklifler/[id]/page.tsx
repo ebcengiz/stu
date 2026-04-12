@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter, useParams } from 'next/navigation'
-import { ArrowLeft, Building, FileText, CheckCircle2, XCircle, Printer, Trash2, Calendar, Clock, Package, DollarSign } from 'lucide-react'
+import { ArrowLeft, CheckCircle2, XCircle, Printer, Calendar, Clock } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Card, CardHeader, CardBody, CardTitle } from '@/components/ui/Card'
 import { toast } from 'react-hot-toast'
@@ -39,23 +39,24 @@ export default function OfferDetailPage() {
   const [loading, setLoading] = useState(true)
   const [approving, setApproving] = useState(false)
 
-  useEffect(() => {
-    fetchOffer()
-  }, [offerId])
-
-  const fetchOffer = async () => {
+  const fetchOffer = useCallback(async () => {
     try {
       const response = await fetch(`/api/offers/${offerId}`)
       if (!response.ok) throw new Error('Teklif bulunamadı')
       const data = await response.json()
       setOffer(data)
-    } catch (error: any) {
-      toast.error(error.message)
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : 'Hata'
+      toast.error(msg)
       router.push('/dashboard/teklifler')
     } finally {
       setLoading(false)
     }
-  }
+  }, [offerId, router])
+
+  useEffect(() => {
+    void fetchOffer()
+  }, [fetchOffer])
 
   const handleApprove = async () => {
     if (!offer) return

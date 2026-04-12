@@ -1,11 +1,10 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Plus, Edit2, Trash2, Package, Layers, X, Search, ArrowRight, ExternalLink, Loader2 } from 'lucide-react'
+import { Plus, Edit2, Trash2, Package, Layers, X, Search, ArrowRight, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Card, CardHeader, CardBody, CardTitle } from '@/components/ui/Card'
 import { useRouter } from 'next/navigation'
-// @ts-ignore
 import { toast } from 'react-hot-toast'
 
 interface Category {
@@ -107,7 +106,7 @@ export default function CategoriesPage() {
       setFormData({ name: '', description: '' })
       fetchCategories()
       toast.success(editingCategory ? 'Kategori güncellendi' : 'Yeni kategori eklendi')
-    } catch (error) {
+    } catch {
       toast.error('İşlem başarısız oldu')
     } finally {
       setLoading(false)
@@ -127,7 +126,7 @@ export default function CategoriesPage() {
       if (!response.ok) throw new Error('Failed to delete category')
       fetchCategories()
       toast.success('Kategori silindi')
-    } catch (error) {
+    } catch {
       toast.error('Kategori silinemedi')
     }
   }

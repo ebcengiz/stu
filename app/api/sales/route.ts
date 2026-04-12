@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server'
 import { adjustAccountBalance } from '@/lib/account-balance'
 import { resolveOptionalProjectId } from '@/lib/project-validation'
 
-export async function GET(request: Request) {
+export async function GET(_request: Request) {
   try {
     const supabase = await createClient()
 

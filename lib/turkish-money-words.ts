@@ -18,13 +18,6 @@ function ucBasamak(n: number): string {
   return parts.join(' ')
 }
 
-function binlikGrup(n: number, birim: string): string {
-  if (n === 0) return ''
-  const s = ucBasamak(n)
-  if (!s) return ''
-  return `${s} ${birim}`.trim()
-}
-
 /** 0–999999999 arası tam sayıyı Türkçe okunuşa (para birimi olmadan) */
 export function integerToTurkishWords(n: number): string {
   if (!Number.isFinite(n) || n < 0) return ''

@@ -31,7 +31,7 @@ export async function GET() {
         return acc
       }, 0)
 
-      const { customer_transactions, ...customerData } = customer
+      const { customer_transactions: _customer_transactions, ...customerData } = customer
       return {
         ...customerData,
         balance

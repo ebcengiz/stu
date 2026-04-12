@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { Search, Plus, Check, ChevronDown, X } from 'lucide-react'
 
 interface Tag {
@@ -25,6 +25,16 @@ export function TagSelector({ label, type, entityType = 'customer', value, place
   const [loading, setLoading] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
+  const fetchTags = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/customer-tags?type=${type}&entityType=${entityType}`)
+      const data = await res.json()
+      setTags(Array.isArray(data) ? data : [])
+    } catch (err) {
+      console.error('Error fetching tags:', err)
+    }
+  }, [type, entityType])
+
   useEffect(() => {
     fetchTags()
     const handleClickOutside = (event: MouseEvent) => {
@@ -34,17 +44,7 @@ export function TagSelector({ label, type, entityType = 'customer', value, place
     }
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [type, entityType])
-
-  const fetchTags = async () => {
-    try {
-      const res = await fetch(`/api/customer-tags?type=${type}&entityType=${entityType}`)
-      const data = await res.json()
-      setTags(Array.isArray(data) ? data : [])
-    } catch (err) {
-      console.error('Error fetching tags:', err)
-    }
-  }
+  }, [fetchTags])
 
   const handleCreateTag = async () => {
     if (!searchTerm.trim()) return

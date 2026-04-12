@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Plus, Search, UserPlus, Users, FileText, X, Trash2, ArrowUpDown, ChevronUp, ChevronDown, CheckCircle2, Clock, AlertCircle } from 'lucide-react'
+import { Plus, Search, Users, X } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Card, CardHeader, CardBody, CardTitle } from '@/components/ui/Card'
 import { useRouter } from 'next/navigation'

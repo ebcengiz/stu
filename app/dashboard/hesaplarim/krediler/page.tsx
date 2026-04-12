@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { Plus, AlertCircle } from 'lucide-react'
-import { toast } from 'react-hot-toast'
 import LoanModal, { type LoanModalValues } from '@/components/loans/LoanModal'
 
 type LoanRow = {

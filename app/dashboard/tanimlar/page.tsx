@@ -1,9 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Card, CardBody, CardHeader, CardTitle } from '@/components/ui/Card'
+import { Card, CardBody } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
-import { Edit2, Trash2, Search, Filter, Tags, Users, Warehouse } from 'lucide-react'
+import { Edit2, Trash2, Search, Users, Warehouse } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 
 interface Tag {

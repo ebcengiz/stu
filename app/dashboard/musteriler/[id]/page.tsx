@@ -1,15 +1,14 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
-import { ArrowLeft, Building, CreditCard, FileText, ShoppingCart, Save, DollarSign, Plus, Search, Trash2, Package, X, Check, History, Tag, ChevronDown, Calendar, Phone, Mail, MapPin, MoreVertical, Edit2, Scale } from 'lucide-react'
+import { ArrowLeft, Building, CreditCard, FileText, ShoppingCart, DollarSign, Plus, Search, Trash2, Package, X, Check, History, ChevronDown, Calendar, Phone, Mail, MapPin, MoreVertical, Edit2, Scale } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Card, CardHeader, CardBody, CardTitle } from '@/components/ui/Card'
 import { TagSelector } from '@/components/admin/TagSelector'
 import { CURRENCY_SYMBOLS } from '@/lib/currency'
 import ProjectSelect from '@/components/projects/ProjectSelect'
 import { accountTypeLabel, isOdemeHesabi } from '@/lib/account-sections'
-// @ts-ignore
 import { toast } from 'react-hot-toast'
 
 interface Product {
@@ -136,9 +135,9 @@ export default function CustomerDetailPage() {
   const [showLedgerModal, setShowLedgerModal] = useState(false)
   const [showEditCustomerModal, setShowEditCustomerModal] = useState(false)
   
-  const [showProductModal, setShowProductModal] = useState(false)
+  const [, setShowProductModal] = useState(false)
   const [showItemDetailModal, setShowItemDetailModal] = useState(false)
-  const [showHistoryModal, setShowHistoryModal] = useState(false)
+  const [, setShowHistoryModal] = useState(false)
   const [showTxDetailModal, setShowTxDetailModal] = useState(false)
   const [showChequeModal, setShowChequeModal] = useState(false)
   
@@ -148,8 +147,8 @@ export default function CustomerDetailPage() {
   
   const [currentItem, setCurrentItem] = useState<Product | null>(null)
   const [selectedTx, setSelectedTx] = useState<Transaction | null>(null)
-  const [priceHistory, setPriceHistory] = useState<PriceHistory[]>([])
-  const [loadingHistory, setLoadingHistory] = useState(false)
+  const [, setPriceHistory] = useState<PriceHistory[]>([])
+  const [, setLoadingHistory] = useState(false)
 
   const [newProductData, setNewProductData] = useState({ name: '', sku: '', unit: 'adet' })
 
@@ -223,6 +222,7 @@ export default function CustomerDetailPage() {
       fetchWarehouses()
       fetchCashAccounts()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- müşteri kimliği değişince veriler yenilenir
   }, [customerId])
 
   const fetchCustomerData = async () => {
@@ -283,7 +283,7 @@ export default function CustomerDetailPage() {
       const res = await fetch('/api/upload', { method: 'POST', body: uploadData })
       const data = await res.json(); setFormData(prev => ({ ...prev, company_logo: data.url }))
       toast.success('Logo başarıyla yüklendi')
-    } catch (err) { toast.error('Yükleme başarısız') }
+    } catch { toast.error('Yükleme başarısız') }
     finally { setUploadingLogo(false) }
   }
 
@@ -302,7 +302,7 @@ export default function CustomerDetailPage() {
     setShowItemDetailModal(true)
   }
 
-  const fetchPriceHistory = async () => {
+  const _fetchPriceHistory = async () => {
     if (!currentItem) return
     setLoadingHistory(true)
     setShowHistoryModal(true)
@@ -373,7 +373,7 @@ export default function CustomerDetailPage() {
     setTxForm(prev => ({ ...prev, amount: total.toFixed(2) }))
   }
 
-  const handleCreateProduct = async (e: React.FormEvent) => {
+  const _handleCreateProduct = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
       const res = await fetch('/api/products', {
@@ -543,7 +543,7 @@ export default function CustomerDetailPage() {
             {/* Logo */}
             <div className="flex-shrink-0">
               {customer.company_logo ? (
-                <img src={customer.company_logo} className="h-16 w-16 rounded-2xl object-cover border border-gray-100 shadow-sm" />
+                <img src={customer.company_logo} alt="" className="h-16 w-16 rounded-2xl object-cover border border-gray-100 shadow-sm" />
               ) : (
                 <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-primary-100 to-primary-200 flex items-center justify-center text-primary-700 text-2xl font-black border border-primary-100 shadow-sm">
                   {customer.company_name.substring(0, 2).toUpperCase()}
@@ -1168,19 +1168,19 @@ export default function CustomerDetailPage() {
               <div className="grid grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <label className="block text-xs font-black text-gray-400 uppercase">Birim Fiyat ({getCurrencySymbol(customer.currency)})</label>
-                  <input type="number" step="any" value={itemFormData.unit_price} onFocus={e => itemFormData.unit_price === 0 && setItemFormData({...itemFormData, unit_price: '' as any})} onChange={e => setItemFormData({...itemFormData, unit_price: Number(e.target.value)})} className="w-full px-4 py-3 border-2 border-gray-100 rounded-2xl font-bold focus:border-primary-500 outline-none transition-all" />
+                  <input type="number" step="any" value={itemFormData.unit_price} onFocus={() => itemFormData.unit_price === 0 && setItemFormData({...itemFormData, unit_price: '' as any})} onChange={e => setItemFormData({...itemFormData, unit_price: Number(e.target.value)})} className="w-full px-4 py-3 border-2 border-gray-100 rounded-2xl font-bold focus:border-primary-500 outline-none transition-all" />
                 </div>
                 <div className="space-y-2">
                   <label className="block text-xs font-black text-gray-400 uppercase">Miktar ({currentItem.unit})</label>
-                  <input type="number" step="any" value={itemFormData.quantity} onFocus={e => itemFormData.quantity === 0 && setItemFormData({...itemFormData, quantity: '' as any})} onChange={e => setItemFormData({...itemFormData, quantity: Number(e.target.value)})} className="w-full px-4 py-3 border-2 border-gray-100 rounded-2xl font-bold focus:border-primary-500 outline-none transition-all" />
+                  <input type="number" step="any" value={itemFormData.quantity} onFocus={() => itemFormData.quantity === 0 && setItemFormData({...itemFormData, quantity: '' as any})} onChange={e => setItemFormData({...itemFormData, quantity: Number(e.target.value)})} className="w-full px-4 py-3 border-2 border-gray-100 rounded-2xl font-bold focus:border-primary-500 outline-none transition-all" />
                 </div>
                 <div className="space-y-2">
                   <label className="block text-xs font-black text-gray-400 uppercase">KDV Oranı (%)</label>
-                  <input type="number" min="0" max="100" value={itemFormData.tax_rate} onFocus={e => itemFormData.tax_rate === 0 && setItemFormData({...itemFormData, tax_rate: '' as any})} onChange={e => setItemFormData({...itemFormData, tax_rate: Number(e.target.value)})} className="w-full px-4 py-3 border-2 border-gray-100 rounded-2xl font-bold focus:border-primary-500 outline-none transition-all" />
+                  <input type="number" min="0" max="100" value={itemFormData.tax_rate} onFocus={() => itemFormData.tax_rate === 0 && setItemFormData({...itemFormData, tax_rate: '' as any})} onChange={e => setItemFormData({...itemFormData, tax_rate: Number(e.target.value)})} className="w-full px-4 py-3 border-2 border-gray-100 rounded-2xl font-bold focus:border-primary-500 outline-none transition-all" />
                 </div>
                 <div className="space-y-2">
                   <label className="block text-xs font-black text-gray-400 uppercase">İskonto (%)</label>
-                  <input type="number" min="0" max="100" value={itemFormData.discount_rate} onFocus={e => itemFormData.discount_rate === 0 && setItemFormData({...itemFormData, discount_rate: '' as any})} onChange={e => setItemFormData({...itemFormData, discount_rate: Number(e.target.value)})} className="w-full px-4 py-3 border-2 border-gray-100 rounded-2xl font-bold focus:border-primary-500 outline-none transition-all" />
+                  <input type="number" min="0" max="100" value={itemFormData.discount_rate} onFocus={() => itemFormData.discount_rate === 0 && setItemFormData({...itemFormData, discount_rate: '' as any})} onChange={e => setItemFormData({...itemFormData, discount_rate: Number(e.target.value)})} className="w-full px-4 py-3 border-2 border-gray-100 rounded-2xl font-bold focus:border-primary-500 outline-none transition-all" />
                 </div>
               </div>
 

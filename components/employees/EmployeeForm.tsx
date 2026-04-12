@@ -357,7 +357,6 @@ export default function EmployeeForm({ employeeId }: { employeeId?: string }) {
               <div className="flex flex-col items-center lg:items-start">
                 <div className="w-40 h-40 rounded-lg border-2 border-dashed border-gray-200 bg-gray-50 flex items-center justify-center overflow-hidden">
                   {form.photo_url ? (
-                    // eslint-disable-next-line @next/next/no-img-element
                     <img src={form.photo_url} alt="" className="w-full h-full object-cover" />
                   ) : (
                     <ImageIcon className="h-12 w-12 text-gray-300" />

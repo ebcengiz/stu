@@ -1,9 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
-// @ts-ignore
 import { v4 as uuidv4 } from 'uuid'
-// @ts-ignore
-
 
 export async function POST(request: Request) {
   try {
@@ -49,7 +46,7 @@ export async function POST(request: Request) {
     const arrayBuffer = await file.arrayBuffer()
     const buffer = new Uint8Array(arrayBuffer)
 
-    const { data: uploadData, error: uploadError } = await supabase
+    const { error: uploadError } = await supabase
       .storage
       .from('logos') // 'logos' adında bir bucket olmalı
       .upload(fileName, buffer, {

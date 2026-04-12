@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { Camera, Keyboard, X } from 'lucide-react'
+import { Camera, Keyboard } from 'lucide-react'
 import { Html5QrcodeScanner, Html5QrcodeSupportedFormats } from 'html5-qrcode'
 
 interface BarcodeScannerProps {
@@ -13,7 +13,7 @@ interface BarcodeScannerProps {
 
 export default function BarcodeScanner({
   onScan,
-  onClose,
+  onClose: _onClose,
   placeholder = 'Barkodu okutun veya manuel girin...',
   autoFocus = true
 }: BarcodeScannerProps) {
@@ -63,7 +63,7 @@ export default function BarcodeScanner({
           }
           setScanMode('manual')
         },
-        (errorMessage) => {
+        (_errorMessage) => {
           // Okuma hatası - sessiz geç (sürekli tarama yaparken normal)
         }
       )

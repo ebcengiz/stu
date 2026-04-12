@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -201,7 +201,7 @@ export default function EmployeeDetailView({ employeeId }: { employeeId: string 
     )
   }
 
-  const load = async () => {
+  const load = useCallback(async () => {
     try {
       const [r1, r2] = await Promise.all([
         fetch(`/api/employees/${employeeId}`),
@@ -226,11 +226,11 @@ export default function EmployeeDetailView({ employeeId }: { employeeId: string 
     } finally {
       setLoading(false)
     }
-  }
+  }, [employeeId, router])
 
   useEffect(() => {
-    load()
-  }, [employeeId])
+    void load()
+  }, [load])
 
   useEffect(() => {
     let cancelled = false

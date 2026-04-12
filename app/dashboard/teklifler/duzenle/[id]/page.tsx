@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useParams } from 'next/navigation'
-import { Plus, Trash2, ArrowLeft, Save, Building } from 'lucide-react'
+import { Plus, Trash2, ArrowLeft, Building } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Card, CardBody, CardHeader, CardTitle } from '@/components/ui/Card'
 import { toast } from 'react-hot-toast'
@@ -107,8 +107,7 @@ function OfferEditForm() {
   const getStockForProduct = (productId: string, warehouseId: string) => {
     const product = products.find(p => p.id === productId)
     if (!product || !warehouseId) return 0
-    // @ts-ignore
-    const stockItem = product.stock?.find(s => s.warehouse_id === warehouseId)
+    const stockItem = product.stock?.find((s) => s.warehouse_id === warehouseId)
     return stockItem?.quantity || 0
   }
 

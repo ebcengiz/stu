@@ -4,12 +4,10 @@ import { useState, useEffect, Suspense, useMemo } from 'react'
 import { Plus, Search, Edit2, Trash2, X, ScanBarcode, Filter, ArrowUpDown, ArrowUp, ArrowDown, ImageIcon, UploadCloud, Loader2, Package, Layers, Warehouse as WarehouseIcon, ChevronDown } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Card, CardHeader, CardBody, CardTitle } from '@/components/ui/Card'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import dynamic from 'next/dynamic'
 import BarcodeScanner from '@/components/barcode/BarcodeScanner'
-import BarcodeDisplay from '@/components/barcode/BarcodeDisplay'
 import { CURRENCY_SYMBOLS } from '@/lib/currency'
-// @ts-ignore
 import { toast } from 'react-hot-toast'
 
 // Dynamically import LocationPicker to avoid SSR issues with Leaflet
@@ -115,7 +113,6 @@ function ProductsPageContent() {
     movement_type: 'in',
     image_url: ''
   })
-  const router = useRouter()
   const searchParams = useSearchParams()
 
   useEffect(() => {
@@ -303,7 +300,7 @@ function ProductsPageContent() {
       if (!response.ok) throw new Error('Failed to delete product')
       fetchProducts()
       toast.success('Ürün silindi')
-    } catch (error) {
+    } catch {
       toast.error('Ürün silinemedi')
     }
   }

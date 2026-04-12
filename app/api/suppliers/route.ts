@@ -42,7 +42,7 @@ export async function GET() {
         return acc
       }, 0)
 
-      const { supplier_transactions, ...supplierData } = supplier
+      const { supplier_transactions: _supplier_transactions, ...supplierData } = supplier
       return {
         ...supplierData,
         balance

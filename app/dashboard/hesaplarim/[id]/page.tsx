@@ -2,7 +2,23 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
-import { ArrowLeft, Building, CreditCard, Banknote, Calculator, Save, DollarSign, Plus, Search, Trash2, X, Check, History, ChevronDown, Calendar, MoreVertical, Edit2, Scale, ArrowUpRight, ArrowDownRight, ArrowRightLeft } from 'lucide-react'
+import {
+  ArrowLeft,
+  Building,
+  CreditCard,
+  Banknote,
+  Calculator,
+  Trash2,
+  X,
+  History,
+  ChevronDown,
+  MoreVertical,
+  Edit2,
+  Scale,
+  ArrowUpRight,
+  ArrowDownRight,
+  ArrowRightLeft,
+} from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Card, CardHeader, CardBody, CardTitle } from '@/components/ui/Card'
 import { toast } from 'react-hot-toast'
@@ -71,6 +87,7 @@ export default function AccountDetailPage() {
       fetchTransactions()
       fetchAllAccounts()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- yalnızca hesap değişince yükle
   }, [accountId])
 
   const fetchAccountData = async () => {
@@ -94,8 +111,8 @@ export default function AccountDetailPage() {
           credit_limit: mockAccount.credit_limit || 0, is_active: mockAccount.is_active
         })
       }
-    } catch (error) { 
-      console.error(error) 
+    } catch (_error) {
+      console.error(_error)
     } finally { 
       setLoading(false) 
     }
@@ -112,8 +129,8 @@ export default function AccountDetailPage() {
         const err = await response.json().catch(() => ({}))
         console.error('Hesap hareketleri yüklenemedi', err?.error || response.status)
       }
-    } catch (error) { 
-      console.error(error)
+    } catch (_error) {
+      console.error(_error)
       setTransactions([])
     }
   }
@@ -127,7 +144,7 @@ export default function AccountDetailPage() {
       } else {
         setTargetAccounts(mockAccounts.filter(a => a.id !== accountId))
       }
-    } catch (error) {
+    } catch {
       setTargetAccounts(mockAccounts.filter(a => a.id !== accountId))
     }
   }
@@ -182,7 +199,7 @@ export default function AccountDetailPage() {
       if (!res.ok) throw new Error('Güncellenemedi')
       toast.success('Hesap bilgileri güncellendi!'); 
       setShowEditAccountModal(false); fetchAccountData()
-    } catch (err: any) { 
+    } catch {
       // Local mock fallback
       if (account) {
         setAccount({ ...account, ...formData, balance: account.balance })

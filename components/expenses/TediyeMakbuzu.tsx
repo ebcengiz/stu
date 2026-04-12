@@ -46,7 +46,6 @@ export default function TediyeMakbuzu({ data }: { data: TediyeMakbuzuData }) {
     >
       <div className="relative mb-8 flex justify-end">
         <div className="flex flex-col items-end gap-1">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={qrSrc} alt="" width={100} height={100} className="h-[100px] w-[100px]" />
           <p className="text-[11px] font-medium tracking-wide text-neutral-700">No:{data.receiptNo}</p>
         </div>

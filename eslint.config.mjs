@@ -19,6 +19,8 @@ const eslintConfig = [
       ],
       '@typescript-eslint/ban-ts-comment': 'warn',
       '@typescript-eslint/no-require-imports': 'off',
+      // Liste/thumbnail görselleri çoğu zaman dinamik URL; next/image her yerde uygun değil
+      '@next/next/no-img-element': 'off',
     },
   },
 ]
