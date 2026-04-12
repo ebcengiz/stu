@@ -128,11 +128,16 @@ export default function KredilerPage() {
               hatırlatırız hem de kalan tutarları kolayca takip edersiniz.
             </p>
             <p className="mt-2 text-amber-900/85">
-              Yukarıdaki{' '}
-              <span className="inline-flex items-center rounded bg-emerald-600 px-1.5 py-0.5 text-xs font-semibold text-white">
-                + Yeni Kredi Ekle
-              </span>{' '}
-              düğmesini kullanarak kredilerinizi ve ödeme takvimini kaydedebilirsiniz.
+              <button
+                type="button"
+                onClick={openCreate}
+                className="mr-1 inline-flex align-middle items-center gap-1 rounded-md bg-emerald-600 px-2 py-1 text-xs font-semibold text-white shadow-sm transition hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-1"
+              >
+                <Plus className="h-3.5 w-3.5" />
+                Yeni Kredi Ekle
+              </button>
+              düğmesini veya sayfa üstündeki aynı adlı düğmeyi kullanarak kredilerinizi ve ödeme takvimini
+              kaydedebilirsiniz.
             </p>
           </div>
         </div>
