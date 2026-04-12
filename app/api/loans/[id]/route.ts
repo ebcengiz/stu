@@ -142,6 +142,13 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       }
       updates.total_loan_amount = total_loan_amount
     }
+    if (body.total_repayment_planned != null && String(body.total_repayment_planned).trim() !== '') {
+      const total_repayment_planned = parseFloat(String(body.total_repayment_planned).replace(',', '.'))
+      if (Number.isNaN(total_repayment_planned) || total_repayment_planned < 0) {
+        return NextResponse.json({ error: 'Geçerli ödenecek toplam tutarı girin' }, { status: 400 })
+      }
+      updates.total_repayment_planned = total_repayment_planned
+    }
 
     updates.updated_at = new Date().toISOString()
 

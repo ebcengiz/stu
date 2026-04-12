@@ -28,6 +28,7 @@ type LoanData = {
   id: string
   name: string
   total_loan_amount?: number | string
+  total_repayment_planned?: number | string | null
   remaining_debt: number | string
   remaining_installments: number
   next_installment_date: string | null
@@ -53,11 +54,16 @@ function formatDateLong(iso: string) {
 }
 
 function loanToModal(l: LoanData): LoanModalValues {
+  const trp =
+    l.total_repayment_planned != null && String(l.total_repayment_planned).trim() !== ''
+      ? String(l.total_repayment_planned).replace('.', ',')
+      : ''
   return {
     id: l.id,
     name: l.name,
     total_loan_amount:
       l.total_loan_amount != null ? String(l.total_loan_amount).replace('.', ',') : '',
+    total_repayment_planned: trp,
     remaining_debt: String(l.remaining_debt ?? '').replace('.', ','),
     remaining_installments: String(l.remaining_installments ?? ''),
     next_installment_date: l.next_installment_date ? String(l.next_installment_date).slice(0, 10) : '',
@@ -241,13 +247,21 @@ export default function KrediDetayPage() {
             </span>
           </div>
           <div className="flex justify-between gap-3 text-sm">
-            <span className="shrink-0 text-right font-medium text-slate-500">Toplam kredi tutarı</span>
+            <span className="shrink-0 text-right font-medium text-slate-500">Çekilen tutar</span>
             <span className="text-left font-semibold text-slate-900">
-              {formatMoney(loan.total_loan_amount ?? loan.remaining_debt, cur)}
+              {formatMoney(loan.total_loan_amount ?? 0, cur)}
             </span>
           </div>
           <div className="flex justify-between gap-3 text-sm">
-            <span className="shrink-0 text-right font-medium text-slate-500">Kalan tutar</span>
+            <span className="shrink-0 text-right font-medium text-slate-500">Ödenecek toplam (plan)</span>
+            <span className="text-left font-semibold text-slate-900">
+              {loan.total_repayment_planned != null && String(loan.total_repayment_planned).trim() !== ''
+                ? formatMoney(loan.total_repayment_planned, cur)
+                : '—'}
+            </span>
+          </div>
+          <div className="flex justify-between gap-3 text-sm">
+            <span className="shrink-0 text-right font-medium text-slate-500">Kalan borç</span>
             <span className="text-left font-semibold text-slate-900">{formatMoney(loan.remaining_debt, cur)}</span>
           </div>
           <div className="flex justify-between gap-3 text-sm sm:col-span-2">

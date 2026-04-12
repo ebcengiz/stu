@@ -105,14 +105,40 @@ export async function POST(request: Request) {
     const name = String(body.name ?? '').trim()
     if (!name) return NextResponse.json({ error: 'Kredi adı zorunludur' }, { status: 400 })
 
-    const remaining_debt = parseFloat(String(body.remaining_debt ?? '').replace(',', '.'))
-    if (Number.isNaN(remaining_debt) || remaining_debt < 0) {
-      return NextResponse.json({ error: 'Geçerli kalan borç tutarı girin' }, { status: 400 })
-    }
-
     const remaining_installments = parseInt(String(body.remaining_installments ?? '0'), 10)
     if (Number.isNaN(remaining_installments) || remaining_installments < 0 || remaining_installments > 144) {
       return NextResponse.json({ error: 'Kalan taksit 0–144 arasında olmalıdır' }, { status: 400 })
+    }
+
+    const principal = parseFloat(String(body.total_loan_amount ?? '').replace(',', '.'))
+    const plannedRepayment = parseFloat(String(body.total_repayment_planned ?? '').replace(',', '.'))
+    const useSplitAmounts =
+      !Number.isNaN(principal) && principal > 0 && !Number.isNaN(plannedRepayment) && plannedRepayment > 0
+
+    let remaining_debt: number
+    let total_loan_amount: number
+    let total_repayment_planned: number | null
+
+    if (useSplitAmounts) {
+      if (remaining_installments < 1) {
+        return NextResponse.json({ error: 'Taksit planı için vade en az 1 olmalıdır' }, { status: 400 })
+      }
+      total_loan_amount = principal
+      total_repayment_planned = plannedRepayment
+      remaining_debt = plannedRepayment
+    } else {
+      const rd = parseFloat(String(body.remaining_debt ?? '').replace(',', '.'))
+      if (Number.isNaN(rd) || rd < 0) {
+        return NextResponse.json({ error: 'Geçerli kalan borç tutarı girin' }, { status: 400 })
+      }
+      remaining_debt = rd
+      total_repayment_planned = null
+      if (body.total_loan_amount != null && String(body.total_loan_amount).trim() !== '') {
+        const t = parseFloat(String(body.total_loan_amount).replace(',', '.'))
+        total_loan_amount = !Number.isNaN(t) && t >= 0 ? t : rd
+      } else {
+        total_loan_amount = rd
+      }
     }
 
     const payment_schedule = String(body.payment_schedule ?? 'monthly')
@@ -141,13 +167,7 @@ export async function POST(request: Request) {
     const notes = body.notes != null && String(body.notes).trim() !== '' ? String(body.notes).trim() : null
     const currency = body.currency ? String(body.currency) : 'TRY'
 
-    let total_loan_amount = remaining_debt
-    if (body.total_loan_amount != null && String(body.total_loan_amount).trim() !== '') {
-      const t = parseFloat(String(body.total_loan_amount).replace(',', '.'))
-      if (!Number.isNaN(t) && t >= 0) total_loan_amount = t
-    }
-
-    const row = {
+    const row: Record<string, unknown> = {
       tenant_id: profile.tenant_id,
       name,
       total_loan_amount,
@@ -158,6 +178,9 @@ export async function POST(request: Request) {
       payment_account_id,
       notes,
       currency,
+    }
+    if (total_repayment_planned != null) {
+      row.total_repayment_planned = total_repayment_planned
     }
 
     const { data, error } = await supabase.from('loans').insert(row).select('*').single()

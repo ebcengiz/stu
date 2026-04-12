@@ -18,7 +18,10 @@ type AccountOpt = { id: string; name: string; is_active?: boolean }
 export type LoanModalValues = {
   id?: string
   name: string
+  /** Çekilen tutar (anapara) */
   total_loan_amount: string
+  /** Ödenecek toplam tutar (faiz/vergi dahil sizin girdiğiniz plan) */
+  total_repayment_planned: string
   remaining_debt: string
   remaining_installments: string
   next_installment_date: string
@@ -33,6 +36,7 @@ const inputClass =
 const emptyForm: LoanModalValues = {
   name: '',
   total_loan_amount: '',
+  total_repayment_planned: '',
   remaining_debt: '',
   remaining_installments: '',
   next_installment_date: '',
@@ -57,6 +61,8 @@ export default function LoanModal({
   const [saving, setSaving] = useState(false)
   const [form, setForm] = useState<LoanModalValues>(emptyForm)
 
+  const isCreate = !initial?.id
+
   useEffect(() => {
     if (!open) return
     setForm(initial ? { ...emptyForm, ...initial } : emptyForm)
@@ -71,6 +77,55 @@ export default function LoanModal({
       toast.error('Kredi adı girin')
       return
     }
+
+    if (isCreate) {
+      const principal = parseFloat(String(form.total_loan_amount).replace(',', '.'))
+      const planned = parseFloat(String(form.total_repayment_planned).replace(',', '.'))
+      if (Number.isNaN(principal) || principal <= 0) {
+        toast.error('Geçerli çekilen tutar girin')
+        return
+      }
+      if (Number.isNaN(planned) || planned <= 0) {
+        toast.error('Geçerli ödenecek toplam tutar girin')
+        return
+      }
+      const inst = parseInt(String(form.remaining_installments).trim(), 10)
+      if (Number.isNaN(inst) || inst < 1 || inst > 144) {
+        toast.error('Vade (taksit) 1–144 arasında olmalıdır')
+        return
+      }
+
+      const payload = {
+        name: n,
+        total_loan_amount: principal,
+        total_repayment_planned: planned,
+        remaining_installments: inst,
+        next_installment_date: form.next_installment_date.trim() || null,
+        payment_schedule: form.payment_schedule,
+        payment_account_id: form.payment_account_id || null,
+        notes: form.notes.trim() || null,
+      }
+
+      setSaving(true)
+      try {
+        const res = await fetch('/api/loans', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        })
+        const data = await res.json().catch(() => ({}))
+        if (!res.ok) throw new Error(data.error || 'Kaydedilemedi')
+        toast.success('Kredi kaydedildi')
+        onClose()
+        onSaved()
+      } catch (e: any) {
+        toast.error(e.message || 'İşlem başarısız')
+      } finally {
+        setSaving(false)
+      }
+      return
+    }
+
     const debt = parseFloat(String(form.remaining_debt).replace(',', '.'))
     if (Number.isNaN(debt) || debt < 0) {
       toast.error('Geçerli kalan borç tutarı girin')
@@ -82,39 +137,41 @@ export default function LoanModal({
       return
     }
 
-    let total_loan_amount: number | undefined
-    if (form.total_loan_amount.trim() !== '') {
-      const t = parseFloat(String(form.total_loan_amount).replace(',', '.'))
-      if (Number.isNaN(t) || t < 0) {
-        toast.error('Geçerli toplam kredi tutarı girin')
-        return
-      }
-      total_loan_amount = t
+    const principalEdit = parseFloat(String(form.total_loan_amount).replace(',', '.'))
+    if (Number.isNaN(principalEdit) || principalEdit < 0) {
+      toast.error('Geçerli çekilen tutar girin')
+      return
     }
 
     const payload: Record<string, unknown> = {
       name: n,
       remaining_debt: debt,
       remaining_installments: inst,
+      total_loan_amount: principalEdit,
       next_installment_date: form.next_installment_date.trim() || null,
       payment_schedule: form.payment_schedule,
       payment_account_id: form.payment_account_id || null,
       notes: form.notes.trim() || null,
     }
-    if (total_loan_amount !== undefined) payload.total_loan_amount = total_loan_amount
+    if (form.total_repayment_planned.trim() !== '') {
+      const plannedEdit = parseFloat(String(form.total_repayment_planned).replace(',', '.'))
+      if (Number.isNaN(plannedEdit) || plannedEdit < 0) {
+        toast.error('Geçerli ödenecek toplam tutar girin')
+        return
+      }
+      payload.total_repayment_planned = plannedEdit
+    }
 
     setSaving(true)
     try {
-      const isEdit = Boolean(initial?.id)
-      const url = isEdit ? `/api/loans/${initial!.id}` : '/api/loans'
-      const res = await fetch(url, {
-        method: isEdit ? 'PATCH' : 'POST',
+      const res = await fetch(`/api/loans/${initial!.id}`, {
+        method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       })
       const data = await res.json().catch(() => ({}))
       if (!res.ok) throw new Error(data.error || 'Kaydedilemedi')
-      toast.success(isEdit ? 'Kredi güncellendi' : 'Kredi kaydedildi')
+      toast.success('Kredi güncellendi')
       onClose()
       onSaved()
     } catch (e: any) {
@@ -160,38 +217,98 @@ export default function LoanModal({
                 required
               />
             </div>
-            <div>
-              <label className="mb-1 block text-xs font-semibold text-slate-600">Toplam kredi tutarı</label>
-              <input
-                value={form.total_loan_amount}
-                onChange={(e) => setForm((f) => ({ ...f, total_loan_amount: e.target.value }))}
-                inputMode="decimal"
-                className={inputClass}
-                placeholder="Boş bırakılırsa kalan borç ile aynı"
-              />
-            </div>
-            <div>
-              <label className="mb-1 block text-xs font-semibold text-slate-600">Kalan borç tutarı</label>
-              <input
-                value={form.remaining_debt}
-                onChange={(e) => setForm((f) => ({ ...f, remaining_debt: e.target.value }))}
-                inputMode="decimal"
-                className={inputClass}
-                placeholder="0,00"
-              />
-            </div>
-            <div>
-              <label className="mb-1 block text-xs font-semibold text-slate-600">Kalan taksit sayısı</label>
-              <input
-                type="number"
-                min={0}
-                max={144}
-                value={form.remaining_installments}
-                onChange={(e) => setForm((f) => ({ ...f, remaining_installments: e.target.value }))}
-                className={inputClass}
-              />
-              <p className="mt-1 text-xs text-red-600">Maksimum 144 taksit girebilirsiniz</p>
-            </div>
+
+            {isCreate ? (
+              <>
+                <div>
+                  <label className="mb-1 block text-xs font-semibold text-slate-600">
+                    <span className="text-red-600">*</span> Çekilen tutar (TL)
+                  </label>
+                  <input
+                    value={form.total_loan_amount}
+                    onChange={(e) => setForm((f) => ({ ...f, total_loan_amount: e.target.value }))}
+                    inputMode="decimal"
+                    className={inputClass}
+                    placeholder="Örn. 100000"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-semibold text-slate-600">
+                    <span className="text-red-600">*</span> Ödenecek toplam tutar (TL)
+                  </label>
+                  <input
+                    value={form.total_repayment_planned}
+                    onChange={(e) => setForm((f) => ({ ...f, total_repayment_planned: e.target.value }))}
+                    inputMode="decimal"
+                    className={inputClass}
+                    placeholder="Faiz, vergi ve masraflar dahil toplam"
+                    required
+                  />
+                  <p className="mt-1 text-[11px] text-slate-500">
+                    Bu tutar üzerinden taksit planı oluşturulur; başlangıçtaki kalan borç buna eşittir.
+                  </p>
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-semibold text-slate-600">
+                    <span className="text-red-600">*</span> Vade (taksit sayısı)
+                  </label>
+                  <input
+                    type="number"
+                    min={1}
+                    max={144}
+                    value={form.remaining_installments}
+                    onChange={(e) => setForm((f) => ({ ...f, remaining_installments: e.target.value }))}
+                    className={inputClass}
+                    placeholder="Örn. 36"
+                    required
+                  />
+                </div>
+              </>
+            ) : (
+              <>
+                <div>
+                  <label className="mb-1 block text-xs font-semibold text-slate-600">Çekilen tutar (TL)</label>
+                  <input
+                    value={form.total_loan_amount}
+                    onChange={(e) => setForm((f) => ({ ...f, total_loan_amount: e.target.value }))}
+                    inputMode="decimal"
+                    className={inputClass}
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-semibold text-slate-600">Ödenecek toplam tutar (plan, TL)</label>
+                  <input
+                    value={form.total_repayment_planned}
+                    onChange={(e) => setForm((f) => ({ ...f, total_repayment_planned: e.target.value }))}
+                    inputMode="decimal"
+                    className={inputClass}
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-semibold text-slate-600">Kalan borç (TL)</label>
+                  <input
+                    value={form.remaining_debt}
+                    onChange={(e) => setForm((f) => ({ ...f, remaining_debt: e.target.value }))}
+                    inputMode="decimal"
+                    className={inputClass}
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-semibold text-slate-600">Kalan taksit sayısı</label>
+                  <input
+                    type="number"
+                    min={0}
+                    max={144}
+                    value={form.remaining_installments}
+                    onChange={(e) => setForm((f) => ({ ...f, remaining_installments: e.target.value }))}
+                    className={inputClass}
+                  />
+                  <p className="mt-1 text-xs text-red-600">Maksimum 144 taksit</p>
+                </div>
+              </>
+            )}
+
             <div>
               <label className="mb-1 block text-xs font-semibold text-slate-600">Sıradaki ilk taksit tarihi</label>
               <input
