@@ -159,6 +159,9 @@ function YeniMasrafForm() {
         /* ignore */
       }
     })()
+    return () => {
+      cancelled = true
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- initial load only for copy/edit
   }, [editId, copyFrom])
 

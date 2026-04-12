@@ -19,7 +19,7 @@ export async function updateSession(request: NextRequest) {
           return request.cookies.getAll()
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) => request.cookies.set(name, value))
+          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
           supabaseResponse = NextResponse.next({
             request,
           })
@@ -31,10 +31,12 @@ export async function updateSession(request: NextRequest) {
     }
   )
 
-  // Refreshing the auth token
+  // Session from cookies — avoids Auth API round-trip on every navigation.
+  // getUser() validates with Supabase on each call and triggers rate limits (429) in dev.
   const {
-    data: { user },
-  } = await supabase.auth.getUser()
+    data: { session },
+  } = await supabase.auth.getSession()
+  const user = session?.user ?? null
 
   // Protected routes - redirect to login if not authenticated
   if (

@@ -149,7 +149,7 @@ export default function SaleDetailPage() {
                   <div>
                     <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-2">İşlem Notu / Açıklama</label>
                     <p className="text-sm font-bold text-gray-600 leading-relaxed italic bg-gray-50 p-4 rounded-2xl border border-gray-100">
-                      "{sale.description || 'Herhangi bir not eklenmemiş.'}"
+                      &ldquo;{sale.description || 'Herhangi bir not eklenmemiş.'}&rdquo;
                     </p>
                   </div>
                 </div>

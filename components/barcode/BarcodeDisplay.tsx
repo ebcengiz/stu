@@ -1,6 +1,5 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
 import Barcode from 'react-barcode'
 
 interface BarcodeDisplayProps {
@@ -36,26 +35,18 @@ export default function BarcodeDisplay({
     return format
   }
 
-  try {
-    return (
-      <div className="inline-block">
-        <Barcode
-          value={value}
-          format={autoFormat()}
-          width={width}
-          height={height}
-          displayValue={displayValue}
-          fontSize={fontSize}
-          margin={5}
-          background="#ffffff"
-        />
-      </div>
-    )
-  } catch (error) {
-    return (
-      <div className="text-red-500 text-sm">
-        Geçersiz barkod: {value}
-      </div>
-    )
-  }
+  return (
+    <div className="inline-block">
+      <Barcode
+        value={value}
+        format={autoFormat()}
+        width={width}
+        height={height}
+        displayValue={displayValue}
+        fontSize={fontSize}
+        margin={5}
+        background="#ffffff"
+      />
+    </div>
+  )
 }

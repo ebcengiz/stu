@@ -261,7 +261,7 @@ export default function LocationPicker({ value, onChange }: LocationPickerProps)
         <div className="text-xs text-blue-700">
           <p className="font-semibold mb-1">💡 Nasıl Kullanılır:</p>
           <ul className="list-disc list-inside space-y-1">
-            <li>Yukarıdaki kutuda adres arayın (örn: "İstanbul Beşiktaş")</li>
+            <li>Yukarıdaki kutuda adres arayın (örn: &quot;İstanbul Beşiktaş&quot;)</li>
             <li>VEYA harita üzerinde istediğiniz noktaya tıklayın</li>
             <li>Seçilen konum otomatik olarak kaydedilir</li>
           </ul>

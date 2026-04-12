@@ -158,7 +158,7 @@ export function TagSelector({ label, type, entityType = 'customer', value, place
                 className="w-full text-left px-3 py-2 text-sm bg-primary-50 hover:bg-primary-100 text-primary-700 flex items-center gap-2 border-t border-primary-100"
               >
                 <Plus className="h-4 w-4" />
-                <span>"{searchTerm}" ekle</span>
+                <span>&quot;{searchTerm}&quot; ekle</span>
               </button>
             )}
           </div>

@@ -1,9 +1,8 @@
 'use client'
 
 import { Card, CardBody, CardHeader, CardTitle } from '@/components/ui/Card'
-import { CURRENCY_SYMBOLS, type ExchangeRates } from '@/lib/currency'
 import { useState } from 'react'
-import { PieChart, BarChart3, TrendingUp, Archive } from 'lucide-react'
+import { PieChart, BarChart3 } from 'lucide-react'
 
 interface DashboardChartsProps {
   topProducts: {
@@ -18,10 +17,9 @@ interface DashboardChartsProps {
     totalQty: number
     totalValueTRY: number
   }[]
-  exchangeRates: ExchangeRates
 }
 
-export default function DashboardCharts({ topProducts, warehouseStats, exchangeRates }: DashboardChartsProps) {
+export default function DashboardCharts({ topProducts, warehouseStats }: DashboardChartsProps) {
   const [pieMetric, setPieMetric] = useState<'qty' | 'value'>('value')
 
   // Calculate percentages for Bar Chart
@@ -30,37 +28,42 @@ export default function DashboardCharts({ topProducts, warehouseStats, exchangeR
   // Calculate percentages for Pie Chart
   const totalMetric = warehouseStats.reduce((sum, w) => sum + (pieMetric === 'value' ? w.totalValueTRY : w.totalQty), 0) || 1
   
-  // Prepare pie slices (using conic-gradient logic)
-  let currentAngle = 0
-  const pieSlices = warehouseStats.map((w, index) => {
+  const colors = [
+    '#3b82f6',
+    '#10b981',
+    '#f59e0b',
+    '#ef4444',
+    '#8b5cf6',
+    '#ec4899',
+    '#06b6d4',
+  ] as const
+
+  const pieSlices = warehouseStats.reduce<
+    {
+      name: string
+      value: number
+      percentage: number
+      color: string
+      startAngle: number
+      endAngle: number
+    }[]
+  >((acc, w, index) => {
     const value = pieMetric === 'value' ? w.totalValueTRY : w.totalQty
     const percentage = (value / totalMetric) * 100
     const angle = (value / totalMetric) * 360
-    
-    // Colors for slices
-    const colors = [
-      '#3b82f6', // blue-500
-      '#10b981', // green-500
-      '#f59e0b', // amber-500
-      '#ef4444', // red-500
-      '#8b5cf6', // violet-500
-      '#ec4899', // pink-500
-      '#06b6d4', // cyan-500
-    ]
     const color = colors[index % colors.length]
-    
-    const slice = {
+    const startAngle = acc.length === 0 ? 0 : acc[acc.length - 1].endAngle
+    const endAngle = startAngle + angle
+    acc.push({
       name: w.name,
       value,
       percentage,
       color,
-      startAngle: currentAngle,
-      endAngle: currentAngle + angle
-    }
-    
-    currentAngle += angle
-    return slice
-  })
+      startAngle,
+      endAngle,
+    })
+    return acc
+  }, [])
 
   // Create conic-gradient string
   const gradientString = pieSlices

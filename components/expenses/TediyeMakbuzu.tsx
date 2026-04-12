@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useMemo } from 'react'
 import { tryAmountToWords } from '@/lib/turkish-money-words'
 
 export type TediyeMakbuzuData = {
@@ -31,11 +31,9 @@ function formatMoneyAmount(n: number, cur: string) {
 }
 
 export default function TediyeMakbuzu({ data }: { data: TediyeMakbuzuData }) {
-  const [qrSrc, setQrSrc] = useState<string | null>(null)
-
-  useEffect(() => {
+  const qrSrc = useMemo(() => {
     const enc = encodeURIComponent(data.qrPayload)
-    setQrSrc(`https://api.qrserver.com/v1/create-qr-code/?size=120x120&margin=1&data=${enc}`)
+    return `https://api.qrserver.com/v1/create-qr-code/?size=120x120&margin=1&data=${enc}`
   }, [data.qrPayload])
 
   const amountWords =
@@ -48,12 +46,8 @@ export default function TediyeMakbuzu({ data }: { data: TediyeMakbuzuData }) {
     >
       <div className="relative mb-8 flex justify-end">
         <div className="flex flex-col items-end gap-1">
-          {qrSrc ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={qrSrc} alt="" width={100} height={100} className="h-[100px] w-[100px]" />
-          ) : (
-            <div className="h-[100px] w-[100px] bg-slate-100" />
-          )}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={qrSrc} alt="" width={100} height={100} className="h-[100px] w-[100px]" />
           <p className="text-[11px] font-medium tracking-wide text-neutral-700">No:{data.receiptNo}</p>
         </div>
       </div>

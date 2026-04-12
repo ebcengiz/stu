@@ -393,7 +393,7 @@ function OfferEntryForm() {
                   })}
                   {items.length === 0 && (
                     <tr>
-                      <td colSpan={7} className="px-4 py-8 text-center text-gray-500">Teklif listesine ürün eklemek için "Satır Ekle" butonunu kullanın.</td>
+                      <td colSpan={7} className="px-4 py-8 text-center text-gray-500">Teklif listesine ürün eklemek için &quot;Satır Ekle&quot; butonunu kullanın.</td>
                     </tr>
                   )}
                 </tbody>

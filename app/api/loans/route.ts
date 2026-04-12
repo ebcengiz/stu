@@ -48,7 +48,7 @@ export async function GET() {
     }))
 
     const loanIds = enriched.map((r) => r.id as string)
-    let thisMonthByLoan = new Map<string, number>()
+    const thisMonthByLoan = new Map<string, number>()
     if (loanIds.length) {
       const now = new Date()
       const start = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10)

@@ -189,11 +189,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* Charts Section */}
-      <DashboardCharts 
-        topProducts={topProducts} 
-        warehouseStats={warehouseStats} 
-        exchangeRates={exchangeRates}
-      />
+      <DashboardCharts topProducts={topProducts} warehouseStats={warehouseStats} />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Recent Activity */}

@@ -1,7 +1,7 @@
 'use client'
 
 import { createClient } from '@/lib/supabase/client'
-import { redirect, useRouter } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import DashboardSidebar from '@/components/dashboard/DashboardSidebar'
 import { useEffect, useState } from 'react'
 
@@ -16,7 +16,7 @@ export default function DashboardLayout({
   const [isMounted, setIsMounted] = useState(false)
 
   useEffect(() => {
-    setIsMounted(true)
+    queueMicrotask(() => setIsMounted(true))
     const checkAuth = async () => {
       const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
@@ -37,10 +37,12 @@ export default function DashboardLayout({
     
     checkAuth()
 
-    const savedState = localStorage.getItem('sidebarCollapsed')
-    if (savedState !== null) {
-      setIsSidebarCollapsed(savedState === 'true')
-    }
+    queueMicrotask(() => {
+      const savedState = localStorage.getItem('sidebarCollapsed')
+      if (savedState !== null) {
+        setIsSidebarCollapsed(savedState === 'true')
+      }
+    })
 
     const handleSidebarToggle = (e: Event) => {
       const customEvent = e as CustomEvent

@@ -1217,7 +1217,7 @@ export default function CustomerDetailPage() {
 
               <div className="mt-8 bg-gray-50/80 border border-gray-100 rounded-3xl p-6 space-y-3 relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-24 h-24 bg-primary-500/5 rounded-full -mr-12 -mt-12" />
-                <div className="flex justify-between text-sm text-gray-500 font-medium"><span>Ara Toplam (KDV'siz):</span><span className="text-gray-900">{currentModalBase.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} {getCurrencySymbol(customer.currency)}</span></div>
+                <div className="flex justify-between text-sm text-gray-500 font-medium"><span>Ara Toplam (KDV&apos;siz):</span><span className="text-gray-900">{currentModalBase.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} {getCurrencySymbol(customer.currency)}</span></div>
                 {currentModalDiscount > 0 && <div className="flex justify-between text-sm text-red-600 font-bold"><span>İskonto (%{itemFormData.discount_rate}):</span><span>-{currentModalDiscount.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} {getCurrencySymbol(customer.currency)}</span></div>}
                 <div className="flex justify-between text-sm text-gray-500 font-medium"><span>Hesaplanan KDV (%{itemFormData.tax_rate}):</span><span className="text-gray-900">+{currentModalTax.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} {getCurrencySymbol(customer.currency)}</span></div>
                 <div className="pt-4 mt-2 border-t border-dashed border-gray-200 flex justify-between items-center">
