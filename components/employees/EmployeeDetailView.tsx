@@ -518,8 +518,8 @@ export default function EmployeeDetailView({ employeeId }: { employeeId: string 
 
   if (loading || !emp) {
     return (
-      <div className="flex justify-center py-24">
-        <div className="h-10 w-10 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin" />
+      <div className="mx-auto flex w-full min-w-0 max-w-full justify-center overflow-x-hidden py-24">
+        <div className="h-10 w-10 animate-spin rounded-full border-2 border-emerald-600 border-t-transparent" />
       </div>
     )
   }
@@ -527,7 +527,7 @@ export default function EmployeeDetailView({ employeeId }: { employeeId: string 
   const sym = currency === 'USD' ? '$' : currency === 'EUR' ? '€' : '₺'
 
   return (
-    <div className="max-w-5xl mx-auto pb-12 space-y-4">
+    <div className="mx-auto w-full min-w-0 max-w-full space-y-4 overflow-x-hidden pb-4">
       {/* Üst: ahşap görünümlü başlık kartı */}
       <div
         className="relative rounded-2xl border border-amber-900/10 shadow-md overflow-hidden"

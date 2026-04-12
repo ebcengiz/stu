@@ -81,15 +81,15 @@ export default function CalisanlarPage() {
 
   if (loading) {
     return (
-      <div className="p-8 flex justify-center">
-        <div className="h-10 w-10 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin" />
+      <div className="mx-auto flex w-full min-w-0 max-w-full justify-center overflow-x-hidden py-24">
+        <div className="h-10 w-10 animate-spin rounded-full border-2 border-emerald-600 border-t-transparent" />
       </div>
     )
   }
 
   return (
-    <div className="space-y-6 max-w-6xl mx-auto pb-8">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="mx-auto w-full min-w-0 max-w-full space-y-4 overflow-x-hidden pb-4">
+      <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-black text-gray-900 tracking-tight flex items-center gap-2">
             <Users className="h-7 w-7 text-emerald-600" />
@@ -97,7 +97,7 @@ export default function CalisanlarPage() {
           </h1>
           <p className="text-sm text-gray-500 mt-1">Nakit Yönetimi · Personel kayıtları</p>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-3">
           <Link href="/dashboard/hesaplarim/calisanlar/rapor">
             <Button
               variant="outline"
