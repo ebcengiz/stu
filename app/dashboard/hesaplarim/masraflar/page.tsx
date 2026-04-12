@@ -23,6 +23,8 @@ import { toast } from 'react-hot-toast'
 import type { MasrafGroup } from '@/lib/masraf-kalemleri'
 import { findMasrafLabel, MASRAF_GROUPS } from '@/lib/masraf-kalemleri'
 import { expensePaymentChannelLabel } from '@/lib/expense-payment-display'
+import { createClient } from '@/lib/supabase/client'
+import TediyeMakbuzu, { type TediyeMakbuzuData } from '@/components/expenses/TediyeMakbuzu'
 
 type StatusTab = 'paid' | 'unpaid' | 'overdue' | 'all'
 type Period = 'year' | 'month' | 'lastMonth' | 'last3' | 'today' | 'all'
@@ -146,6 +148,14 @@ function odemeLabel(r: ExpenseRow): string {
   return '—'
 }
 
+/** Makbuz üzerinde gösterilecek 9 haneli sabit numara */
+function receiptNumberFromId(id: string): string {
+  const hex = id.replace(/-/g, '')
+  let h = 0
+  for (let i = 0; i < hex.length; i++) h = (h * 31 + hex.charCodeAt(i)) >>> 0
+  return String(100000000 + (h % 900000000))
+}
+
 function compare(a: string | number, b: string | number, dir: 'asc' | 'desc') {
   if (a < b) return dir === 'asc' ? -1 : 1
   if (a > b) return dir === 'asc' ? 1 : -1
@@ -206,6 +216,9 @@ export default function MasraflarPage() {
 
   const [masrafGroups, setMasrafGroups] = useState<MasrafGroup[]>(MASRAF_GROUPS)
 
+  const [printPayload, setPrintPayload] = useState<TediyeMakbuzuData | null>(null)
+  const [payerName, setPayerName] = useState('')
+
   const periodLabel = PERIOD_OPTIONS.find((o) => o.value === period)?.label ?? 'Son 3 Ay'
 
   useEffect(() => {
@@ -253,6 +266,42 @@ export default function MasraflarPage() {
   useEffect(() => {
     loadRows()
   }, [])
+
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      try {
+        const supabase = createClient()
+        const {
+          data: { user },
+        } = await supabase.auth.getUser()
+        if (!user || cancelled) return
+        const { data: prof } = await supabase
+          .from('profiles')
+          .select('full_name')
+          .eq('id', user.id)
+          .maybeSingle()
+        if (cancelled || !prof) return
+        setPayerName(String(prof.full_name ?? '').trim())
+      } catch {
+        /* sessiz */
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!printPayload) return
+    const timer = window.setTimeout(() => window.print(), 450)
+    const onAfter = () => setPrintPayload(null)
+    window.addEventListener('afterprint', onAfter)
+    return () => {
+      clearTimeout(timer)
+      window.removeEventListener('afterprint', onAfter)
+    }
+  }, [printPayload])
 
   useEffect(() => {
     let cancelled = false
@@ -345,6 +394,26 @@ export default function MasraflarPage() {
       loadRows()
     } catch (e: any) {
       toast.error(e.message || 'Silinemedi')
+    }
+  }
+
+  const buildTediyePayload = (r: ExpenseRow): TediyeMakbuzuData => {
+    const masrafAd = findMasrafLabel(r.expense_item_key, masrafGroups)
+    const notParts = [r.description?.trim(), r.doc_no?.trim() ? `Belge no: ${r.doc_no.trim()}` : null].filter(
+      Boolean
+    ) as string[]
+    const aciklama = notParts.length ? `${masrafAd} — ${notParts.join(' · ')}` : masrafAd
+    const pay = odemeLabel(r)
+    const qrPayload = `MikroMuhasebe|Tediye|${r.id}|${Number(r.amount_gross)}|${String(r.transaction_date).slice(0, 10)}`
+    return {
+      receiptNo: receiptNumberFromId(r.id),
+      transactionDateIso: String(r.transaction_date),
+      paymentLabel: pay === '—' ? 'Belirtilmedi' : pay,
+      description: aciklama,
+      amount: Number(r.amount_gross),
+      currency: r.currency || 'TRY',
+      payerName: payerName || '—',
+      qrPayload,
     }
   }
 
@@ -713,8 +782,14 @@ export default function MasraflarPage() {
               type="button"
               className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-slate-800 hover:bg-black/5"
               onClick={() => {
+                const id = actionMenu.id
+                const row = rows.find((x) => x.id === id)
                 setActionMenu(null)
-                window.print()
+                if (!row) {
+                  toast.error('Kayıt bulunamadı')
+                  return
+                }
+                setPrintPayload(buildTediyePayload(row))
               }}
             >
               <Printer className="h-4 w-4 shrink-0" />
@@ -774,6 +849,34 @@ export default function MasraflarPage() {
         )}
 
       <p className="text-xs text-slate-400">{new Date().getFullYear()} © Mikro Muhasebe</p>
+
+      {printPayload && (
+        <>
+          <style
+            dangerouslySetInnerHTML={{
+              __html: `
+              @media screen {
+                #tediye-print-root { display: none !important; }
+              }
+              @media print {
+                body * { visibility: hidden !important; }
+                #tediye-print-root, #tediye-print-root * { visibility: visible !important; }
+                #tediye-print-root {
+                  display: block !important;
+                  position: absolute;
+                  left: 0;
+                  top: 0;
+                  width: 100%;
+                }
+              }
+            `,
+            }}
+          />
+          <div id="tediye-print-root" aria-hidden>
+            <TediyeMakbuzu data={printPayload} />
+          </div>
+        </>
+      )}
     </div>
   )
 }
