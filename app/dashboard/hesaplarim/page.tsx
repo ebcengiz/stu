@@ -148,15 +148,15 @@ export default function HesaplarimPage() {
 
   if (loading) {
     return (
-      <div className="p-8 flex justify-center">
-        <div className="animate-spin h-8 w-8 border-b-2 border-blue-600 rounded-full" />
+      <div className="mx-auto flex w-full min-w-0 max-w-full justify-center overflow-x-hidden py-24">
+        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-blue-600" />
       </div>
     )
   }
 
   return (
-    <div className="space-y-6 max-w-[1400px] mx-auto pb-8 px-2">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="mx-auto w-full min-w-0 max-w-full space-y-4 overflow-x-hidden pb-4">
+      <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Hesaplarım</h1>
           <p className="mt-1 text-sm text-gray-500">
@@ -165,7 +165,7 @@ export default function HesaplarimPage() {
           </p>
         </div>
 
-        <div className="flex flex-wrap gap-2 items-center">
+        <div className="flex flex-wrap items-center gap-3">
           <input
             type="search"
             placeholder="Hesap ara..."

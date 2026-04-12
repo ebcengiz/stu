@@ -207,7 +207,13 @@ export default function AccountDetailPage() {
     }
   }
 
-  if (loading) return <div className="p-8 flex justify-center"><div className="animate-spin h-8 w-8 border-b-2 border-blue-600 rounded-full"></div></div>
+  if (loading) {
+    return (
+      <div className="mx-auto flex w-full min-w-0 max-w-full justify-center overflow-x-hidden py-24">
+        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-blue-600" />
+      </div>
+    )
+  }
   if (!account) return null
 
   const getCurrencySymbol = (code: string = 'TRY') => {
@@ -234,7 +240,7 @@ export default function AccountDetailPage() {
   const toplamCikis = transactions.filter(t => t.type === 'outflow' || t.type === 'transfer_out').reduce((sum, t) => sum + Number(t.amount), 0)
 
   return (
-    <div className="space-y-4 max-w-[1600px] w-full mx-auto pb-6">
+    <div className="mx-auto w-full min-w-0 max-w-full space-y-4 overflow-x-hidden pb-4">
       {/* Back & Header */}
       <div className="flex items-center justify-between mb-1">
         <button onClick={() => router.push('/dashboard/hesaplarim')} className="p-2.5 bg-white border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50 transition-colors shadow-sm"><ArrowLeft className="h-5 w-5" /></button>
