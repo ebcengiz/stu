@@ -286,14 +286,13 @@ export default function KrediDetayPage() {
           <Trash2 className="h-3.5 w-3.5" />
           Krediyi sil
         </button>
-        <button
-          type="button"
-          onClick={() => toast('Dökümanlar yakında eklenecek', { icon: '📎' })}
-          className="inline-flex items-center gap-1.5 rounded-lg border border-violet-300 bg-violet-50 px-3 py-2 text-xs font-semibold text-violet-900 hover:bg-violet-100"
+        <Link
+          href={`/dashboard/hesaplarim/krediler/${id}/dokumanlar`}
+          className="inline-flex items-center gap-1.5 rounded-lg border border-violet-300 bg-violet-50 px-3 py-2 text-xs font-semibold text-violet-900 shadow-sm hover:bg-violet-100"
         >
           <FileText className="h-3.5 w-3.5" />
           Dökümanlar
-        </button>
+        </Link>
       </div>
 
       <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-md">

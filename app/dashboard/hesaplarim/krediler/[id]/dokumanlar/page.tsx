@@ -1,0 +1,510 @@
+'use client'
+
+import { useCallback, useEffect, useRef, useState } from 'react'
+import Link from 'next/link'
+import { useParams } from 'next/navigation'
+import {
+  ArrowLeft,
+  Plus,
+  Download,
+  Pencil,
+  X,
+  FileIcon,
+  Check,
+} from 'lucide-react'
+import { toast } from 'react-hot-toast'
+import { LOAN_DOC_ACCEPT, validateLoanDocumentFile } from '@/lib/loan-document-file'
+
+type LoanBrief = { id: string; name: string }
+
+type LoanDoc = {
+  id: string
+  file_name: string
+  description: string | null
+  document_date: string
+  storage_path: string
+  public_url: string
+  created_at: string
+}
+
+function formatTrDate(iso: string | null | undefined) {
+  if (!iso) return '—'
+  const d = String(iso).slice(0, 10)
+  const [y, m, day] = d.split('-')
+  if (!y || !m || !day) return '—'
+  return `${day}.${m}.${y}`
+}
+
+export default function KrediDokumanlarPage() {
+  const params = useParams()
+  const id = String(params.id ?? '')
+
+  const [loan, setLoan] = useState<LoanBrief | null>(null)
+  const [docs, setDocs] = useState<LoanDoc[]>([])
+  const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState<string | null>(null)
+
+  const [uploadModalOpen, setUploadModalOpen] = useState(false)
+  const [modalFile, setModalFile] = useState<File | null>(null)
+  const [modalDesc, setModalDesc] = useState('')
+  const [modalFileInputKey, setModalFileInputKey] = useState(0)
+  const [uploadSaving, setUploadSaving] = useState(false)
+
+  const replaceFileRef = useRef<HTMLInputElement>(null)
+
+  const [editDoc, setEditDoc] = useState<LoanDoc | null>(null)
+  const [editDesc, setEditDesc] = useState('')
+  const [editDate, setEditDate] = useState('')
+  const [editSaving, setEditSaving] = useState(false)
+  const [replaceFile, setReplaceFile] = useState<File | null>(null)
+
+  const load = useCallback(async () => {
+    if (!id) return
+    setLoadError(null)
+    setLoading(true)
+    try {
+      const [rLoan, rDocs] = await Promise.all([
+        fetch(`/api/loans/${id}`),
+        fetch(`/api/loans/${id}/documents`),
+      ])
+      const jLoan = await rLoan.json().catch(() => ({}))
+      const jDocs = await rDocs.json().catch(() => ({}))
+      if (!rLoan.ok) throw new Error(jLoan.error || 'Kredi yüklenemedi')
+      if (!rDocs.ok) throw new Error(jDocs.error || 'Belgeler yüklenemedi')
+      setLoan(jLoan.loan ? { id: jLoan.loan.id, name: String(jLoan.loan.name ?? '') } : null)
+      const list = Array.isArray(jDocs.documents) ? jDocs.documents : []
+      setDocs(list)
+    } catch (e: unknown) {
+      setLoadError(e instanceof Error ? e.message : 'Yüklenemedi')
+      setLoan(null)
+      setDocs([])
+    } finally {
+      setLoading(false)
+    }
+  }, [id])
+
+  useEffect(() => {
+    void load()
+  }, [load])
+
+  const openUploadModal = () => {
+    setModalFile(null)
+    setModalDesc('')
+    setModalFileInputKey((k) => k + 1)
+    setUploadModalOpen(true)
+  }
+
+  const resetUploadModal = () => {
+    setUploadModalOpen(false)
+    setModalFile(null)
+    setModalDesc('')
+  }
+
+  const tryCloseUploadModal = () => {
+    if (uploadSaving) return
+    resetUploadModal()
+  }
+
+  const onModalFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0] ?? null
+    setModalFile(f)
+  }
+
+  const submitUpload = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!modalFile) {
+      toast.error('Lütfen yüklenecek dosyayı seçin')
+      return
+    }
+    const clientErr = validateLoanDocumentFile(modalFile)
+    if (clientErr) {
+      toast.error(clientErr)
+      return
+    }
+    setUploadSaving(true)
+    try {
+      const fd = new FormData()
+      fd.append('file', modalFile)
+      if (modalDesc.trim()) fd.append('description', modalDesc.trim())
+      fd.append('document_date', new Date().toISOString().slice(0, 10))
+      const res = await fetch(`/api/loans/${id}/documents`, { method: 'POST', body: fd })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(data.error || 'Yüklenemedi')
+      toast.success('Belge yüklendi')
+      resetUploadModal()
+      await load()
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Yüklenemedi')
+    } finally {
+      setUploadSaving(false)
+    }
+  }
+
+  const openEdit = (d: LoanDoc) => {
+    setEditDoc(d)
+    setEditDesc(d.description ?? '')
+    setEditDate(String(d.document_date).slice(0, 10))
+    setReplaceFile(null)
+  }
+
+  const submitEdit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!editDoc) return
+    if (replaceFile) {
+      const err = validateLoanDocumentFile(replaceFile)
+      if (err) {
+        toast.error(err)
+        return
+      }
+    }
+    setEditSaving(true)
+    try {
+      if (replaceFile) {
+        const fd = new FormData()
+        fd.append('description', editDesc.trim())
+        fd.append('document_date', editDate)
+        fd.append('file', replaceFile)
+        const res = await fetch(`/api/loans/${id}/documents/${editDoc.id}`, { method: 'PATCH', body: fd })
+        const data = await res.json().catch(() => ({}))
+        if (!res.ok) throw new Error(data.error || 'Güncellenemedi')
+      } else {
+        const res = await fetch(`/api/loans/${id}/documents/${editDoc.id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            description: editDesc.trim() || null,
+            document_date: editDate,
+          }),
+        })
+        const data = await res.json().catch(() => ({}))
+        if (!res.ok) throw new Error(data.error || 'Güncellenemedi')
+      }
+      toast.success('Belge güncellendi')
+      setEditDoc(null)
+      setReplaceFile(null)
+      await load()
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Hata')
+    } finally {
+      setEditSaving(false)
+    }
+  }
+
+  const confirmDelete = (d: LoanDoc) => {
+    toast.custom(
+      (t) => (
+        <div className="pointer-events-auto max-w-sm rounded-xl border border-slate-200/80 bg-white px-4 py-3 shadow-lg ring-1 ring-black/5">
+          <p className="text-sm font-semibold text-slate-900">Bu belgeyi silmek istiyor musunuz?</p>
+          <p className="mt-1 truncate text-xs text-slate-600">{d.file_name}</p>
+          <div className="mt-3 flex justify-end gap-2">
+            <button
+              type="button"
+              className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+              onClick={() => toast.dismiss(t.id)}
+            >
+              İptal
+            </button>
+            <button
+              type="button"
+              className="rounded-lg bg-red-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-700"
+              onClick={() => {
+                toast.dismiss(t.id)
+                void performDelete(d.id)
+              }}
+            >
+              Sil
+            </button>
+          </div>
+        </div>
+      ),
+      { duration: Infinity, position: 'top-center' }
+    )
+  }
+
+  const performDelete = async (docId: string) => {
+    try {
+      const res = await fetch(`/api/loans/${id}/documents/${docId}`, { method: 'DELETE' })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(data.error || 'Silinemedi')
+      toast.success('Belge silindi')
+      await load()
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : 'Silinemedi')
+    }
+  }
+
+  const loanTitle = (loan?.name?.trim() || 'Kredi') as string
+
+  return (
+    <div className="mx-auto w-full min-w-0 max-w-full space-y-4 overflow-x-hidden pb-4">
+      <div className="flex flex-wrap items-center gap-3">
+        <Link
+          href={`/dashboard/hesaplarim/krediler/${id}`}
+          className="inline-flex items-center gap-2 rounded-lg bg-orange-500 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-orange-600"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Geri Dön
+        </Link>
+      </div>
+
+      <div className="rounded-lg border border-gray-200 bg-white px-4 py-3 shadow-md ring-1 ring-gray-100">
+        <h1 className="break-words text-lg font-bold leading-snug tracking-tight text-slate-900 sm:text-xl">
+          {loanTitle}
+        </h1>
+      </div>
+
+      {loading ? (
+        <p className="text-sm text-slate-500">Yükleniyor…</p>
+      ) : loadError ? (
+        <p className="text-sm text-red-700">{loadError}</p>
+      ) : docs.length === 0 ? (
+        <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-md">
+          <div className="flex gap-3 rounded-lg border border-amber-200/90 bg-amber-50/95 px-4 py-4 text-sm leading-relaxed text-amber-950">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-amber-100 text-amber-800">
+              <FileIcon className="h-5 w-5" />
+            </div>
+            <div className="min-w-0">
+              <p>
+                Kullandığınız kredi ile ilgili belgeleri (sözleşme, taahhütname, sigorta…) taratıp veya
+                resmini çekip buraya yükleyebilirsiniz. Dilediğiniz zaman da buradan tekrar indirebilirsiniz.
+              </p>
+              <p className="mt-3 flex flex-wrap items-center gap-x-1.5 gap-y-2 text-amber-900/90">
+                <span>Belge eklemek için</span>
+                <button
+                  type="button"
+                  onClick={openUploadModal}
+                  className="inline-flex items-center gap-1 rounded-md bg-emerald-600 px-2.5 py-1 text-xs font-semibold text-white shadow-sm transition hover:bg-emerald-700"
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                  Yeni belge ekle
+                </button>
+                <span>düğmesine tıklayın.</span>
+              </p>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            <button
+              type="button"
+              onClick={openUploadModal}
+              className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700"
+            >
+              <Plus className="h-4 w-4" />
+              Yeni belge ekle
+            </button>
+          </div>
+        <div className="overflow-hidden rounded-lg border border-gray-200 bg-white p-4 shadow-md">
+          <div className="space-y-3">
+            {docs.map((d) => (
+              <div
+                key={d.id}
+                className="max-w-3xl rounded-lg border border-sky-700/30 bg-sky-600 px-4 py-3 text-white shadow-md"
+              >
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-bold">{d.file_name}</p>
+                    <p className="mt-0.5 text-xs font-normal text-sky-100">
+                      {d.description?.trim() || 'Açıklama yok'}
+                    </p>
+                  </div>
+                  <div className="flex shrink-0 flex-col items-start gap-2 sm:items-end">
+                    <span className="text-sm text-sky-100">{formatTrDate(d.document_date)}</span>
+                    <div className="flex flex-wrap gap-1.5">
+                      <a
+                        href={d.public_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 rounded-md bg-emerald-500 px-2.5 py-1.5 text-[11px] font-semibold text-white shadow-sm hover:bg-emerald-400"
+                      >
+                        <Download className="h-3.5 w-3.5" />
+                        İndir
+                      </a>
+                      <button
+                        type="button"
+                        onClick={() => openEdit(d)}
+                        className="inline-flex items-center gap-1 rounded-md bg-orange-500 px-2.5 py-1.5 text-[11px] font-semibold text-white shadow-sm hover:bg-orange-400"
+                      >
+                        <Pencil className="h-3.5 w-3.5" />
+                        Güncelle
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => confirmDelete(d)}
+                        className="inline-flex items-center gap-1 rounded-md bg-red-600 px-2.5 py-1.5 text-[11px] font-semibold text-white shadow-sm hover:bg-red-500"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                        Sil
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+        </div>
+      )}
+
+      <p className="text-xs text-slate-400">{new Date().getFullYear()} © Mikro Muhasebe</p>
+
+      {uploadModalOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-3"
+          onClick={tryCloseUploadModal}
+        >
+          <div
+            className="flex max-h-[min(90vh,640px)] w-full max-w-lg flex-col overflow-hidden rounded-lg border border-slate-200/90 bg-white shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="loan-doc-upload-title"
+          >
+            <div className="flex items-center justify-between bg-emerald-500 px-4 py-3">
+              <h2 id="loan-doc-upload-title" className="text-base font-semibold text-white">
+                Dosya Yükleme
+              </h2>
+              <button
+                type="button"
+                onClick={tryCloseUploadModal}
+                disabled={uploadSaving}
+                className="rounded-md p-1 text-white hover:bg-white/15 disabled:opacity-50"
+                aria-label="Kapat"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="border-b border-amber-200/80 bg-amber-50 px-4 py-3 text-xs leading-relaxed text-amber-900">
+              Uzantısı doc, docx, xls, xlsx, pdf, jpg, gif, png, txt, webp olan dosyaları yükleyebilirsiniz. Dosya boyu
+              5 MB’ı geçmemelidir.
+            </div>
+            <form onSubmit={submitUpload} className="flex min-h-0 flex-1 flex-col overflow-y-auto bg-white p-4">
+              <div className="space-y-4">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
+                  <label className="shrink-0 text-sm font-semibold text-slate-700 sm:w-40">Yüklenecek Dosya</label>
+                  <div className="min-w-0 flex-1">
+                    <input
+                      key={modalFileInputKey}
+                      type="file"
+                      onChange={onModalFileChange}
+                      accept={LOAN_DOC_ACCEPT}
+                      className="block w-full text-sm text-slate-800 file:mr-3 file:rounded-md file:border-0 file:bg-slate-100 file:px-3 file:py-2 file:text-sm file:font-medium file:text-slate-800 hover:file:bg-slate-200"
+                    />
+                    {modalFile ? (
+                      <p className="mt-1 truncate text-xs text-slate-500">{modalFile.name}</p>
+                    ) : null}
+                  </div>
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-semibold text-slate-700">Dosya Açıklaması</label>
+                  <textarea
+                    value={modalDesc}
+                    onChange={(e) => setModalDesc(e.target.value)}
+                    rows={4}
+                    placeholder="kredi belgesi"
+                    className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-slate-900 outline-none ring-emerald-500/20 focus:border-emerald-500 focus:ring-2"
+                  />
+                </div>
+              </div>
+              <div className="mt-6 flex flex-wrap justify-end gap-2 border-t border-slate-100 pt-4">
+                <button
+                  type="button"
+                  disabled={uploadSaving}
+                  onClick={tryCloseUploadModal}
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-orange-500 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-orange-600 disabled:opacity-50"
+                >
+                  <X className="h-4 w-4" />
+                  Vazgeç
+                </button>
+                <button
+                  type="submit"
+                  disabled={uploadSaving}
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700 disabled:opacity-50"
+                >
+                  <Check className="h-4 w-4" />
+                  {uploadSaving ? 'Yükleniyor…' : 'Yükle'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {editDoc && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-3"
+          onClick={() => !editSaving && setEditDoc(null)}
+        >
+          <div
+            className="w-full max-w-md rounded-lg border border-slate-200 bg-white p-4 shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-sm font-semibold text-slate-900">Belgeyi güncelle</h3>
+            <p className="mt-1 truncate text-xs text-slate-600">{editDoc.file_name}</p>
+            <form onSubmit={submitEdit} className="mt-3 space-y-3">
+              <div>
+                <label className="mb-0.5 block text-xs font-medium text-slate-600">Açıklama</label>
+                <input
+                  value={editDesc}
+                  onChange={(e) => setEditDesc(e.target.value)}
+                  className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
+                />
+              </div>
+              <div>
+                <label className="mb-0.5 block text-xs font-medium text-slate-600">Belge tarihi</label>
+                <input
+                  type="date"
+                  value={editDate}
+                  onChange={(e) => setEditDate(e.target.value)}
+                  className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
+                />
+              </div>
+              <div>
+                <label className="mb-0.5 block text-xs font-medium text-slate-600">Dosyayı değiştir (isteğe bağlı)</label>
+                <input
+                  ref={replaceFileRef}
+                  type="file"
+                  accept={LOAN_DOC_ACCEPT}
+                  className="hidden"
+                  onChange={(e) => {
+                    const f = e.target.files?.[0]
+                    e.target.value = ''
+                    setReplaceFile(f ?? null)
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={() => replaceFileRef.current?.click()}
+                  className="text-xs font-medium text-emerald-700 hover:underline"
+                >
+                  {replaceFile ? replaceFile.name : 'Dosya seç…'}
+                </button>
+              </div>
+              <div className="flex justify-end gap-2 pt-1">
+                <button
+                  type="button"
+                  disabled={editSaving}
+                  onClick={() => {
+                    setEditDoc(null)
+                    setReplaceFile(null)
+                  }}
+                  className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium"
+                >
+                  İptal
+                </button>
+                <button
+                  type="submit"
+                  disabled={editSaving}
+                  className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-50"
+                >
+                  {editSaving ? 'Kaydediliyor…' : 'Kaydet'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
