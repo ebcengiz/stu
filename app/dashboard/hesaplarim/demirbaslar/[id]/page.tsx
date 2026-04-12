@@ -75,6 +75,7 @@ export default function DemirbasDetayPage() {
 
   const [asset, setAsset] = useState<AssetData | null>(null)
   const [reminders, setReminders] = useState<ReminderRow[]>([])
+  const [remindersError, setRemindersError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
 
@@ -85,17 +86,21 @@ export default function DemirbasDetayPage() {
   const load = useCallback(async () => {
     if (!id) return
     setLoadError(null)
+    setRemindersError(null)
     try {
-      const [rAsset, rRem] = await Promise.all([
-        fetch(`/api/fixed-assets/${id}`),
-        fetch(`/api/fixed-assets/${id}/reminders`),
-      ])
+      const rAsset = await fetch(`/api/fixed-assets/${id}`)
       const jA = await rAsset.json().catch(() => ({}))
-      const jR = await rRem.json().catch(() => ({}))
       if (!rAsset.ok) throw new Error(jA.error || 'Yüklenemedi')
-      if (!rRem.ok) throw new Error(jR.error || 'Hatırlatmalar yüklenemedi')
       setAsset(jA.asset ?? null)
-      setReminders(Array.isArray(jR.reminders) ? jR.reminders : [])
+
+      const rRem = await fetch(`/api/fixed-assets/${id}/reminders`)
+      const jR = await rRem.json().catch(() => ({}))
+      if (rRem.ok) {
+        setReminders(Array.isArray(jR.reminders) ? jR.reminders : [])
+      } else {
+        setReminders([])
+        setRemindersError(jR.error || 'Hatırlatmalar yüklenemedi')
+      }
     } catch (e: unknown) {
       setLoadError(e instanceof Error ? e.message : 'Yüklenemedi')
       setAsset(null)
@@ -209,30 +214,40 @@ export default function DemirbasDetayPage() {
       </Link>
 
       <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-md">
-        <div className="bg-[#1e3a5f] px-3 py-2">
-          <h1 className="text-sm font-bold uppercase tracking-wide text-white">{asset.name}</h1>
+        <div className="bg-[#1e3a5f] px-3 py-2 sm:px-4 sm:py-2.5">
+          <h1 className="text-sm font-bold uppercase tracking-wide text-white sm:text-base">{asset.name}</h1>
         </div>
-        <div className="grid gap-2 p-4 sm:grid-cols-2">
-          <div className="flex justify-between gap-3 text-sm sm:col-span-2">
-            <span className="shrink-0 text-right font-medium text-slate-500">Açıklama</span>
-            <span className="min-w-0 whitespace-pre-wrap text-left text-slate-800">{asset.description?.trim() || '—'}</span>
+        <div className="space-y-0 divide-y divide-gray-100 p-4">
+          <div className="flex flex-wrap items-baseline justify-between gap-2 pb-3 text-sm">
+            <span className="font-medium text-slate-600">Alış Tarihi</span>
+            <span className="font-semibold text-slate-900">{formatDate(asset.purchase_date)}</span>
           </div>
-          <div className="flex justify-between gap-3 text-sm">
-            <span className="shrink-0 text-right font-medium text-slate-500">Seri / plaka</span>
-            <span className="text-left font-semibold text-slate-900">{asset.serial_no?.trim() || '—'}</span>
+          <div className="flex flex-wrap items-baseline justify-between gap-2 py-3 text-sm">
+            <span className="font-medium text-slate-600">Fiyatı</span>
+            <span className="font-semibold text-slate-900">{formatMoney(asset.price, cur)}</span>
           </div>
-          <div className="flex justify-between gap-3 text-sm">
-            <span className="shrink-0 text-right font-medium text-slate-500">Alış tarihi</span>
-            <span className="text-left font-semibold text-slate-900">{formatDate(asset.purchase_date)}</span>
+          <div className="flex flex-wrap items-start justify-between gap-2 pt-3 text-sm">
+            <span className="font-medium text-slate-600">Not</span>
+            <span className="max-w-[min(100%,28rem)] whitespace-pre-wrap text-right font-semibold text-slate-900">
+              {asset.notes?.trim() || '—'}
+            </span>
           </div>
-          <div className="flex justify-between gap-3 text-sm">
-            <span className="shrink-0 text-right font-medium text-slate-500">Fiyatı</span>
-            <span className="text-left font-semibold text-slate-900">{formatMoney(asset.price, cur)}</span>
-          </div>
-          <div className="flex justify-between gap-3 text-sm sm:col-span-2">
-            <span className="shrink-0 text-right font-medium text-slate-500">Not</span>
-            <span className="min-w-0 whitespace-pre-wrap text-left text-slate-800">{asset.notes?.trim() || '—'}</span>
-          </div>
+          {(asset.serial_no?.trim() || asset.description?.trim()) && (
+            <div className="space-y-2 border-t border-dashed border-gray-200 pt-3 text-xs text-slate-600">
+              {asset.serial_no?.trim() ? (
+                <p>
+                  <span className="font-medium text-slate-500">Seri / plaka: </span>
+                  {asset.serial_no.trim()}
+                </p>
+              ) : null}
+              {asset.description?.trim() ? (
+                <p className="whitespace-pre-wrap">
+                  <span className="font-medium text-slate-500">Açıklama: </span>
+                  {asset.description.trim()}
+                </p>
+              ) : null}
+            </div>
+          )}
         </div>
       </div>
 
@@ -275,18 +290,28 @@ export default function DemirbasDetayPage() {
           <h2 className="text-xs font-bold uppercase tracking-wide text-white">Hatırlatma tarihleri</h2>
         </div>
         <div className="p-4">
-          {reminders.length === 0 ? (
+          {remindersError && (
+            <div className="mb-4 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-950">
+              <p className="font-medium">Hatırlatmalar yüklenemedi</p>
+              <p className="mt-1 text-amber-900/90">
+                Veritabanında <code className="rounded bg-amber-100/80 px-1">fixed_asset_reminders</code> tablosu yoksa
+                Supabase’de <code className="rounded bg-amber-100/80 px-1">042_fixed_asset_notes_reminders_documents.sql</code>{' '}
+                migration’ını uygulayın.
+              </p>
+            </div>
+          )}
+          {reminders.length === 0 && !remindersError ? (
             <div className="flex gap-3 rounded-lg border border-amber-200/80 bg-amber-50/90 px-3 py-3">
               <AlertCircle className="h-5 w-5 shrink-0 text-amber-600" />
               <div className="text-sm leading-relaxed text-amber-950">
                 <p>Bu demirbaş için herhangi bir hatırlatma tarihi eklenmemiş.</p>
                 <p className="mt-2 text-amber-900/90">
-                  Garanti süresi bitimi, araç muayenesi, sigorta yenileme vb. önemli tarihleri kaydedebilirsiniz.
+                  Garanti süresi bitimi, araç muayenesi, sigorta yenileme vs gibi önemli tarihleri kaydedebilirsiniz.
                   Zamanı gelince size hatırlatırız.
                 </p>
               </div>
             </div>
-          ) : (
+          ) : reminders.length > 0 ? (
             <ul className="divide-y divide-gray-100">
               {reminders.map((r) => (
                 <li key={r.id} className="flex flex-wrap items-start justify-between gap-2 py-3 first:pt-0">
@@ -319,7 +344,7 @@ export default function DemirbasDetayPage() {
                 </li>
               ))}
             </ul>
-          )}
+          ) : null}
         </div>
       </div>
 

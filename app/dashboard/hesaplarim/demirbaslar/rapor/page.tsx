@@ -117,11 +117,11 @@ export default function DemirbaslarRaporPage() {
           <ArrowLeft className="h-4 w-4" />
           Demirbaşlara dön
         </Link>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 print:hidden">
           <button
             type="button"
             onClick={() => window.print()}
-            className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-800 shadow-sm hover:bg-slate-50 print:hidden"
+            className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-800 shadow-sm hover:bg-slate-50"
           >
             <Printer className="h-4 w-4" />
             Yazdır
@@ -129,7 +129,7 @@ export default function DemirbaslarRaporPage() {
           <button
             type="button"
             onClick={exportExcel}
-            className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700 print:hidden"
+            className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700"
           >
             <FileSpreadsheet className="h-4 w-4" />
             Excel
@@ -137,7 +137,7 @@ export default function DemirbaslarRaporPage() {
           <button
             type="button"
             onClick={exportPdf}
-            className="inline-flex items-center gap-2 rounded-lg bg-slate-700 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 print:hidden"
+            className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-800 shadow-sm hover:bg-slate-50"
           >
             PDF
           </button>
@@ -145,7 +145,7 @@ export default function DemirbaslarRaporPage() {
       </div>
 
       <div className="print:block">
-        <h1 className="text-xl font-bold text-slate-900">Demirbaşlar — Rapor</h1>
+        <h1 className="text-xl font-bold tracking-tight text-slate-900">Demirbaşlar — Rapor</h1>
         <p className="mt-1 text-sm text-slate-500">
           Tüm demirbaş kayıtları; alış tarihi ve fiyat isteğe bağlı alanlardır.
         </p>
@@ -164,12 +164,12 @@ export default function DemirbaslarRaporPage() {
           <div className="w-full overflow-x-auto">
             <table className="w-full min-w-[900px] table-auto border-collapse text-sm">
               <thead>
-                <tr className="border-b border-gray-200 bg-slate-100 text-left text-xs font-semibold text-slate-700 print:bg-slate-200">
-                  <th className="px-3 py-2">Demirbaş adı</th>
-                  <th className="px-3 py-2">Açıklama</th>
-                  <th className="px-3 py-2">Seri / plaka</th>
-                  <th className="px-3 py-2">Alış tarihi</th>
-                  <th className="px-3 py-2">Fiyat</th>
+                <tr className="bg-[#1e3a5f] text-left text-xs font-bold uppercase tracking-wide text-white print:bg-slate-700 print:text-white">
+                  <th className="px-3 py-2.5">Demirbaş adı</th>
+                  <th className="px-3 py-2.5">Açıklama</th>
+                  <th className="px-3 py-2.5">Seri / plaka</th>
+                  <th className="px-3 py-2.5">Alış tarihi</th>
+                  <th className="px-3 py-2.5">Fiyat</th>
                 </tr>
               </thead>
               <tbody>

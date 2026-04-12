@@ -79,9 +79,9 @@ export default function DemirbaslarPage() {
           </button>
           <Link
             href="/dashboard/hesaplarim/demirbaslar/rapor"
-            className="inline-flex items-center gap-2 rounded-lg bg-orange-500 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-orange-600"
+            className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-800 shadow-sm transition hover:border-slate-300 hover:bg-slate-50"
           >
-            <BarChart3 className="h-4 w-4" />
+            <BarChart3 className="h-4 w-4 text-emerald-600" />
             Rapor
           </Link>
         </div>
@@ -119,17 +119,17 @@ export default function DemirbaslarPage() {
 
       {!loading && rows.length > 0 && (
         <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-md">
-          <p className="border-b border-gray-100 bg-slate-50 px-3 py-2 text-xs text-slate-600">
+          <p className="border-b border-gray-100 bg-slate-50 px-3 py-2.5 text-xs leading-relaxed text-slate-600">
             Satıra tıklayarak detay, hatırlatma ve dökümanlara gidebilirsiniz.
           </p>
           <div className="w-full overflow-x-auto">
             <table className="w-full min-w-[560px] table-auto border-collapse text-sm">
               <thead>
-                <tr className="border-b border-gray-200 bg-slate-100 text-left text-xs font-semibold text-slate-700">
-                  <th className="px-3 py-2">Demirbaş adı</th>
-                  <th className="px-3 py-2">Seri / plaka</th>
-                  <th className="px-3 py-2">Alış tarihi</th>
-                  <th className="px-3 py-2">Fiyat</th>
+                <tr className="bg-[#1e3a5f] text-left text-xs font-bold uppercase tracking-wide text-white">
+                  <th className="px-3 py-2.5">Demirbaş adı</th>
+                  <th className="px-3 py-2.5">Seri / plaka</th>
+                  <th className="px-3 py-2.5">Alış tarihi</th>
+                  <th className="px-3 py-2.5">Fiyat</th>
                 </tr>
               </thead>
               <tbody>
@@ -145,16 +145,14 @@ export default function DemirbaslarPage() {
                         router.push(`/dashboard/hesaplarim/demirbaslar/${r.id}`)
                       }
                     }}
-                    className={`cursor-pointer border-b border-gray-100 transition hover:bg-emerald-50/60 ${
+                    className={`cursor-pointer border-b border-gray-100 transition hover:bg-slate-100 ${
                       idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/80'
                     }`}
                   >
-                    <td className="px-3 py-2 font-medium text-emerald-800 underline-offset-2 hover:underline">
-                      {r.name}
-                    </td>
-                    <td className="px-3 py-2 text-slate-700">{r.serial_no?.trim() || '—'}</td>
-                    <td className="px-3 py-2 text-slate-700">{formatDate(r.purchase_date)}</td>
-                    <td className="px-3 py-2 text-slate-900">{formatMoney(r.price, r.currency || 'TRY')}</td>
+                    <td className="px-3 py-2.5 font-semibold text-slate-900">{r.name}</td>
+                    <td className="px-3 py-2.5 text-slate-700">{r.serial_no?.trim() || '—'}</td>
+                    <td className="px-3 py-2.5 text-slate-700">{formatDate(r.purchase_date)}</td>
+                    <td className="px-3 py-2.5 font-medium text-slate-900">{formatMoney(r.price, r.currency || 'TRY')}</td>
                   </tr>
                 ))}
               </tbody>

@@ -237,35 +237,31 @@ export default function DemirbasDokumanlarPage() {
   const assetTitle = (asset?.name?.trim() || 'Demirbaş') as string
 
   return (
-    <div className="mx-auto w-full min-w-0 max-w-full space-y-5 overflow-x-hidden pb-8">
-      <div className="flex flex-wrap items-center gap-2">
-        <button
-          type="button"
-          onClick={openUploadModal}
-          className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700"
-        >
-          <Plus className="h-4 w-4" />
-          Yeni Belge Yükle
-        </button>
-        <Link
-          href={`/dashboard/hesaplarim/demirbaslar/${id}`}
-          className="inline-flex items-center gap-2 rounded-lg bg-orange-500 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-orange-600"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Geri Dön
-        </Link>
-      </div>
-
-      <div
-        className="rounded-lg border border-amber-200/80 px-4 py-3 shadow-inner"
-        style={{
-          background:
-            'linear-gradient(180deg, #e8d5b7 0%, #f0e4d0 35%, #f7f0e4 70%, #faf8f3 100%)',
-        }}
-      >
-        <h1 className="text-center text-lg font-bold uppercase tracking-wide text-slate-800 sm:text-xl">
-          {assetTitle}
-        </h1>
+    <div className="mx-auto w-full min-w-0 max-w-full space-y-6 overflow-x-hidden pb-8">
+      <div className="overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-sm ring-1 ring-slate-900/5">
+        <div className="border-b border-slate-100 bg-slate-50/80 px-4 py-3 sm:px-5">
+          <div className="flex flex-wrap items-center gap-2">
+            <Link
+              href={`/dashboard/hesaplarim/demirbaslar/${id}`}
+              className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50"
+            >
+              <ArrowLeft className="h-4 w-4 text-slate-500" />
+              Geri Dön
+            </Link>
+            <button
+              type="button"
+              onClick={openUploadModal}
+              className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700"
+            >
+              <Plus className="h-4 w-4" />
+              Yeni Belge Yükle
+            </button>
+          </div>
+        </div>
+        <div className="px-4 py-4 sm:px-6 sm:py-5">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Demirbaş belgeleri</p>
+          <h1 className="mt-1 break-words text-xl font-semibold tracking-tight text-slate-900 sm:text-2xl">{assetTitle}</h1>
+        </div>
       </div>
 
       {loading ? (
@@ -273,26 +269,27 @@ export default function DemirbasDokumanlarPage() {
       ) : loadError ? (
         <p className="rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-800">{loadError}</p>
       ) : docs.length === 0 ? (
-        <div className="rounded-2xl border border-amber-200/90 bg-amber-50/90 p-5 shadow-sm ring-1 ring-amber-900/5 sm:p-6">
+        <div className="rounded-2xl border border-slate-200/90 bg-white p-5 shadow-sm ring-1 ring-slate-900/5 sm:p-6">
           <div className="flex gap-4">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white text-amber-800 shadow-sm ring-1 ring-amber-200">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100">
               <FileIcon className="h-6 w-6" />
             </div>
-            <div className="min-w-0 space-y-3 text-sm leading-relaxed text-amber-950">
+            <div className="min-w-0 space-y-3 text-sm leading-relaxed text-slate-600">
               <p>
                 Demirbaşınız ile ilgili belgeleri (alış faturası, garanti belgesi…) taratıp veya resmini çekip buraya
                 yükleyebilirsiniz. Dilediğiniz zaman da buradan tekrar indirebilirsiniz.
               </p>
-              <p className="flex flex-wrap items-center gap-x-1.5 gap-y-2">
-                <span>Belge yüklemek için yukarıdaki</span>
+              <p className="flex flex-wrap items-center gap-x-1.5 gap-y-2 text-slate-600">
+                <span>Belge eklemek için</span>
                 <button
                   type="button"
                   onClick={openUploadModal}
-                  className="inline-flex items-center gap-1.5 rounded-md bg-emerald-600 px-2.5 py-1 text-xs font-semibold text-white shadow-sm transition hover:bg-emerald-700"
+                  className="inline-flex items-center gap-1.5 rounded-full bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-emerald-700"
                 >
-                  <Plus className="h-3.5 w-3.5" />+ Yeni Belge Yükle
+                  <Plus className="h-3.5 w-3.5" />
+                  Yeni belge ekle
                 </button>
-                <span>düğmesini kullanın.</span>
+                <span>düğmesine tıklayın.</span>
               </p>
             </div>
           </div>
