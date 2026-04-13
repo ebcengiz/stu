@@ -49,6 +49,7 @@ export async function POST(request: Request) {
       items, // Array of { product_id, product_name, quantity, unit_price, total_price, warehouse_id }
       account_id,
       currency: bodyCurrency,
+      portfolio_check_id: bodyPortfolioCheckId,
     } = body
 
     const currency = bodyCurrency || 'TRY'
@@ -73,7 +74,37 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Geçersiz proje' }, { status: 400 })
     }
 
+    const portfolioCheckId =
+      typeof bodyPortfolioCheckId === 'string' && bodyPortfolioCheckId.length > 0
+        ? bodyPortfolioCheckId
+        : null
+
     if (
+      type === 'payment' &&
+      portfolioCheckId &&
+      payment_method === 'cheque'
+    ) {
+      const { data: pc, error: pcFetchErr } = await supabase
+        .from('portfolio_checks')
+        .select('*')
+        .eq('id', portfolioCheckId)
+        .eq('tenant_id', profile.tenant_id)
+        .maybeSingle()
+
+      if (pcFetchErr) throw pcFetchErr
+      if (!pc) {
+        return NextResponse.json({ error: 'Çek portföyünde kayıt bulunamadı' }, { status: 400 })
+      }
+      if (pc.status !== 'portfolio') {
+        return NextResponse.json({ error: 'Bu çek portföyde değil veya başka bir işleme bağlı' }, { status: 400 })
+      }
+      if (String(pc.currency || 'TRY') !== String(currency)) {
+        return NextResponse.json({ error: 'Çek para birimi ile ödeme tutarı uyuşmuyor' }, { status: 400 })
+      }
+      if (Math.abs(Number(pc.amount) - Number(amount)) > 0.009) {
+        return NextResponse.json({ error: 'Tutar, seçilen çek tutarı ile aynı olmalıdır' }, { status: 400 })
+      }
+    } else if (
       type === 'payment' &&
       requiresAccountForPayment(payment_method) &&
       !account_id
@@ -93,23 +124,47 @@ export async function POST(request: Request) {
 
     const supplierName = supplier?.company_name || 'Bilinmeyen Tedarikçi'
 
+    let effectiveChequeDue = cheque_due_date
+    let effectiveChequeBank = cheque_bank
+    let effectiveChequeSerial = cheque_serial_number
+
+    if (type === 'payment' && portfolioCheckId && payment_method === 'cheque') {
+      const { data: pc } = await supabase
+        .from('portfolio_checks')
+        .select('*')
+        .eq('id', portfolioCheckId)
+        .eq('tenant_id', profile.tenant_id)
+        .single()
+      if (pc) {
+        effectiveChequeDue = pc.due_date ? new Date(String(pc.due_date)).toISOString() : effectiveChequeDue
+        effectiveChequeBank = pc.bank_name || effectiveChequeBank
+        effectiveChequeSerial = pc.check_number || effectiveChequeSerial
+      }
+    }
+
+    const paymentDescription =
+      type === 'payment' && portfolioCheckId && payment_method === 'cheque'
+        ? `${description || ''} (Portföy çeki — ciro)`.trim()
+        : description
+
     // 1. Create the main transaction (currency sütunu yoksa migration 024; yine de insert'i currency'siz dene)
     const insertBase = {
       supplier_id,
       tenant_id: profile.tenant_id,
       type,
       amount,
-      description,
+      description: paymentDescription,
       transaction_date,
       payment_method: type === 'payment' ? payment_method : null,
       document_number,
       waybill_number,
       shipment_date,
       order_date,
-      cheque_due_date: type === 'payment' && payment_method === 'cheque' ? cheque_due_date : null,
-      cheque_bank: type === 'payment' && payment_method === 'cheque' ? cheque_bank : null,
-      cheque_serial_number: type === 'payment' && payment_method === 'cheque' ? cheque_serial_number : null,
-      account_id: account_id || null,
+      cheque_due_date: type === 'payment' && payment_method === 'cheque' ? effectiveChequeDue : null,
+      cheque_bank: type === 'payment' && payment_method === 'cheque' ? effectiveChequeBank : null,
+      cheque_serial_number: type === 'payment' && payment_method === 'cheque' ? effectiveChequeSerial : null,
+      account_id: portfolioCheckId && payment_method === 'cheque' ? null : account_id || null,
+      portfolio_check_id: type === 'payment' && portfolioCheckId ? portfolioCheckId : null,
       project_id: projectId,
     }
 
@@ -130,6 +185,33 @@ export async function POST(request: Request) {
     }
 
     if (txError) throw txError
+
+    if (type === 'payment' && portfolioCheckId && payment_method === 'cheque' && transaction) {
+      const { data: updatedRows, error: upErr } = await supabase
+        .from('portfolio_checks')
+        .update({
+          status: 'to_supplier',
+          supplier_id,
+          endorsed_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', portfolioCheckId)
+        .eq('tenant_id', profile.tenant_id)
+        .eq('status', 'portfolio')
+        .select('id')
+
+      if (upErr) {
+        await supabase.from('supplier_transactions').delete().eq('id', transaction.id)
+        return NextResponse.json({ error: upErr.message }, { status: 400 })
+      }
+      if (!updatedRows?.length) {
+        await supabase.from('supplier_transactions').delete().eq('id', transaction.id)
+        return NextResponse.json(
+          { error: 'Çek başka bir işlemle güncellenmiş olabilir; lütfen yenileyin' },
+          { status: 409 }
+        )
+      }
+    }
 
     if (
       type === 'payment' &&

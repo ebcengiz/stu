@@ -132,6 +132,11 @@ export default function SupplierDetailPage() {
   const [showItemDetailModal, setShowItemDetailModal] = useState(false)
   const [showTxDetailModal, setShowTxDetailModal] = useState(false)
   const [showChequeModal, setShowChequeModal] = useState(false)
+  const [chequeOutMode, setChequeOutMode] = useState<'own' | 'portfolio'>('own')
+  const [portfolioChecks, setPortfolioChecks] = useState<
+    { id: string; debtor_name: string; amount: number; currency: string; due_date: string }[]
+  >([])
+  const [selectedPortfolioCheckId, setSelectedPortfolioCheckId] = useState('')
   
   // Dropdowns
   const [showPaymentMenu, setShowPaymentMenu] = useState(false)
@@ -214,6 +219,35 @@ export default function SupplierDetailPage() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- tedarikçi kimliği değişince veriler yenilenir
   }, [supplierId])
+
+  useEffect(() => {
+    if (!showPaymentModal || txForm.payment_method !== 'cheque') return
+    void (async () => {
+      try {
+        const res = await fetch('/api/portfolio-checks?tab=portfolio')
+        const j = await res.json().catch(() => ({}))
+        if (!res.ok) return
+        const list = Array.isArray(j.checks) ? j.checks : []
+        const cur = supplier?.currency || 'TRY'
+        setPortfolioChecks(
+          list
+            .filter(
+              (c: { currency?: string; status?: string }) =>
+                (c.currency || 'TRY') === cur && c.status === 'portfolio'
+            )
+            .map((c: { id: string; debtor_name: string; amount: number; currency: string; due_date: string }) => ({
+              id: c.id,
+              debtor_name: c.debtor_name,
+              amount: Number(c.amount),
+              currency: c.currency || 'TRY',
+              due_date: c.due_date,
+            }))
+        )
+      } catch {
+        setPortfolioChecks([])
+      }
+    })()
+  }, [showPaymentModal, txForm.payment_method, supplier?.currency])
 
   const fetchSupplierData = async () => {
     try {
@@ -382,6 +416,16 @@ export default function SupplierDetailPage() {
     try {
       if (
         txForm.type === 'payment' &&
+        txForm.payment_method === 'cheque' &&
+        chequeOutMode === 'portfolio'
+      ) {
+        if (!selectedPortfolioCheckId) {
+          toast.error('Portföydeki çeklerden birini seçin')
+          setSaving(false)
+          return
+        }
+      } else if (
+        txForm.type === 'payment' &&
         txForm.payment_method !== 'cheque' &&
         !txForm.payment_account_id
       ) {
@@ -397,6 +441,12 @@ export default function SupplierDetailPage() {
         account_id:
           txForm.type === 'payment' && txForm.payment_method !== 'cheque'
             ? txForm.payment_account_id
+            : undefined,
+        portfolio_check_id:
+          txForm.type === 'payment' &&
+          txForm.payment_method === 'cheque' &&
+          chequeOutMode === 'portfolio'
+            ? selectedPortfolioCheckId
             : undefined,
         document_number: txForm.type === 'purchase' ? txForm.document_number : null,
         waybill_number: txForm.type === 'purchase' ? txForm.waybill_number : null,
@@ -425,6 +475,8 @@ export default function SupplierDetailPage() {
         project_id: '',
       }); 
       setChequeData({ amount: '', due_date: new Date().toISOString().split('T')[0], bank: '', serial_number: '' });
+      setChequeOutMode('own')
+      setSelectedPortfolioCheckId('')
       setSelectedItems([]); fetchTransactions(); fetchSupplierData();
       setShowPurchaseModal(false); setShowPaymentModal(false); setShowChequeModal(false);
     } catch (err: any) { toast.error(err.message) }
@@ -656,7 +708,7 @@ export default function SupplierDetailPage() {
               <div className="fixed inset-0 z-40" onClick={() => setShowPaymentMenu(false)} />
               <div className="absolute top-full left-0 w-full mt-2 bg-white rounded-xl shadow-xl border border-gray-100 z-50 overflow-hidden animate-in fade-in slide-in-from-top-2">
                 <button onClick={() => { setShowPaymentMenu(false); setTxForm({...txForm, type: 'payment', payment_method: 'cash', payment_account_id: ''}); setShowPaymentModal(true); }} className="w-full text-left px-4 py-3 font-bold text-sm text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 border-b border-gray-50 flex items-center gap-3"><DollarSign className="h-4 w-4" /> Nakit - Banka - Kredi Kartı</button>
-                <button onClick={() => { setShowPaymentMenu(false); setTxForm({...txForm, type: 'payment', payment_method: 'cheque', payment_account_id: ''}); setShowPaymentModal(true); setShowChequeModal(true); }} className="w-full text-left px-4 py-3 font-bold text-sm text-gray-700 hover:bg-amber-50 hover:text-amber-700 border-b border-gray-50 flex items-center gap-3"><FileText className="h-4 w-4" /> Çek Çıkışı</button>
+                <button onClick={() => { setShowPaymentMenu(false); setChequeOutMode('portfolio'); setSelectedPortfolioCheckId(''); setTxForm({...txForm, type: 'payment', payment_method: 'cheque', payment_account_id: ''}); setShowPaymentModal(true); }} className="w-full text-left px-4 py-3 font-bold text-sm text-gray-700 hover:bg-amber-50 hover:text-amber-700 border-b border-gray-50 flex items-center gap-3"><FileText className="h-4 w-4" /> Çek Çıkışı</button>
                 <button onClick={() => { setShowPaymentMenu(false); setShowBalanceFixModal(true); }} className="w-full text-left px-4 py-3 font-bold text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 flex items-center gap-3"><Scale className="h-4 w-4" /> Bakiye Düzelt</button>
               </div>
             </>
@@ -843,13 +895,28 @@ export default function SupplierDetailPage() {
               <form onSubmit={handleAddTransaction} className="space-y-6">
                   <div className="space-y-4">
                   <label className="block text-xs font-black text-gray-400 uppercase tracking-widest px-1">Ödeme Yöntemi</label>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                     {[
                       { id: 'cash', label: 'Nakit' },
                       { id: 'credit_card', label: 'Kredi Kartı' },
-                      { id: 'bank_transfer', label: 'Banka' }
+                      { id: 'bank_transfer', label: 'Banka' },
+                      { id: 'cheque', label: 'Çek' },
                     ].map(m => (
-                      <button key={m.id} type="button" onClick={() => { setTxForm({...txForm, payment_method: m.id as any, payment_account_id: ''}); if (m.id === 'cheque') setShowChequeModal(true); }} className={`p-3 border-2 rounded-xl text-sm font-bold transition-all ${txForm.payment_method === m.id ? 'border-emerald-500 bg-emerald-50 text-emerald-700' : 'border-gray-100 text-gray-500 hover:border-gray-300'}`}>{m.label}</button>
+                      <button
+                        key={m.id}
+                        type="button"
+                        onClick={() => {
+                          if (m.id === 'cheque') {
+                            setChequeOutMode('own')
+                            setSelectedPortfolioCheckId('')
+                          }
+                          setTxForm({ ...txForm, payment_method: m.id as 'cash' | 'credit_card' | 'bank_transfer' | 'cheque', payment_account_id: '' })
+                          if (m.id === 'cheque') setShowChequeModal(true)
+                        }}
+                        className={`p-3 border-2 rounded-xl text-sm font-bold transition-all ${txForm.payment_method === m.id ? 'border-emerald-500 bg-emerald-50 text-emerald-700' : 'border-gray-100 text-gray-500 hover:border-gray-300'}`}
+                      >
+                        {m.label}
+                      </button>
                     ))}
                   </div>
                 </div>
@@ -902,13 +969,72 @@ export default function SupplierDetailPage() {
                 />
 
                 {txForm.payment_method === 'cheque' && (
-                   <div className="p-5 bg-amber-50 border border-amber-200 rounded-2xl flex items-center justify-between">
-                     <div>
-                       <h5 className="font-bold text-amber-900">Çek Detayları</h5>
-                       <p className="text-xs text-amber-700 mt-1">{chequeData.bank ? `${chequeData.bank} - ${chequeData.amount} ${getCurrencySymbol()}` : 'Çek bilgisi girilmedi'}</p>
-                     </div>
-                     <Button type="button" onClick={() => setShowChequeModal(true)} variant="outline" className="border-amber-300 text-amber-800">Düzenle</Button>
-                   </div>
+                  <div className="space-y-4 rounded-2xl border border-amber-200 bg-amber-50/90 p-4">
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setChequeOutMode('portfolio')
+                          setSelectedPortfolioCheckId('')
+                        }}
+                        className={`rounded-lg px-3 py-2 text-xs font-bold ${chequeOutMode === 'portfolio' ? 'bg-amber-600 text-white' : 'bg-white text-amber-900 border border-amber-200'}`}
+                      >
+                        Portföyden ciro
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setChequeOutMode('own')
+                          setSelectedPortfolioCheckId('')
+                        }}
+                        className={`rounded-lg px-3 py-2 text-xs font-bold ${chequeOutMode === 'own' ? 'bg-amber-600 text-white' : 'bg-white text-amber-900 border border-amber-200'}`}
+                      >
+                        Kendi çekimiz
+                      </button>
+                    </div>
+                    {chequeOutMode === 'portfolio' ? (
+                      <div className="space-y-2">
+                        <label className="block text-xs font-black text-amber-900 uppercase tracking-widest">Portföydeki çek *</label>
+                        <select
+                          value={selectedPortfolioCheckId}
+                          onChange={(e) => {
+                            const id = e.target.value
+                            setSelectedPortfolioCheckId(id)
+                            const c = portfolioChecks.find((x) => x.id === id)
+                            if (c) setTxForm((prev) => ({ ...prev, amount: String(c.amount) }))
+                          }}
+                          className="w-full rounded-xl border-2 border-amber-200 bg-white px-3 py-3 text-sm font-semibold text-amber-950"
+                        >
+                          <option value="">— Çek seçin —</option>
+                          {portfolioChecks.map((c) => (
+                            <option key={c.id} value={c.id}>
+                              {c.debtor_name} — {Number(c.amount).toLocaleString('tr-TR', { minimumFractionDigits: 2 })}{' '}
+                              {getCurrencySymbol(c.currency)} (vade {new Date(c.due_date).toLocaleDateString('tr-TR')})
+                            </option>
+                          ))}
+                        </select>
+                        {portfolioChecks.length === 0 && (
+                          <p className="text-xs text-amber-800">
+                            Bu para biriminde portföyde çek yok. Müşteriden çek girişi yapın veya «Kendi çekimiz» seçin.
+                          </p>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-between gap-3">
+                        <div>
+                          <h5 className="font-bold text-amber-900">Çek detayları</h5>
+                          <p className="text-xs text-amber-700 mt-1">
+                            {chequeData.bank
+                              ? `${chequeData.bank} — vade ${new Date(chequeData.due_date).toLocaleDateString('tr-TR')}`
+                              : 'Çek bilgisi girilmedi'}
+                          </p>
+                        </div>
+                        <Button type="button" onClick={() => setShowChequeModal(true)} variant="outline" className="border-amber-300 text-amber-800">
+                          Düzenle
+                        </Button>
+                      </div>
+                    )}
+                  </div>
                 )}
 
                 <div className="space-y-2">
@@ -916,7 +1042,7 @@ export default function SupplierDetailPage() {
                   <textarea placeholder="Örn: Nisan ayı ödemesi..." value={txForm.description} onChange={e => setTxForm({...txForm, description: e.target.value})} className="w-full px-4 py-3 border-2 border-gray-100 rounded-2xl outline-none h-24 resize-none" />
                 </div>
 
-                <div className="flex justify-end gap-3 pt-6 border-t"><Button type="button" variant="outline" onClick={() => setShowPaymentModal(false)} className="h-12 px-6 rounded-xl font-bold">Vazgeç</Button><Button type="submit" disabled={saving || !txForm.amount || (txForm.payment_method !== 'cheque' && !txForm.payment_account_id)} className="h-12 px-8 rounded-xl font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg">{saving ? 'Kaydediliyor...' : 'Ödemeyi Kaydet'}</Button></div>
+                <div className="flex justify-end gap-3 pt-6 border-t"><Button type="button" variant="outline" onClick={() => setShowPaymentModal(false)} className="h-12 px-6 rounded-xl font-bold">Vazgeç</Button><Button type="submit" disabled={saving || !txForm.amount || (txForm.payment_method !== 'cheque' && !txForm.payment_account_id) || (txForm.payment_method === 'cheque' && chequeOutMode === 'portfolio' && !selectedPortfolioCheckId)} className="h-12 px-8 rounded-xl font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg">{saving ? 'Kaydediliyor...' : 'Ödemeyi Kaydet'}</Button></div>
               </form>
             </CardBody>
           </Card>

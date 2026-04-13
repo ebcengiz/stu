@@ -119,6 +119,36 @@ export async function POST(request: Request) {
 
     if (txError) throw txError
 
+    if (type === 'payment' && payment_method === 'cheque') {
+      const rd = transaction.transaction_date
+        ? new Date(transaction.transaction_date).toISOString().slice(0, 10)
+        : new Date().toISOString().slice(0, 10)
+      const dd = cheque_due_date
+        ? new Date(cheque_due_date).toISOString().slice(0, 10)
+        : rd
+      const { error: pcErr } = await supabase.from('portfolio_checks').insert({
+        tenant_id: profile.tenant_id,
+        customer_id,
+        customer_transaction_id: transaction.id,
+        debtor_name: customerName,
+        received_date: rd,
+        due_date: dd,
+        bank_name: cheque_bank || null,
+        check_number: cheque_serial_number || null,
+        description: description?.trim() || 'Alınan çek',
+        amount,
+        currency,
+        status: 'portfolio',
+      })
+      if (pcErr) {
+        await supabase.from('customer_transactions').delete().eq('id', transaction.id)
+        return NextResponse.json(
+          { error: pcErr.message || 'Çek portföyü kaydı oluşturulamadı' },
+          { status: 400 }
+        )
+      }
+    }
+
     if (
       type === 'payment' &&
       account_id &&
