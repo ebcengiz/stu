@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { useRouter, useParams } from 'next/navigation'
 import {
   ArrowLeft,
@@ -18,10 +19,15 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   ArrowRightLeft,
+  Printer,
+  Pencil,
+  Plus,
+  Check,
 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Card, CardHeader, CardBody, CardTitle } from '@/components/ui/Card'
 import { toast } from 'react-hot-toast'
+import TediyeMakbuzu, { type TediyeMakbuzuData } from '@/components/expenses/TediyeMakbuzu'
 
 interface Account {
   id: string
@@ -44,6 +50,42 @@ interface AccountTransaction {
   description: string
   transaction_date: string
   balance_after: number
+  source?: 'customer' | 'supplier' | 'manual'
+}
+
+function receiptNumberFromLineId(id: string): string {
+  const hex = id.replace(/-/g, '')
+  let h = 0
+  for (let i = 0; i < hex.length; i++) h = (h * 31 + hex.charCodeAt(i)) >>> 0
+  return String(100000000 + (h % 900000000))
+}
+
+function isTransferRow(t: AccountTransaction) {
+  return t.type === 'transfer_in' || t.type === 'transfer_out'
+}
+
+function printDocumentTitle(t: AccountTransaction): string {
+  if (t.source === 'customer') return 'TAHSİLAT'
+  if (t.source === 'supplier') return 'TEDİYE MAKBUZU'
+  if (isTransferRow(t)) return 'VİRMAN FİŞİ'
+  return 'KASA FİŞİ'
+}
+
+function buildAccountLinePrintData(t: AccountTransaction, accountName: string): TediyeMakbuzuData {
+  const amt = Number(t.amount)
+  const cur = t.currency || 'TRY'
+  const dateIso = String(t.transaction_date).slice(0, 10)
+  return {
+    receiptNo: receiptNumberFromLineId(t.id),
+    transactionDateIso: dateIso,
+    paymentLabel: accountName,
+    description: t.description || '—',
+    amount: amt,
+    currency: cur,
+    payerName: '—',
+    qrPayload: `MikroMuhasebe|HesapHareket|${t.id}|${amt}|${dateIso}`,
+    documentTitle: printDocumentTitle(t),
+  }
 }
 
 export default function AccountDetailPage() {
@@ -61,7 +103,14 @@ export default function AccountDetailPage() {
   const [showOutflowModal, setShowOutflowModal] = useState(false)
   const [showTransferModal, setShowTransferModal] = useState(false)
   const [showEditAccountModal, setShowEditAccountModal] = useState(false)
-  
+
+  const [actionMenu, setActionMenu] = useState<{ row: AccountTransaction; top: number; left: number } | null>(null)
+  const [printPayload, setPrintPayload] = useState<TediyeMakbuzuData | null>(null)
+  const [editLineModal, setEditLineModal] = useState<AccountTransaction | null>(null)
+  const [editLineForm, setEditLineForm] = useState({ description: '', transaction_date: '', amountStr: '' })
+  const [editLineSaving, setEditLineSaving] = useState(false)
+  const attachmentInputRef = useRef<HTMLInputElement>(null)
+
   // Dropdowns
   const [showOtherMenu, setShowOtherMenu] = useState(false)
   
@@ -89,6 +138,28 @@ export default function AccountDetailPage() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- yalnızca hesap değişince yükle
   }, [accountId])
+
+  useEffect(() => {
+    if (!printPayload) return
+    const timer = window.setTimeout(() => window.print(), 450)
+    const onAfter = () => setPrintPayload(null)
+    window.addEventListener('afterprint', onAfter)
+    return () => {
+      clearTimeout(timer)
+      window.removeEventListener('afterprint', onAfter)
+    }
+  }, [printPayload])
+
+  useEffect(() => {
+    if (!actionMenu) return
+    const close = () => setActionMenu(null)
+    window.addEventListener('scroll', close, true)
+    window.addEventListener('resize', close)
+    return () => {
+      window.removeEventListener('scroll', close, true)
+      window.removeEventListener('resize', close)
+    }
+  }, [actionMenu])
 
   const fetchAccountData = async () => {
     try {
@@ -188,6 +259,104 @@ export default function AccountDetailPage() {
     setShowInflowModal(false)
     setShowOutflowModal(false)
     setShowTransferModal(false)
+  }
+
+  const openLineEdit = (row: AccountTransaction) => {
+    setActionMenu(null)
+    setEditLineModal(row)
+    const amt = Number(row.amount)
+    setEditLineForm({
+      description: row.description || '',
+      transaction_date: String(row.transaction_date).slice(0, 10),
+      amountStr: amt.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+    })
+  }
+
+  const submitLineEdit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!editLineModal || !account) return
+    setEditLineSaving(true)
+    try {
+      const rawAmt = editLineForm.amountStr.trim().replace(/\./g, '').replace(',', '.')
+      const numAmt = parseFloat(rawAmt)
+      if (!Number.isFinite(numAmt) || numAmt <= 0) {
+        toast.error('Geçerli tutar girin')
+        return
+      }
+      const body: Record<string, unknown> = {
+        line_id: editLineModal.id,
+        description: editLineForm.description,
+        transaction_date: editLineForm.transaction_date,
+      }
+      if (!isTransferRow(editLineModal)) {
+        body.amount = numAmt
+      }
+      const res = await fetch('/api/account-transactions/by-line', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      })
+      const j = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(j.error || 'Güncellenemedi')
+      toast.success('Hareket güncellendi')
+      setEditLineModal(null)
+      void fetchTransactions()
+      void fetchAccountData()
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Hata')
+    } finally {
+      setEditLineSaving(false)
+    }
+  }
+
+  const confirmDeleteLine = (row: AccountTransaction) => {
+    setActionMenu(null)
+    toast.custom(
+      (t) => (
+        <div
+          className="pointer-events-auto max-w-sm rounded-xl border border-slate-200/80 bg-white px-4 py-3 shadow-lg ring-1 ring-black/5"
+          role="dialog"
+        >
+          <p className="text-sm font-semibold text-slate-900">Bu hareketi silmek istiyor musunuz?</p>
+          <p className="mt-1.5 text-xs text-slate-600">Hesap bakiyesi buna göre düzeltilir.</p>
+          <div className="mt-4 flex justify-end gap-2">
+            <button
+              type="button"
+              className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+              onClick={() => toast.dismiss(t.id)}
+            >
+              İptal
+            </button>
+            <button
+              type="button"
+              className="rounded-lg bg-red-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-700"
+              onClick={() => {
+                toast.dismiss(t.id)
+                void performDeleteLine(row)
+              }}
+            >
+              Sil
+            </button>
+          </div>
+        </div>
+      ),
+      { duration: Infinity, position: 'top-center' }
+    )
+  }
+
+  const performDeleteLine = async (row: AccountTransaction) => {
+    try {
+      const res = await fetch(`/api/account-transactions/by-line?line_id=${encodeURIComponent(row.id)}`, {
+        method: 'DELETE',
+      })
+      const j = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(j.error || 'Silinemedi')
+      toast.success('Hareket silindi')
+      void fetchTransactions()
+      void fetchAccountData()
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Silinemedi')
+    }
   }
 
   const handleUpdateAccount = async (e: React.FormEvent) => {
@@ -397,13 +566,14 @@ export default function AccountDetailPage() {
         <CardBody className="p-0">
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-100">
-              <thead className="bg-gray-50">
+              <thead className="bg-emerald-50/80">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-black text-gray-400 uppercase tracking-wider">Tarih</th>
-                  <th className="px-6 py-3 text-left text-xs font-black text-gray-400 uppercase tracking-wider">İşlem Tipi</th>
-                  <th className="px-6 py-3 text-left text-xs font-black text-gray-400 uppercase tracking-wider">Açıklama</th>
-                  <th className="px-6 py-3 text-right text-xs font-black text-gray-400 uppercase tracking-wider">Tutar</th>
-                  <th className="px-6 py-3 text-right text-xs font-black text-gray-400 uppercase tracking-wider">Bakiye</th>
+                  <th className="px-4 py-3 text-left text-xs font-black text-gray-500 uppercase tracking-wider">Tarih</th>
+                  <th className="px-4 py-3 text-left text-xs font-black text-gray-500 uppercase tracking-wider">İşlem Tipi</th>
+                  <th className="px-4 py-3 text-left text-xs font-black text-gray-500 uppercase tracking-wider">Açıklama</th>
+                  <th className="px-4 py-3 text-right text-xs font-black text-gray-500 uppercase tracking-wider">Tutar</th>
+                  <th className="px-4 py-3 text-right text-xs font-black text-gray-500 uppercase tracking-wider">Bakiye</th>
+                  <th className="px-4 py-3 text-right text-xs font-black text-gray-500 uppercase tracking-wider w-[120px]">İşlem</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-50">
@@ -411,28 +581,234 @@ export default function AccountDetailPage() {
                   const isInflow = t.type === 'inflow' || t.type === 'transfer_in'
                   return (
                   <tr key={t.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-6 py-4 text-sm text-gray-600 font-medium whitespace-nowrap">{new Date(t.transaction_date).toLocaleDateString('tr-TR')}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-4 py-4 text-sm text-gray-600 font-medium whitespace-nowrap">{new Date(t.transaction_date).toLocaleDateString('tr-TR')}</td>
+                    <td className="px-4 py-4 whitespace-nowrap">
                       <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${isInflow ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
                         {t.type === 'inflow' ? 'Para Girişi' : t.type === 'outflow' ? 'Para Çıkışı' : t.type === 'transfer_in' ? 'Transfer Girişi' : 'Transfer Çıkışı'}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-sm font-medium text-gray-900 truncate max-w-xs">{t.description}</td>
-                    <td className={`px-6 py-4 text-sm font-bold text-right whitespace-nowrap ${isInflow ? 'text-emerald-600' : 'text-red-600'}`}>
+                    <td className="px-4 py-4 text-sm font-medium text-gray-900 truncate max-w-[200px]">{t.description}</td>
+                    <td className={`px-4 py-4 text-sm font-bold text-right whitespace-nowrap ${isInflow ? 'text-emerald-600' : 'text-red-600'}`}>
                       {isInflow ? '+' : '-'}{Number(t.amount).toLocaleString('tr-TR', { minimumFractionDigits: 2 })} {getCurrencySymbol(account.currency)}
                     </td>
-                    <td className="px-6 py-4 text-sm font-black text-gray-900 text-right whitespace-nowrap bg-gray-50/50">
+                    <td className="px-4 py-4 text-sm font-black text-gray-900 text-right whitespace-nowrap bg-gray-50/50">
                       {Number(t.balance_after).toLocaleString('tr-TR', { minimumFractionDigits: 2 })} {getCurrencySymbol(account.currency)}
                     </td>
+                    <td className="px-4 py-3 text-right">
+                      <button
+                        type="button"
+                        data-account-line-action
+                        onClick={(e) => {
+                          const rect = e.currentTarget.getBoundingClientRect()
+                          const MENU_W = 200
+                          setActionMenu((m) =>
+                            m?.row.id === t.id
+                              ? null
+                              : {
+                                  row: t,
+                                  top: rect.bottom + 6,
+                                  left: Math.max(8, rect.right - MENU_W),
+                                }
+                          )
+                        }}
+                        className="inline-flex items-center gap-1 rounded-lg border border-amber-200/90 bg-amber-50/95 px-2.5 py-1.5 text-xs font-semibold text-amber-950 shadow-sm hover:bg-amber-100"
+                      >
+                        İşlem
+                        <ChevronDown className="h-3.5 w-3.5 opacity-80" />
+                      </button>
+                    </td>
                   </tr>
-                )}) : <tr><td colSpan={5} className="px-6 py-12 text-center text-sm text-gray-500 italic">Henüz hesap hareketi bulunmuyor.</td></tr>}
+                )}) : <tr><td colSpan={6} className="px-6 py-12 text-center text-sm text-gray-500 italic">Henüz hesap hareketi bulunmuyor.</td></tr>}
               </tbody>
             </table>
           </div>
         </CardBody>
       </Card>
 
+      <input
+        ref={attachmentInputRef}
+        type="file"
+        className="hidden"
+        accept="image/*,.pdf"
+        onChange={() => {
+          toast('Belge ekleme bu ekran için yakında kullanılabilir olacaktır.', { duration: 3500 })
+          if (attachmentInputRef.current) attachmentInputRef.current.value = ''
+        }}
+      />
+
+      {actionMenu &&
+        typeof document !== 'undefined' &&
+        createPortal(
+          <>
+            <div className="fixed inset-0 z-[90]" aria-hidden onClick={() => setActionMenu(null)} />
+            <div
+              role="menu"
+              className="fixed z-[100] w-[min(calc(100vw-16px),220px)] overflow-hidden rounded-lg border border-amber-200 bg-amber-50 py-0.5 shadow-xl ring-1 ring-amber-900/10"
+              style={{ top: actionMenu.top, left: actionMenu.left }}
+            >
+              <button
+                type="button"
+                role="menuitem"
+                className="flex w-full items-center gap-2 border-b border-amber-200/70 px-3 py-2.5 text-left text-sm font-medium text-gray-900 hover:bg-amber-100/90"
+                onClick={() => {
+                  if (!account) return
+                  setPrintPayload(buildAccountLinePrintData(actionMenu.row, account.name))
+                  setActionMenu(null)
+                }}
+              >
+                <Printer className="h-4 w-4 shrink-0 text-neutral-800" strokeWidth={2} />
+                Yazdır
+              </button>
+              <button
+                type="button"
+                role="menuitem"
+                className="flex w-full items-center gap-2 border-b border-amber-200/70 px-3 py-2.5 text-left text-sm font-medium text-gray-900 hover:bg-amber-100/90"
+                onClick={() => openLineEdit(actionMenu.row)}
+              >
+                <Pencil className="h-4 w-4 shrink-0 text-emerald-600" strokeWidth={2} />
+                Düzenle
+              </button>
+              <button
+                type="button"
+                role="menuitem"
+                className="flex w-full items-center gap-2 border-b border-amber-200/70 px-3 py-2.5 text-left text-sm font-medium text-red-700 hover:bg-red-50/90"
+                onClick={() => {
+                  const row = actionMenu.row
+                  setActionMenu(null)
+                  if (isTransferRow(row)) {
+                    toast.error('Virman satırı buradan silinemez.')
+                    return
+                  }
+                  confirmDeleteLine(row)
+                }}
+              >
+                <X className="h-4 w-4 shrink-0 text-red-600" strokeWidth={2.5} />
+                Sil
+              </button>
+              <button
+                type="button"
+                role="menuitem"
+                className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm font-medium text-gray-900 hover:bg-amber-100/90"
+                onClick={() => {
+                  setActionMenu(null)
+                  requestAnimationFrame(() => attachmentInputRef.current?.click())
+                }}
+              >
+                <Plus className="h-4 w-4 shrink-0 text-neutral-800" strokeWidth={2} />
+                Belge Ekle
+              </button>
+            </div>
+          </>,
+          document.body
+        )}
+
       {/* --- MODALS --- */}
+
+      {editLineModal && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/55 p-4 backdrop-blur-[2px]" onClick={() => !editLineSaving && setEditLineModal(null)}>
+          <div
+            className="w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-black/5"
+            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-labelledby="edit-line-title"
+          >
+            <div className="flex items-center justify-between bg-teal-600 px-5 py-4">
+              <h2 id="edit-line-title" className="text-base font-bold text-white">
+                Kasa/Hesap Hareketi Güncelleme
+              </h2>
+              <button
+                type="button"
+                disabled={editLineSaving}
+                className="rounded-lg p-1.5 text-white/90 hover:bg-white/15 disabled:opacity-40"
+                onClick={() => setEditLineModal(null)}
+                aria-label="Kapat"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <form onSubmit={submitLineEdit} className="space-y-4 px-5 py-5">
+              <div className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2.5 text-xs leading-relaxed text-rose-950">
+                Önceden kaydettiğiniz bir hareketin <strong>tarih</strong>, <strong>açıklama</strong> ve{' '}
+                <strong>tutar</strong> bilgilerini değiştirebilirsiniz. Bunların dışında bir bilgi değiştirmek için
+                (kasa hesabı, masraf hesabı vs.) işlemi iptal edip tekrar girin.
+                {isTransferRow(editLineModal) ? (
+                  <span className="mt-2 block font-semibold">Virman satırlarında tutar değiştirilemez.</span>
+                ) : null}
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-semibold text-gray-600">Açıklama</label>
+                <textarea
+                  value={editLineForm.description}
+                  onChange={(e) => setEditLineForm((f) => ({ ...f, description: e.target.value }))}
+                  rows={3}
+                  className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm outline-none focus:border-teal-500"
+                  required
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-semibold text-gray-600">İşlem Tarihi</label>
+                <input
+                  type="date"
+                  value={editLineForm.transaction_date}
+                  onChange={(e) => setEditLineForm((f) => ({ ...f, transaction_date: e.target.value }))}
+                  className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm outline-none focus:border-teal-500"
+                  required
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-semibold text-gray-600">Tutar</label>
+                <input
+                  type="text"
+                  inputMode="decimal"
+                  value={editLineForm.amountStr}
+                  onChange={(e) => setEditLineForm((f) => ({ ...f, amountStr: e.target.value }))}
+                  disabled={isTransferRow(editLineModal)}
+                  className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm font-semibold tabular-nums outline-none focus:border-teal-500 disabled:bg-gray-100 disabled:text-gray-500"
+                  required={!isTransferRow(editLineModal)}
+                />
+              </div>
+              <div className="flex justify-end pt-2">
+                <button
+                  type="submit"
+                  disabled={editLineSaving}
+                  className="inline-flex items-center gap-2 rounded-xl bg-red-600 px-6 py-2.5 text-sm font-bold text-white shadow-md transition hover:bg-red-700 disabled:opacity-60"
+                >
+                  <Check className="h-4 w-4" strokeWidth={2.5} />
+                  {editLineSaving ? 'Kaydediliyor…' : 'Güncelle'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {printPayload && (
+        <>
+          <style
+            dangerouslySetInnerHTML={{
+              __html: `
+              @media screen {
+                #account-line-print-root { display: none !important; }
+              }
+              @media print {
+                body * { visibility: hidden !important; }
+                #account-line-print-root, #account-line-print-root * { visibility: visible !important; }
+                #account-line-print-root {
+                  display: block !important;
+                  position: absolute;
+                  left: 0;
+                  top: 0;
+                  width: 100%;
+                }
+              }
+            `,
+            }}
+          />
+          <div id="account-line-print-root" aria-hidden>
+            <TediyeMakbuzu data={printPayload} />
+          </div>
+        </>
+      )}
 
       {/* Para Girişi Modalı */}
       {showInflowModal && (

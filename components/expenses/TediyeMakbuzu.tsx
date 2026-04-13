@@ -13,6 +13,8 @@ export type TediyeMakbuzuData = {
   currency: string
   payerName: string
   qrPayload: string
+  /** Varsayılan: TEDİYE MAKBUZU — Tahsilat / Kasa Fişi vb. */
+  documentTitle?: string
 }
 
 function formatTrDateLong(iso: string) {
@@ -51,7 +53,9 @@ export default function TediyeMakbuzu({ data }: { data: TediyeMakbuzuData }) {
         </div>
       </div>
 
-      <h1 className="mb-10 text-center text-xl font-bold tracking-wide text-neutral-900">TEDİYE MAKBUZU</h1>
+      <h1 className="mb-10 text-center text-xl font-bold tracking-wide text-neutral-900">
+        {data.documentTitle?.trim() || 'TEDİYE MAKBUZU'}
+      </h1>
 
       <dl className="space-y-4">
         <div className="grid grid-cols-[100px_1fr] gap-x-3 gap-y-1">
