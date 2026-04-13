@@ -7,6 +7,7 @@ import {
   ArrowLeft,
   Pencil,
   Ban,
+  RotateCcw,
   Trash2,
   ChevronDown,
   Tag,
@@ -15,6 +16,8 @@ import {
   Receipt,
   StickyNote,
   FileText,
+  X,
+  Check,
 } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 import ProjectModal, { type ProjectModalValues } from '@/components/projects/ProjectModal'
@@ -62,6 +65,8 @@ export default function ProjeDetayPage() {
   const [openCari, setOpenCari] = useState(true)
 
   const [modalOpen, setModalOpen] = useState(false)
+  const [closeConfirmOpen, setCloseConfirmOpen] = useState(false)
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
 
   const load = useCallback(async () => {
     if (!id) return
@@ -88,36 +93,21 @@ export default function ProjeDetayPage() {
     void load()
   }, [load])
 
-  const confirmDelete = () => {
+  useEffect(() => {
+    if (!closeConfirmOpen && !deleteConfirmOpen) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setCloseConfirmOpen(false)
+        setDeleteConfirmOpen(false)
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [closeConfirmOpen, deleteConfirmOpen])
+
+  const openDeleteConfirm = () => {
     if (!project) return
-    toast.custom(
-      (t) => (
-        <div className="pointer-events-auto max-w-sm rounded-xl border border-slate-200/80 bg-white px-4 py-3 shadow-lg ring-1 ring-black/5">
-          <p className="text-sm font-semibold text-slate-900">Bu projeyi silmek istiyor musunuz?</p>
-          <p className="mt-1 text-xs text-slate-600">{project.name}</p>
-          <div className="mt-3 flex justify-end gap-2">
-            <button
-              type="button"
-              className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
-              onClick={() => toast.dismiss(t.id)}
-            >
-              İptal
-            </button>
-            <button
-              type="button"
-              className="rounded-lg bg-red-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-700"
-              onClick={() => {
-                toast.dismiss(t.id)
-                void performDelete()
-              }}
-            >
-              Sil
-            </button>
-          </div>
-        </div>
-      ),
-      { duration: Infinity, position: 'top-center' }
-    )
+    setDeleteConfirmOpen(true)
   }
 
   const performDelete = async () => {
@@ -143,6 +133,22 @@ export default function ProjeDetayPage() {
       const data = await res.json().catch(() => ({}))
       if (!res.ok) throw new Error(data.error || 'Güncellenemedi')
       toast.success('Proje kapatıldı (pasif)')
+      await load()
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : 'Hata')
+    }
+  }
+
+  const reopenProject = async () => {
+    try {
+      const res = await fetch(`/api/projects/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ is_active: true }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(data.error || 'Güncellenemedi')
+      toast.success('Proje tekrar açıldı (aktif)')
       await load()
     } catch (e: unknown) {
       toast.error(e instanceof Error ? e.message : 'Hata')
@@ -185,12 +191,28 @@ export default function ProjeDetayPage() {
 
       <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-md">
         <div className="bg-[#1e3a5f] px-3 py-2 sm:px-4 sm:py-2.5">
-          <h1 className="text-sm font-bold uppercase tracking-wide text-white sm:text-base">{project.name}</h1>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h1 className="text-sm font-bold uppercase tracking-wide text-white sm:text-base">{project.name}</h1>
+            {!project.is_active && (
+              <span className="shrink-0 rounded bg-white/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white/95">
+                Kapalı
+              </span>
+            )}
+          </div>
         </div>
         <div className="p-4 text-sm text-slate-800">
           <p className="whitespace-pre-wrap">{project.description?.trim() || '—'}</p>
         </div>
       </div>
+
+      {!project.is_active && (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950 shadow-sm">
+          <p className="font-semibold">Bu proje kapatılmış.</p>
+          <p className="mt-1 text-amber-900/90">
+            Masraf, alış veya satış girişlerinde tekrar seçilebilmesi için aşağıdaki «Projeyi Tekrar Aç» düğmesini kullanın.
+          </p>
+        </div>
+      )}
 
       <div className="flex flex-wrap gap-2">
         <button
@@ -201,14 +223,23 @@ export default function ProjeDetayPage() {
           <Pencil className="h-3.5 w-3.5" />
           Güncelle
         </button>
-        {project.is_active && (
+        {project.is_active ? (
           <button
             type="button"
-            onClick={() => void closeProject()}
+            onClick={() => setCloseConfirmOpen(true)}
             className="inline-flex items-center gap-1.5 rounded-lg border border-orange-300 bg-orange-50 px-3 py-2 text-xs font-semibold text-orange-900 hover:bg-orange-100"
           >
             <Ban className="h-3.5 w-3.5" />
             Projeyi Kapat
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={() => void reopenProject()}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-900 shadow-sm hover:bg-emerald-100"
+          >
+            <RotateCcw className="h-3.5 w-3.5" />
+            Projeyi Tekrar Aç
           </button>
         )}
         <Link
@@ -227,7 +258,7 @@ export default function ProjeDetayPage() {
         </Link>
         <button
           type="button"
-          onClick={confirmDelete}
+          onClick={openDeleteConfirm}
           className="inline-flex items-center gap-1.5 rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-xs font-semibold text-red-800 hover:bg-red-100"
         >
           <Trash2 className="h-3.5 w-3.5" />
@@ -357,6 +388,122 @@ export default function ProjeDetayPage() {
         initial={modalValues}
         onSaved={load}
       />
+
+      {deleteConfirmOpen && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4"
+          role="presentation"
+          onClick={() => setDeleteConfirmOpen(false)}
+        >
+          <div
+            className="w-full max-w-lg overflow-hidden rounded-lg bg-white shadow-2xl ring-1 ring-black/5"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="delete-project-confirm-title"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between bg-teal-500 px-4 py-3 sm:px-5">
+              <h2 id="delete-project-confirm-title" className="text-base font-semibold text-white">
+                Dikkat
+              </h2>
+              <button
+                type="button"
+                className="rounded-md p-1 text-white transition hover:bg-white/15"
+                aria-label="Kapat"
+                onClick={() => setDeleteConfirmOpen(false)}
+              >
+                <X className="h-5 w-5" strokeWidth={2.5} />
+              </button>
+            </div>
+            <div className="space-y-4 px-4 py-4 sm:px-5 sm:py-5">
+              <div className="rounded-md border border-rose-200 bg-rose-50 px-3 py-2.5 text-sm leading-relaxed text-rose-950">
+                Dikkat! Seçtiğiniz proje sistemden silinecek.{' '}
+                <span className="font-bold text-red-700">Bu işlem geri alınamaz.</span> Projeyi sildiğiniz zaman bu
+                projeye ait eski hareketler (alışlar, masraflar vs) silinmeyecektir. Bunları silmek istiyorsanız ilgili
+                hareketleri ayrıca silin.
+              </div>
+              <p className="text-base font-semibold text-slate-900">Proje silme işlemini onaylıyor musunuz?</p>
+              <div className="flex flex-wrap justify-end gap-2 pt-1">
+                <button
+                  type="button"
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-orange-500 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-orange-600"
+                  onClick={() => setDeleteConfirmOpen(false)}
+                >
+                  Hayır
+                </button>
+                <button
+                  type="button"
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-red-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-red-700"
+                  onClick={() => {
+                    setDeleteConfirmOpen(false)
+                    void performDelete()
+                  }}
+                >
+                  Evet
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {closeConfirmOpen && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4"
+          role="presentation"
+          onClick={() => setCloseConfirmOpen(false)}
+        >
+          <div
+            className="w-full max-w-lg overflow-hidden rounded-lg bg-white shadow-2xl ring-1 ring-black/5"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="close-project-confirm-title"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between bg-teal-600 px-4 py-3 sm:px-5">
+              <h2 id="close-project-confirm-title" className="text-base font-semibold text-white">
+                Proje Kapatma Onayı
+              </h2>
+              <button
+                type="button"
+                className="rounded-md p-1 text-white transition hover:bg-white/15"
+                aria-label="Kapat"
+                onClick={() => setCloseConfirmOpen(false)}
+              >
+                <X className="h-5 w-5" strokeWidth={2.5} />
+              </button>
+            </div>
+            <div className="space-y-4 px-4 py-4 sm:px-5 sm:py-5">
+              <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2.5 text-sm leading-relaxed text-red-900">
+                Kapattığınız proje masraf, alış ve satış ekranlarında artık seçilemez ve listelerde varsayılan
+                görünümde yer almaz. Kapalı bir projeyi istediğiniz zaman bu sayfadan tekrar açabilirsiniz.
+              </div>
+              <p className="text-base font-semibold text-slate-900">Proje kapatmayı onaylıyor musunuz?</p>
+              <div className="flex flex-wrap justify-end gap-2 pt-1">
+                <button
+                  type="button"
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-red-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-red-700"
+                  onClick={() => setCloseConfirmOpen(false)}
+                >
+                  <X className="h-4 w-4" strokeWidth={2.5} />
+                  Hayır
+                </button>
+                <button
+                  type="button"
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700"
+                  onClick={() => {
+                    setCloseConfirmOpen(false)
+                    void closeProject()
+                  }}
+                >
+                  <Check className="h-4 w-4" strokeWidth={2.5} />
+                  Evet
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
