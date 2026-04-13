@@ -79,3 +79,28 @@ export function looseToTrInputString(
   const n = parseTrNumberInput(normalizeTrNumberInput(s))
   return Number.isFinite(n) ? numberToTrInputString(n, maxFractionDigits) : ''
 }
+
+/**
+ * Satış/alış satırı modalunda: odakta sıfır veya tipik varsayılan değerleri sil (yeniden yazmayı kolaylaştırır).
+ * Diğer durumlarda false döner; çağıran `select()` ile tümünü seçebilir.
+ */
+export function shouldClearTrLineFieldOnFocus(
+  raw: string,
+  kind: 'unit_price' | 'quantity' | 'tax_rate' | 'discount_rate'
+): boolean {
+  const t = String(raw ?? '').trim()
+  if (t === '') return false
+  const n = parseTrNumberInput(t)
+  if (!Number.isFinite(n)) return false
+  switch (kind) {
+    case 'unit_price':
+    case 'discount_rate':
+      return n === 0
+    case 'quantity':
+      return n === 0 || n === 1
+    case 'tax_rate':
+      return n === 0 || n === 20
+    default:
+      return false
+  }
+}

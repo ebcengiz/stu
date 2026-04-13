@@ -11,7 +11,7 @@ import ProjectSelect from '@/components/projects/ProjectSelect'
 import { accountTypeLabel, isOdemeHesabi } from '@/lib/account-sections'
 import { toast } from 'react-hot-toast'
 import TrNumberInput from '@/components/ui/TrNumberInput'
-import { looseToTrInputString, parseTrNumberInput } from '@/lib/tr-number-input'
+import { looseToTrInputString, parseTrNumberInput, shouldClearTrLineFieldOnFocus } from '@/lib/tr-number-input'
 
 interface Product {
   id: string
@@ -1344,34 +1344,74 @@ export default function SupplierDetailPage() {
             <CardBody className="p-8">
               <div className="grid grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <label className="block text-xs font-black text-gray-400 uppercase">Alış Fiyatı ({getCurrencySymbol(supplier.currency || 'TRY')})</label>
+                  <label htmlFor="purchase-line-unit-price" className="block text-xs font-black text-gray-400 uppercase cursor-pointer">
+                    Alış Fiyatı ({getCurrencySymbol(supplier.currency || 'TRY')})
+                  </label>
                   <TrNumberInput
+                    id="purchase-line-unit-price"
                     value={itemFormData.unit_price}
                     onChange={(v) => setItemFormData({ ...itemFormData, unit_price: v })}
+                    onFocus={(e) => {
+                      if (shouldClearTrLineFieldOnFocus(itemFormData.unit_price, 'unit_price')) {
+                        setItemFormData((f) => ({ ...f, unit_price: '' }))
+                      } else {
+                        e.currentTarget.select()
+                      }
+                    }}
                     className="w-full px-4 py-3 border-2 border-gray-100 rounded-2xl font-bold focus:border-blue-500 outline-none transition-all"
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="block text-xs font-black text-gray-400 uppercase">Miktar ({currentItem.unit})</label>
+                  <label htmlFor="purchase-line-qty" className="block text-xs font-black text-gray-400 uppercase cursor-pointer">
+                    Miktar ({currentItem.unit})
+                  </label>
                   <TrNumberInput
+                    id="purchase-line-qty"
                     value={itemFormData.quantity}
                     onChange={(v) => setItemFormData({ ...itemFormData, quantity: v })}
+                    onFocus={(e) => {
+                      if (shouldClearTrLineFieldOnFocus(itemFormData.quantity, 'quantity')) {
+                        setItemFormData((f) => ({ ...f, quantity: '' }))
+                      } else {
+                        e.currentTarget.select()
+                      }
+                    }}
                     className="w-full px-4 py-3 border-2 border-gray-100 rounded-2xl font-bold focus:border-blue-500 outline-none transition-all"
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="block text-xs font-black text-gray-400 uppercase">KDV Oranı (%)</label>
+                  <label htmlFor="purchase-line-tax" className="block text-xs font-black text-gray-400 uppercase cursor-pointer">
+                    KDV Oranı (%)
+                  </label>
                   <TrNumberInput
+                    id="purchase-line-tax"
                     value={itemFormData.tax_rate}
                     onChange={(v) => setItemFormData({ ...itemFormData, tax_rate: v })}
+                    onFocus={(e) => {
+                      if (shouldClearTrLineFieldOnFocus(itemFormData.tax_rate, 'tax_rate')) {
+                        setItemFormData((f) => ({ ...f, tax_rate: '' }))
+                      } else {
+                        e.currentTarget.select()
+                      }
+                    }}
                     className="w-full px-4 py-3 border-2 border-gray-100 rounded-2xl font-bold focus:border-blue-500 outline-none transition-all"
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="block text-xs font-black text-gray-400 uppercase">İskonto (%)</label>
+                  <label htmlFor="purchase-line-discount" className="block text-xs font-black text-gray-400 uppercase cursor-pointer">
+                    İskonto (%)
+                  </label>
                   <TrNumberInput
+                    id="purchase-line-discount"
                     value={itemFormData.discount_rate}
                     onChange={(v) => setItemFormData({ ...itemFormData, discount_rate: v })}
+                    onFocus={(e) => {
+                      if (shouldClearTrLineFieldOnFocus(itemFormData.discount_rate, 'discount_rate')) {
+                        setItemFormData((f) => ({ ...f, discount_rate: '' }))
+                      } else {
+                        e.currentTarget.select()
+                      }
+                    }}
                     className="w-full px-4 py-3 border-2 border-gray-100 rounded-2xl font-bold focus:border-blue-500 outline-none transition-all"
                   />
                 </div>
