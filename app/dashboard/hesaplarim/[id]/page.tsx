@@ -28,6 +28,8 @@ import { Button } from '@/components/ui/Button'
 import { Card, CardHeader, CardBody, CardTitle } from '@/components/ui/Card'
 import { toast } from 'react-hot-toast'
 import TediyeMakbuzu, { type TediyeMakbuzuData } from '@/components/expenses/TediyeMakbuzu'
+import TrNumberInput from '@/components/ui/TrNumberInput'
+import { numberToTrInputString, parseTrNumberInput } from '@/lib/tr-number-input'
 
 interface Account {
   id: string
@@ -223,11 +225,16 @@ export default function AccountDetailPage() {
   const handleTransactionSubmit = async (e: React.FormEvent, isTransfer = false) => {
     e.preventDefault(); setSaving(true)
     try {
-      // In real scenario, make POST request
+      const amt = parseTrNumberInput(txForm.amount)
+      if (!Number.isFinite(amt) || amt <= 0) {
+        toast.error('Geçerli tutar girin')
+        setSaving(false)
+        return
+      }
       const payload = {
         account_id: accountId,
         type: txForm.type,
-        amount: parseFloat(txForm.amount),
+        amount: amt,
         currency: account?.currency || 'TRY',
         description: txForm.description,
         transaction_date: new Date(txForm.transaction_date).toISOString(),
@@ -268,7 +275,7 @@ export default function AccountDetailPage() {
     setEditLineForm({
       description: row.description || '',
       transaction_date: String(row.transaction_date).slice(0, 10),
-      amountStr: amt.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+      amountStr: numberToTrInputString(amt, 2),
     })
   }
 
@@ -277,8 +284,7 @@ export default function AccountDetailPage() {
     if (!editLineModal || !account) return
     setEditLineSaving(true)
     try {
-      const rawAmt = editLineForm.amountStr.trim().replace(/\./g, '').replace(',', '.')
-      const numAmt = parseFloat(rawAmt)
+      const numAmt = parseTrNumberInput(editLineForm.amountStr)
       if (!Number.isFinite(numAmt) || numAmt <= 0) {
         toast.error('Geçerli tutar girin')
         return
@@ -757,11 +763,9 @@ export default function AccountDetailPage() {
               </div>
               <div>
                 <label className="mb-1 block text-xs font-semibold text-gray-600">Tutar</label>
-                <input
-                  type="text"
-                  inputMode="decimal"
+                <TrNumberInput
                   value={editLineForm.amountStr}
-                  onChange={(e) => setEditLineForm((f) => ({ ...f, amountStr: e.target.value }))}
+                  onChange={(v) => setEditLineForm((f) => ({ ...f, amountStr: v }))}
                   disabled={isTransferRow(editLineModal)}
                   className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm font-semibold tabular-nums outline-none focus:border-teal-500 disabled:bg-gray-100 disabled:text-gray-500"
                   required={!isTransferRow(editLineModal)}
@@ -827,7 +831,7 @@ export default function AccountDetailPage() {
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-xs font-bold text-gray-500 uppercase px-1">Tutar ({getCurrencySymbol(account.currency)}) *</label>
-                    <input type="number" step="any" required value={txForm.amount} onChange={e => setTxForm({...txForm, amount: e.target.value})} className="w-full px-3 py-2.5 border-2 border-emerald-200 rounded-xl bg-emerald-50/50 text-lg font-black text-emerald-900 focus:border-emerald-500 outline-none" placeholder="0.00" />
+                    <TrNumberInput required value={txForm.amount} onChange={(v) => setTxForm({ ...txForm, amount: v })} className="w-full px-3 py-2.5 border-2 border-emerald-200 rounded-xl bg-emerald-50/50 text-lg font-black text-emerald-900 focus:border-emerald-500 outline-none" placeholder="0,00" />
                   </div>
                 </div>
                 <div className="space-y-1.5">
@@ -858,7 +862,7 @@ export default function AccountDetailPage() {
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-xs font-bold text-gray-500 uppercase px-1">Tutar ({getCurrencySymbol(account.currency)}) *</label>
-                    <input type="number" step="any" required value={txForm.amount} onChange={e => setTxForm({...txForm, amount: e.target.value})} className="w-full px-3 py-2.5 border-2 border-red-200 rounded-xl bg-red-50/50 text-lg font-black text-red-900 focus:border-red-500 outline-none" placeholder="0.00" />
+                    <TrNumberInput required value={txForm.amount} onChange={(v) => setTxForm({ ...txForm, amount: v })} className="w-full px-3 py-2.5 border-2 border-red-200 rounded-xl bg-red-50/50 text-lg font-black text-red-900 focus:border-red-500 outline-none" placeholder="0,00" />
                   </div>
                 </div>
                 <div className="space-y-1.5">
@@ -896,7 +900,7 @@ export default function AccountDetailPage() {
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-xs font-bold text-gray-500 uppercase px-1">Tutar ({getCurrencySymbol(account.currency)}) *</label>
-                    <input type="number" step="any" required value={txForm.amount} onChange={e => setTxForm({...txForm, amount: e.target.value})} className="w-full px-3 py-2.5 border-2 border-blue-200 rounded-xl bg-blue-50/50 text-lg font-black text-blue-900 focus:border-blue-500 outline-none" placeholder="0.00" />
+                    <TrNumberInput required value={txForm.amount} onChange={(v) => setTxForm({ ...txForm, amount: v })} className="w-full px-3 py-2.5 border-2 border-blue-200 rounded-xl bg-blue-50/50 text-lg font-black text-blue-900 focus:border-blue-500 outline-none" placeholder="0,00" />
                   </div>
                 </div>
                 <div className="space-y-1.5">
@@ -941,7 +945,14 @@ export default function AccountDetailPage() {
                 {(formData.type === 'other' || formData.type === 'kredi_karti') && (
                   <div>
                     <label className="block text-xs font-semibold text-gray-600 mb-1">Kart Limiti</label>
-                    <input type="number" value={formData.credit_limit} onChange={e => setFormData({...formData, credit_limit: Number(e.target.value)})} className="w-full px-3 py-2.5 border border-gray-300 rounded-lg outline-none text-sm" />
+                    <TrNumberInput
+                      value={numberToTrInputString(Number(formData.credit_limit) || 0)}
+                      onChange={(v) => {
+                        const n = parseTrNumberInput(v)
+                        setFormData({ ...formData, credit_limit: Number.isFinite(n) ? n : 0 })
+                      }}
+                      className="w-full px-3 py-2.5 border border-gray-300 rounded-lg outline-none text-sm"
+                    />
                   </div>
                 )}
                 <div className="flex justify-end gap-3 pt-4">

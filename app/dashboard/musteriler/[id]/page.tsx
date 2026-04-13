@@ -10,6 +10,8 @@ import { CURRENCY_SYMBOLS } from '@/lib/currency'
 import ProjectSelect from '@/components/projects/ProjectSelect'
 import { accountTypeLabel, isOdemeHesabi } from '@/lib/account-sections'
 import { toast } from 'react-hot-toast'
+import TrNumberInput from '@/components/ui/TrNumberInput'
+import { looseToTrInputString, parseTrNumberInput } from '@/lib/tr-number-input'
 
 interface Product {
   id: string
@@ -153,10 +155,10 @@ export default function CustomerDetailPage() {
   const [newProductData, setNewProductData] = useState({ name: '', sku: '', unit: 'adet' })
 
   const [itemFormData, setItemFormData] = useState({
-    quantity: 1,
-    unit_price: 0,
-    tax_rate: 20,
-    discount_rate: 0,
+    quantity: '1',
+    unit_price: '0',
+    tax_rate: '20',
+    discount_rate: '0',
     warehouse_id: ''
   })
 
@@ -293,10 +295,10 @@ export default function CustomerDetailPage() {
     
     setCurrentItem(product)
     setItemFormData({
-      quantity: 1,
-      unit_price: product.price || 0,
-      tax_rate: product.tax_rate || 20,
-      discount_rate: product.discount_rate || 0,
+      quantity: '1',
+      unit_price: looseToTrInputString(product.price || 0),
+      tax_rate: looseToTrInputString(product.tax_rate ?? 20, 2),
+      discount_rate: looseToTrInputString(product.discount_rate ?? 0, 2),
       warehouse_id: warehouses[0]?.id || ''
     })
     setShowItemDetailModal(true)
@@ -320,10 +322,18 @@ export default function CustomerDetailPage() {
   const handleAddItemFromModal = () => {
     if (!currentItem) return
 
-    const quantity = Number(itemFormData.quantity)
-    const unitPrice = Number(itemFormData.unit_price)
-    const taxRate = Number(itemFormData.tax_rate)
-    const discountRate = Number(itemFormData.discount_rate)
+    const quantity = parseTrNumberInput(itemFormData.quantity)
+    const unitPrice = parseTrNumberInput(itemFormData.unit_price)
+    const taxRate = parseTrNumberInput(itemFormData.tax_rate)
+    const discountRate = parseTrNumberInput(itemFormData.discount_rate)
+    if (!Number.isFinite(quantity) || quantity <= 0 || !Number.isFinite(unitPrice) || unitPrice < 0) {
+      toast.error('Geçerli miktar ve birim fiyat girin')
+      return
+    }
+    if (!Number.isFinite(taxRate) || !Number.isFinite(discountRate)) {
+      toast.error('Geçerli KDV ve iskonto oranı girin')
+      return
+    }
 
     const baseAmount = unitPrice * quantity
     const discountAmount = (baseAmount * discountRate) / 100
@@ -350,27 +360,57 @@ export default function CustomerDetailPage() {
     const newItems = [...selectedItems, newItem]
     setSelectedItems(newItems)
     const total = newItems.reduce((sum, i) => sum + i.total_price, 0)
-    setTxForm(prev => ({ ...prev, amount: total.toFixed(2) }))
+    setTxForm((prev) => ({
+      ...prev,
+      amount: total.toLocaleString('tr-TR', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+        useGrouping: true,
+      }),
+    }))
     setShowItemDetailModal(false)
     setCurrentItem(null)
   }
 
-  const updateItem = (index: number, field: keyof SelectedItem, value: any) => {
+  const updateItem = (index: number, field: keyof SelectedItem, value: string) => {
     const newItems = [...selectedItems]
-    const item = { ...newItems[index], [field]: value }
-    const q = Number(item.quantity); const p = Number(item.unit_price); const tr = Number(item.tax_rate); const dr = Number(item.discount_rate)
+    const n = parseTrNumberInput(value)
+    const parsed = Number.isFinite(n) ? n : 0
+    const item = {
+      ...newItems[index],
+      [field]: field === 'quantity' ? Math.max(0, parsed) : parsed,
+    }
+    const q = Number(item.quantity)
+    const p = Number(item.unit_price)
+    const tr = Number(item.tax_rate)
+    const dr = Number(item.discount_rate)
     const base = p * q; const disc = (base * dr) / 100; const subt = base - disc; const tax = (subt * tr) / 100
     item.discount_amount = disc; item.tax_amount = tax; item.total_price = subt + tax
-    newItems[index] = item; setSelectedItems(newItems)
+    newItems[index] = item
+    setSelectedItems(newItems)
     const total = newItems.reduce((sum, i) => sum + i.total_price, 0)
-    setTxForm(prev => ({ ...prev, amount: total.toFixed(2) }))
+    setTxForm((prev) => ({
+      ...prev,
+      amount: total.toLocaleString('tr-TR', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+        useGrouping: true,
+      }),
+    }))
   }
 
   const removeItem = (index: number) => {
     const newItems = selectedItems.filter((_, i) => i !== index)
     setSelectedItems(newItems)
     const total = newItems.reduce((sum, i) => sum + i.total_price, 0)
-    setTxForm(prev => ({ ...prev, amount: total.toFixed(2) }))
+    setTxForm((prev) => ({
+      ...prev,
+      amount: total.toLocaleString('tr-TR', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+        useGrouping: true,
+      }),
+    }))
   }
 
   const _handleCreateProduct = async (e: React.FormEvent) => {
@@ -404,7 +444,9 @@ export default function CustomerDetailPage() {
         return
       }
       const payload = {
-        customer_id: customerId, type: txForm.type === 'sale' ? 'sale' : txForm.type, amount: parseFloat(txForm.amount),
+        customer_id: customerId,
+        type: txForm.type === 'sale' ? 'sale' : txForm.type,
+        amount: parseTrNumberInput(txForm.amount),
         currency: customer?.currency || 'TRY',
         description: txForm.description, transaction_date: new Date(txForm.transaction_date).toISOString(),
         payment_method: txForm.type === 'payment' ? txForm.payment_method : null,
@@ -449,7 +491,7 @@ export default function CustomerDetailPage() {
       const payload = {
         customer_id: customerId, 
         type: balanceFixForm.type === 'increase' ? 'invoice' : 'payment', 
-        amount: parseFloat(balanceFixForm.amount),
+        amount: parseTrNumberInput(balanceFixForm.amount),
         currency: customer?.currency || 'TRY',
         description: `BAKİYE DÜZELTME: ${balanceFixForm.description}`, 
         transaction_date: new Date(balanceFixForm.date).toISOString(),
@@ -506,10 +548,13 @@ export default function CustomerDetailPage() {
     return { ...tx, balance: totalBalance, isDebt }
   }).reverse()
 
-  const currentModalBase = Number(itemFormData.unit_price) * Number(itemFormData.quantity)
-  const currentModalDiscount = (currentModalBase * Number(itemFormData.discount_rate)) / 100
+  const currentModalBase =
+    (parseTrNumberInput(itemFormData.unit_price) || 0) * (parseTrNumberInput(itemFormData.quantity) || 0)
+  const currentModalDiscount =
+    (currentModalBase * (parseTrNumberInput(itemFormData.discount_rate) || 0)) / 100
   const currentModalSubtotal = currentModalBase - currentModalDiscount
-  const currentModalTax = (currentModalSubtotal * Number(itemFormData.tax_rate)) / 100
+  const currentModalTax =
+    (currentModalSubtotal * (parseTrNumberInput(itemFormData.tax_rate) || 0)) / 100
   const currentModalTotal = currentModalSubtotal + currentModalTax
 
   const filteredProducts = products.filter(p => 
@@ -832,8 +877,20 @@ export default function CustomerDetailPage() {
                             <tr key={idx} className="hover:bg-gray-50/50 transition-colors">
                               <td className="px-4 py-2.5 text-sm font-medium text-gray-900">{item.product_name}</td>
                               <td className="px-4 py-2.5 text-xs font-bold text-primary-600">{item.warehouse_name}</td>
-                              <td className="px-4 py-2.5"><input type="number" value={item.quantity} onChange={e => updateItem(idx, 'quantity', e.target.value)} className="w-16 mx-auto block px-2 py-1.5 border rounded-lg text-center text-sm font-semibold" /></td>
-                              <td className="px-4 py-2.5"><input type="number" value={item.unit_price} onChange={e => updateItem(idx, 'unit_price', e.target.value)} className="w-24 mx-auto block px-2 py-1.5 border rounded-lg text-center text-sm font-semibold" /></td>
+                              <td className="px-4 py-2.5">
+                                <TrNumberInput
+                                  value={looseToTrInputString(item.quantity)}
+                                  onChange={(v) => updateItem(idx, 'quantity', v)}
+                                  className="w-20 mx-auto block px-2 py-1.5 border rounded-lg text-center text-sm font-semibold"
+                                />
+                              </td>
+                              <td className="px-4 py-2.5">
+                                <TrNumberInput
+                                  value={looseToTrInputString(item.unit_price)}
+                                  onChange={(v) => updateItem(idx, 'unit_price', v)}
+                                  className="w-28 mx-auto block px-2 py-1.5 border rounded-lg text-center text-sm font-semibold"
+                                />
+                              </td>
                               <td className="px-4 py-2.5 text-xs font-bold text-center text-gray-500">{item.tax_amount.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} {getCurrencySymbol(customer.currency)} <span className="text-[10px] text-gray-400">(%{item.tax_rate})</span></td>
                               <td className="px-4 py-2.5 text-sm font-bold text-right text-gray-900">{item.total_price.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} {getCurrencySymbol(customer.currency)}</td>
                               <td className="px-4 py-2.5 text-right"><button type="button" onClick={() => removeItem(idx)} className="p-2 text-gray-400 hover:text-red-500 transition-all"><Trash2 className="h-4 w-4" /></button></td>
@@ -852,7 +909,7 @@ export default function CustomerDetailPage() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-3 border-t border-gray-100">
                   <div className="space-y-2"><label className="block text-xs font-black text-gray-400 uppercase tracking-widest px-1">İşlem Tarihi</label><input type="date" value={txForm.transaction_date} onChange={e => setTxForm({...txForm, transaction_date: e.target.value})} className="w-full px-4 py-3 border-2 border-gray-100 rounded-2xl focus:border-primary-500 outline-none font-bold" /></div>
-                  <div className="space-y-2"><label className="block text-xs font-black text-gray-400 uppercase tracking-widest px-1">Genel Toplam</label><input type="number" value={txForm.amount} readOnly className="w-full px-4 py-3 border-2 border-primary-100 rounded-2xl bg-primary-50/30 font-black text-xl text-primary-900 outline-none" /></div>
+                  <div className="space-y-2"><label className="block text-xs font-black text-gray-400 uppercase tracking-widest px-1">Genel Toplam</label><input type="text" readOnly value={txForm.amount} className="w-full px-4 py-3 border-2 border-primary-100 rounded-2xl bg-primary-50/30 font-black text-xl text-primary-900 outline-none" /></div>
                 </div>
                 <div className="pt-2">
                   <ProjectSelect
@@ -933,7 +990,13 @@ export default function CustomerDetailPage() {
                   </div>
                   <div className="space-y-2">
                     <label className="block text-xs font-black text-gray-400 uppercase tracking-widest px-1">Tutar ({getCurrencySymbol(customer.currency)}) *</label>
-                    <input type="number" step="any" required value={txForm.amount} onChange={e => setTxForm({...txForm, amount: e.target.value})} className="w-full px-4 py-3.5 border-2 border-emerald-100 rounded-2xl bg-emerald-50/30 text-xl font-black text-emerald-900 focus:border-emerald-500 outline-none placeholder-emerald-200" placeholder="0.00" />
+                    <TrNumberInput
+                      required
+                      value={txForm.amount}
+                      onChange={(v) => setTxForm({ ...txForm, amount: v })}
+                      className="w-full px-4 py-3.5 border-2 border-emerald-100 rounded-2xl bg-emerald-50/30 text-xl font-black text-emerald-900 focus:border-emerald-500 outline-none placeholder-emerald-200"
+                      placeholder="0,00"
+                    />
                   </div>
                 </div>
 
@@ -989,7 +1052,13 @@ export default function CustomerDetailPage() {
 
                 <div className="space-y-2">
                   <label className="block text-xs font-black text-gray-400 uppercase tracking-widest px-1">Tutar ({getCurrencySymbol(customer.currency)}) *</label>
-                  <input type="number" step="any" required value={balanceFixForm.amount} onChange={e => setBalanceFixForm({...balanceFixForm, amount: e.target.value})} className="w-full px-4 py-3.5 border-2 border-gray-100 rounded-2xl text-xl font-black text-gray-900 focus:border-gray-500 outline-none" placeholder="0.00" />
+                  <TrNumberInput
+                    required
+                    value={balanceFixForm.amount}
+                    onChange={(v) => setBalanceFixForm({ ...balanceFixForm, amount: v })}
+                    className="w-full px-4 py-3.5 border-2 border-gray-100 rounded-2xl text-xl font-black text-gray-900 focus:border-gray-500 outline-none"
+                    placeholder="0,00"
+                  />
                 </div>
                 
                 <div className="space-y-2">
@@ -1168,19 +1237,35 @@ export default function CustomerDetailPage() {
               <div className="grid grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <label className="block text-xs font-black text-gray-400 uppercase">Birim Fiyat ({getCurrencySymbol(customer.currency)})</label>
-                  <input type="number" step="any" value={itemFormData.unit_price} onFocus={() => itemFormData.unit_price === 0 && setItemFormData({...itemFormData, unit_price: '' as any})} onChange={e => setItemFormData({...itemFormData, unit_price: Number(e.target.value)})} className="w-full px-4 py-3 border-2 border-gray-100 rounded-2xl font-bold focus:border-primary-500 outline-none transition-all" />
+                  <TrNumberInput
+                    value={itemFormData.unit_price}
+                    onChange={(v) => setItemFormData({ ...itemFormData, unit_price: v })}
+                    className="w-full px-4 py-3 border-2 border-gray-100 rounded-2xl font-bold focus:border-primary-500 outline-none transition-all"
+                  />
                 </div>
                 <div className="space-y-2">
                   <label className="block text-xs font-black text-gray-400 uppercase">Miktar ({currentItem.unit})</label>
-                  <input type="number" step="any" value={itemFormData.quantity} onFocus={() => itemFormData.quantity === 0 && setItemFormData({...itemFormData, quantity: '' as any})} onChange={e => setItemFormData({...itemFormData, quantity: Number(e.target.value)})} className="w-full px-4 py-3 border-2 border-gray-100 rounded-2xl font-bold focus:border-primary-500 outline-none transition-all" />
+                  <TrNumberInput
+                    value={itemFormData.quantity}
+                    onChange={(v) => setItemFormData({ ...itemFormData, quantity: v })}
+                    className="w-full px-4 py-3 border-2 border-gray-100 rounded-2xl font-bold focus:border-primary-500 outline-none transition-all"
+                  />
                 </div>
                 <div className="space-y-2">
                   <label className="block text-xs font-black text-gray-400 uppercase">KDV Oranı (%)</label>
-                  <input type="number" min="0" max="100" value={itemFormData.tax_rate} onFocus={() => itemFormData.tax_rate === 0 && setItemFormData({...itemFormData, tax_rate: '' as any})} onChange={e => setItemFormData({...itemFormData, tax_rate: Number(e.target.value)})} className="w-full px-4 py-3 border-2 border-gray-100 rounded-2xl font-bold focus:border-primary-500 outline-none transition-all" />
+                  <TrNumberInput
+                    value={itemFormData.tax_rate}
+                    onChange={(v) => setItemFormData({ ...itemFormData, tax_rate: v })}
+                    className="w-full px-4 py-3 border-2 border-gray-100 rounded-2xl font-bold focus:border-primary-500 outline-none transition-all"
+                  />
                 </div>
                 <div className="space-y-2">
                   <label className="block text-xs font-black text-gray-400 uppercase">İskonto (%)</label>
-                  <input type="number" min="0" max="100" value={itemFormData.discount_rate} onFocus={() => itemFormData.discount_rate === 0 && setItemFormData({...itemFormData, discount_rate: '' as any})} onChange={e => setItemFormData({...itemFormData, discount_rate: Number(e.target.value)})} className="w-full px-4 py-3 border-2 border-gray-100 rounded-2xl font-bold focus:border-primary-500 outline-none transition-all" />
+                  <TrNumberInput
+                    value={itemFormData.discount_rate}
+                    onChange={(v) => setItemFormData({ ...itemFormData, discount_rate: v })}
+                    className="w-full px-4 py-3 border-2 border-gray-100 rounded-2xl font-bold focus:border-primary-500 outline-none transition-all"
+                  />
                 </div>
               </div>
 

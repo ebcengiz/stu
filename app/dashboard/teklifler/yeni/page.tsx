@@ -6,6 +6,8 @@ import { Plus, Trash2, ArrowLeft, Building } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Card, CardBody, CardHeader, CardTitle } from '@/components/ui/Card'
 import { toast } from 'react-hot-toast'
+import TrNumberInput from '@/components/ui/TrNumberInput'
+import { looseToTrInputString, parseTrNumberInput } from '@/lib/tr-number-input'
 
 interface Product {
   id: string
@@ -117,9 +119,14 @@ function OfferEntryForm() {
     setItems(newItems)
   }
 
-  const handleItemChange = (index: number, field: string, value: any) => {
+  const handleItemChange = (index: number, field: string, value: string | number) => {
     const newItems = [...items]
-    newItems[index][field] = value
+    if (field === 'quantity' || field === 'unit_price') {
+      const n = parseTrNumberInput(String(value))
+      newItems[index][field] = Number.isFinite(n) ? n : 0
+    } else {
+      newItems[index][field] = value
+    }
 
     if (field === 'product_id') {
       const product = products.find(p => p.id === value)
@@ -336,28 +343,22 @@ function OfferEntryForm() {
                           </div>
                         </td>
                         <td className="px-4 py-2 align-top">
-                          <input
-                            type="number"
+                          <TrNumberInput
                             required
-                            min="0.01"
-                            step="0.01"
-                            value={item.quantity === 0 ? '' : item.quantity}
-                            onChange={(e) => handleItemChange(index, 'quantity', e.target.value === '' ? '' : parseFloat(e.target.value))}
+                            value={looseToTrInputString(item.quantity)}
+                            onChange={(v) => handleItemChange(index, 'quantity', v)}
                             className="w-full px-2 py-1.5 border border-gray-300 rounded text-sm outline-none focus:border-primary-500 text-center"
                           />
                         </td>
                         <td className="px-4 py-2 align-top">
                           <div className="relative">
-                            <input
-                              type="number"
+                            <TrNumberInput
                               required
-                              min="0"
-                              step="0.01"
-                              value={item.unit_price === 0 ? '' : item.unit_price}
-                              onChange={(e) => handleItemChange(index, 'unit_price', e.target.value === '' ? '' : parseFloat(e.target.value))}
+                              value={looseToTrInputString(item.unit_price)}
+                              onChange={(v) => handleItemChange(index, 'unit_price', v)}
                               className="w-full pl-6 pr-2 py-1.5 border border-gray-300 rounded text-sm outline-none focus:border-primary-500"
                             />
-                            <span className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-500 text-sm">
+                            <span className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-500 text-sm pointer-events-none">
                               {getCurrencySymbol(formData.currency)}
                             </span>
                           </div>

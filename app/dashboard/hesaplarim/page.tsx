@@ -17,6 +17,8 @@ import {
 } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 import { HESAP_BOLUMLERI, formatAccountBalance } from '@/lib/account-sections'
+import TrNumberInput from '@/components/ui/TrNumberInput'
+import { parseTrNumberInput } from '@/lib/tr-number-input'
 
 interface Account {
   id: string
@@ -54,8 +56,8 @@ export default function HesaplarimPage() {
     currency: 'TRY',
     bank_name: '',
     iban: '',
-    balance: 0,
-    credit_limit: 0,
+    balance: '',
+    credit_limit: '',
   })
 
   const fetchAccounts = async () => {
@@ -100,8 +102,8 @@ export default function HesaplarimPage() {
       currency: 'TRY',
       bank_name: '',
       iban: '',
-      balance: 0,
-      credit_limit: 0,
+      balance: '',
+      credit_limit: '',
     })
     setShowAddMenu(false)
     setShowModal(true)
@@ -114,7 +116,11 @@ export default function HesaplarimPage() {
       const response = await fetch('/api/accounts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          balance: parseTrNumberInput(formData.balance) || 0,
+          credit_limit: parseTrNumberInput(formData.credit_limit) || 0,
+        }),
       })
 
       if (response.ok) {
@@ -329,11 +335,9 @@ export default function HesaplarimPage() {
                   </div>
                   <div>
                     <label className="block text-xs font-semibold text-gray-600 mb-1">Açılış Bakiyesi</label>
-                    <input
-                      type="number"
-                      step="any"
+                    <TrNumberInput
                       value={formData.balance}
-                      onChange={e => setFormData({ ...formData, balance: Number(e.target.value) })}
+                      onChange={(v) => setFormData({ ...formData, balance: v })}
                       className="w-full px-3 py-2.5 border border-gray-300 rounded-lg outline-none text-sm"
                     />
                   </div>
@@ -368,10 +372,9 @@ export default function HesaplarimPage() {
                 {formData.type === 'other' && (
                   <div>
                     <label className="block text-xs font-semibold text-gray-600 mb-1">Kart Limiti</label>
-                    <input
-                      type="number"
+                    <TrNumberInput
                       value={formData.credit_limit}
-                      onChange={e => setFormData({ ...formData, credit_limit: Number(e.target.value) })}
+                      onChange={(v) => setFormData({ ...formData, credit_limit: v })}
                       className="w-full px-3 py-2.5 border border-gray-300 rounded-lg outline-none text-sm"
                     />
                   </div>

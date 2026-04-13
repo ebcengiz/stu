@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react'
 import { Plus, ArrowDownCircle, ArrowUpCircle, ArrowRightLeft, Settings } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Card, CardHeader, CardBody, CardTitle } from '@/components/ui/Card'
+import TrNumberInput from '@/components/ui/TrNumberInput'
+import { parseTrNumberInput } from '@/lib/tr-number-input'
 
 interface Product {
   id: string
@@ -38,7 +40,7 @@ export default function StockMovementsPage() {
     product_id: '',
     warehouse_id: '',
     movement_type: 'in',
-    quantity: 0,
+    quantity: '',
     reference_no: '',
     notes: ''
   })
@@ -90,6 +92,7 @@ export default function StockMovementsPage() {
       // Clean data: convert empty strings to null for optional fields
       const cleanedData = {
         ...formData,
+        quantity: parseTrNumberInput(formData.quantity),
         reference_no: formData.reference_no.trim() || null,
         notes: formData.notes.trim() || null,
       }
@@ -107,7 +110,7 @@ export default function StockMovementsPage() {
         product_id: '',
         warehouse_id: '',
         movement_type: 'in',
-        quantity: 0,
+        quantity: '',
         reference_no: '',
         notes: ''
       })
@@ -126,7 +129,7 @@ export default function StockMovementsPage() {
       product_id: '',
       warehouse_id: '',
       movement_type: 'in',
-      quantity: 0,
+      quantity: '',
       reference_no: '',
       notes: ''
     })
@@ -322,18 +325,10 @@ export default function StockMovementsPage() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Miktar *
                   </label>
-                  <input
-                    type="number"
+                  <TrNumberInput
                     required
-                    min="0"
-                    step="0.01"
                     value={formData.quantity}
-                    onChange={(e) => setFormData({ ...formData, quantity: parseFloat(e.target.value) || 0 })}
-                    onFocus={(e) => {
-                      if (e.target.value === '0' || e.target.value === '0.00') {
-                        e.target.select() // Select all so typing replaces it
-                      }
-                    }}
+                    onChange={(v) => setFormData({ ...formData, quantity: v })}
                     className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   />
                 </div>

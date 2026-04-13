@@ -15,6 +15,8 @@ import {
 import { toast } from 'react-hot-toast'
 import LoanModal, { type LoanModalValues } from '@/components/loans/LoanModal'
 import LoanPaymentModal from '@/components/loans/LoanPaymentModal'
+import TrNumberInput from '@/components/ui/TrNumberInput'
+import { parseTrNumberInput } from '@/lib/tr-number-input'
 
 type InstallmentRow = {
   id: string
@@ -176,7 +178,7 @@ export default function KrediDetayPage() {
 
   const submitNewInst = async (e: React.FormEvent) => {
     e.preventDefault()
-    const amt = parseFloat(String(instAmount).replace(',', '.'))
+    const amt = parseTrNumberInput(instAmount)
     if (Number.isNaN(amt) || amt <= 0) {
       toast.error('Geçerli tutar girin')
       return
@@ -426,10 +428,9 @@ export default function KrediDetayPage() {
               </div>
               <div>
                 <label className="mb-0.5 block text-xs font-medium text-slate-600">Tutar</label>
-                <input
+                <TrNumberInput
                   value={instAmount}
-                  onChange={(e) => setInstAmount(e.target.value)}
-                  inputMode="decimal"
+                  onChange={setInstAmount}
                   className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
                   placeholder="0,00"
                   required

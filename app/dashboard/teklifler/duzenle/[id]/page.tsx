@@ -6,6 +6,8 @@ import { Plus, Trash2, ArrowLeft, Building } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Card, CardBody, CardHeader, CardTitle } from '@/components/ui/Card'
 import { toast } from 'react-hot-toast'
+import TrNumberInput from '@/components/ui/TrNumberInput'
+import { looseToTrInputString, parseTrNumberInput } from '@/lib/tr-number-input'
 
 interface Product {
   id: string
@@ -121,9 +123,14 @@ function OfferEditForm() {
     setItems(newItems)
   }
 
-  const handleItemChange = (index: number, field: string, value: any) => {
+  const handleItemChange = (index: number, field: string, value: string | number) => {
     const newItems = [...items]
-    newItems[index][field] = value
+    if (field === 'quantity' || field === 'unit_price') {
+      const n = parseTrNumberInput(String(value))
+      newItems[index][field] = Number.isFinite(n) ? n : 0
+    } else {
+      newItems[index][field] = value
+    }
 
     if (field === 'product_id') {
       const product = products.find(p => p.id === value)
@@ -263,8 +270,22 @@ function OfferEditForm() {
                             )}
                           </div>
                         </td>
-                        <td className="px-4 py-2"><input type="number" required step="0.01" value={item.quantity} onChange={(e) => handleItemChange(index, 'quantity', parseFloat(e.target.value))} className="w-full px-2 py-1.5 border border-gray-300 rounded text-sm text-center" /></td>
-                        <td className="px-4 py-2"><input type="number" required step="0.01" value={item.unit_price} onChange={(e) => handleItemChange(index, 'unit_price', parseFloat(e.target.value))} className="w-full px-2 py-1.5 border border-gray-300 rounded text-sm text-center" /></td>
+                        <td className="px-4 py-2">
+                          <TrNumberInput
+                            required
+                            value={looseToTrInputString(item.quantity)}
+                            onChange={(v) => handleItemChange(index, 'quantity', v)}
+                            className="w-full px-2 py-1.5 border border-gray-300 rounded text-sm text-center"
+                          />
+                        </td>
+                        <td className="px-4 py-2">
+                          <TrNumberInput
+                            required
+                            value={looseToTrInputString(item.unit_price)}
+                            onChange={(v) => handleItemChange(index, 'unit_price', v)}
+                            className="w-full px-2 py-1.5 border border-gray-300 rounded text-sm text-center"
+                          />
+                        </td>
                         <td className="px-4 py-2 text-right font-bold">{calculateRowTotal(item).toLocaleString('tr-TR')} {getCurrencySymbol(formData.currency)}</td>
                         <td className="px-4 py-2 text-center"><button type="button" onClick={() => removeItem(index)} className="text-red-500 p-1.5 hover:bg-red-50 rounded"><Trash2 className="h-4 w-4" /></button></td>
                       </tr>

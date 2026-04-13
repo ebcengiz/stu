@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { X, Check } from 'lucide-react'
 import { toast } from 'react-hot-toast'
+import TrNumberInput from '@/components/ui/TrNumberInput'
+import { parseTrNumberInput } from '@/lib/tr-number-input'
 
 type AccountOpt = { id: string; name: string; balance?: number | string; currency?: string; is_active?: boolean }
 
@@ -11,10 +13,6 @@ function formatMoney(n: number | string, cur: string) {
   if (Number.isNaN(num)) return '—'
   const s = num.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
   return cur === 'TRY' ? `${s} TL` : `${s} ${cur}`
-}
-
-function formatTrInput(n: number) {
-  return n.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
 
 export default function LoanPaymentModal({
@@ -53,7 +51,14 @@ export default function LoanPaymentModal({
     if (!open || !installmentId) return
     setPaidDate(new Date().toISOString().slice(0, 10))
     setAccountId('')
-    setAmountStr(formatTrInput(Math.max(0, Math.round(maxPay * 100) / 100)))
+    const v = Math.max(0, Math.round(maxPay * 100) / 100)
+    setAmountStr(
+      v.toLocaleString('tr-TR', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+        useGrouping: true,
+      })
+    )
     setLoadingAcc(true)
     void fetch('/api/accounts')
       .then((r) => r.json())
@@ -66,7 +71,7 @@ export default function LoanPaymentModal({
 
   const submit = async () => {
     if (!installmentId) return
-    const pay = parseFloat(String(amountStr).replace(/\./g, '').replace(',', '.'))
+    const pay = parseTrNumberInput(amountStr)
     if (Number.isNaN(pay) || pay <= 0) {
       toast.error('Geçerli tutar girin')
       return
@@ -105,7 +110,7 @@ export default function LoanPaymentModal({
 
   if (!open || !installmentId) return null
 
-  const pay = parseFloat(String(amountStr).replace(/\./g, '').replace(',', '.'))
+  const pay = parseTrNumberInput(amountStr)
   const cap = Math.round(maxPay * 100) / 100
   const amountOk = !Number.isNaN(pay) && pay > 0 && pay <= cap + 0.0001
 
@@ -172,10 +177,9 @@ export default function LoanPaymentModal({
 
           <div>
             <label className="mb-1 block text-xs font-semibold text-slate-600">Ödediğiniz Tutar</label>
-            <input
+            <TrNumberInput
               value={amountStr}
-              onChange={(e) => setAmountStr(e.target.value)}
-              inputMode="decimal"
+              onChange={setAmountStr}
               className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
             />
           </div>

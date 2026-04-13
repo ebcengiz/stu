@@ -7,6 +7,8 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/Button'
 import { Card, CardHeader, CardBody, CardTitle } from '@/components/ui/Card'
 import { toast } from 'react-hot-toast'
+import TrNumberInput from '@/components/ui/TrNumberInput'
+import { parseTrNumberInput } from '@/lib/tr-number-input'
 
 export default function NewProductPage() {
   const router = useRouter()
@@ -22,7 +24,7 @@ export default function NewProductPage() {
     barcode: '',
     description: '',
     unit: 'adet',
-    min_stock_level: 0,
+    min_stock_level: '',
     image_url: '',
     category_id: '',
   })
@@ -85,7 +87,10 @@ export default function NewProductPage() {
       const response = await fetch('/api/products', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          min_stock_level: Math.trunc(parseTrNumberInput(formData.min_stock_level)) || 0,
+        }),
       })
 
       if (!response.ok) {
@@ -208,12 +213,9 @@ export default function NewProductPage() {
                   <div className="space-y-2">
                     <label className="block text-[11px] font-black text-gray-400 uppercase tracking-widest px-1">Minimum Stok Seviyesi</label>
                     <div className="relative">
-                      <input
-                        type="number"
-                        min="0"
+                      <TrNumberInput
                         value={formData.min_stock_level}
-                        onFocus={() => formData.min_stock_level === 0 && setFormData({...formData, min_stock_level: '' as any})}
-                        onChange={(e) => setFormData({ ...formData, min_stock_level: parseInt(e.target.value) || 0 })}
+                        onChange={(v) => setFormData({ ...formData, min_stock_level: v })}
                         className="w-full px-5 py-4 border-2 border-gray-100 rounded-2xl focus:border-primary-500 focus:ring-4 focus:ring-primary-50 outline-none font-bold text-gray-900 transition-all"
                       />
                     </div>

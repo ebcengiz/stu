@@ -9,6 +9,8 @@ import { toast } from 'react-hot-toast'
 import { CURRENCY_SYMBOLS } from '@/lib/currency'
 import { isOdemeHesabi } from '@/lib/account-sections'
 import ProjectSelect from '@/components/projects/ProjectSelect'
+import TrNumberInput from '@/components/ui/TrNumberInput'
+import { looseToTrInputString, parseTrNumberInput } from '@/lib/tr-number-input'
 
 interface Product {
   id: string
@@ -57,7 +59,7 @@ function PurchaseEntryForm() {
     order_no: '',
     status: 'Faturalaşmış',
     description: '',
-    paid_amount: 0,
+    paid_amount: '',
     payment_account_id: '',
     currency: 'TRY',
     project_id: '',
@@ -113,9 +115,21 @@ function PurchaseEntryForm() {
     setItems(newItems)
   }
 
-  const handleItemChange = (index: number, field: string, value: any) => {
+  const handleItemChange = (index: number, field: string, value: string | number) => {
     const newItems = [...items]
-    newItems[index][field] = value
+    if (field === 'quantity' || field === 'unit_price') {
+      const n = parseTrNumberInput(String(value))
+      newItems[index][field] = Number.isFinite(n) ? n : 0
+    } else {
+      newItems[index][field] = value
+    }
+    if (field === 'product_id') {
+      const product = products.find((p) => p.id === value)
+      if (product) {
+        newItems[index].unit_price = product.price || 0
+        newItems[index].vat_rate = product.tax_rate || 20
+      }
+    }
     setItems(newItems)
   }
 
@@ -140,9 +154,11 @@ function PurchaseEntryForm() {
 
     setSaving(true)
 
+    const paidNum = parseTrNumberInput(formData.paid_amount)
     if (
       supplierId &&
-      formData.paid_amount > 0 &&
+      Number.isFinite(paidNum) &&
+      paidNum > 0 &&
       !formData.payment_account_id
     ) {
       toast.error('Ödeme için paranın çekileceği kasa veya banka hesabını seçin')
@@ -152,6 +168,7 @@ function PurchaseEntryForm() {
 
     const payload = {
       ...formData,
+      paid_amount: Number.isFinite(paidNum) ? paidNum : 0,
       supplier_id: supplierId || null,
       total_amount: calculateTotal(),
       payment_account_id: formData.payment_account_id || undefined,
@@ -213,16 +230,19 @@ function PurchaseEntryForm() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Ödenen Tutar ({getCurrencySymbol()})</label>
-                <input type="number" step="0.01" value={formData.paid_amount} onChange={(e) => {
-                  const v = parseFloat(e.target.value) || 0
-                  setFormData(prev => ({
-                    ...prev,
-                    paid_amount: v,
-                    payment_account_id: v > 0 ? prev.payment_account_id : ''
-                  }))
-                }} className="w-full px-3 py-2 border border-blue-300 bg-blue-50 rounded-lg font-bold text-blue-700" />
+                <TrNumberInput
+                  value={formData.paid_amount}
+                  onChange={(v) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      paid_amount: v,
+                      payment_account_id: parseTrNumberInput(v) > 0 ? prev.payment_account_id : '',
+                    }))
+                  }
+                  className="w-full px-3 py-2 border border-blue-300 bg-blue-50 rounded-lg font-bold text-blue-700"
+                />
               </div>
-              {supplierId && formData.paid_amount > 0 && (
+              {supplierId && parseTrNumberInput(formData.paid_amount) > 0 && (
                 <div className="md:col-span-3">
                   <label className="block text-sm font-medium text-gray-700 mb-1">Ödemenin çekileceği hesap *</label>
                   <select
@@ -292,8 +312,20 @@ function PurchaseEntryForm() {
                           {warehouses.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
                         </select>
                       </td>
-                      <td className="px-4 py-2"><input type="number" step="0.01" value={item.quantity} onChange={(e) => handleItemChange(index, 'quantity', parseFloat(e.target.value) || 0)} className="w-full px-2 py-1.5 border border-gray-300 rounded text-sm text-center" /></td>
-                      <td className="px-4 py-2"><input type="number" step="0.01" value={item.unit_price} onChange={(e) => handleItemChange(index, 'unit_price', parseFloat(e.target.value) || 0)} className="w-full px-2 py-1.5 border border-gray-300 rounded text-sm text-center" /></td>
+                      <td className="px-4 py-2">
+                        <TrNumberInput
+                          value={looseToTrInputString(item.quantity)}
+                          onChange={(v) => handleItemChange(index, 'quantity', v)}
+                          className="w-full px-2 py-1.5 border border-gray-300 rounded text-sm text-center"
+                        />
+                      </td>
+                      <td className="px-4 py-2">
+                        <TrNumberInput
+                          value={looseToTrInputString(item.unit_price)}
+                          onChange={(v) => handleItemChange(index, 'unit_price', v)}
+                          className="w-full px-2 py-1.5 border border-gray-300 rounded text-sm text-center"
+                        />
+                      </td>
                       <td className="px-4 py-2 text-right font-bold">{calculateRowTotal(item).toLocaleString('tr-TR')} {getCurrencySymbol()}</td>
                       <td className="px-4 py-2 text-center"><button type="button" onClick={() => removeItem(index)} className="text-red-500"><Trash2 className="h-4 w-4" /></button></td>
                     </tr>

@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react'
 import { X, Check } from 'lucide-react'
 import { toast } from 'react-hot-toast'
+import TrNumberInput from '@/components/ui/TrNumberInput'
+import { looseToTrInputString, parseTrNumberInput } from '@/lib/tr-number-input'
 
 const PAYMENT_SCHEDULE_OPTIONS = [
   { value: 'monthly', label: 'Her Ay' },
@@ -65,7 +67,18 @@ export default function LoanModal({
 
   useEffect(() => {
     if (!open) return
-    setForm(initial ? { ...emptyForm, ...initial } : emptyForm)
+    if (!initial) {
+      setForm(emptyForm)
+      return
+    }
+    setForm({
+      ...emptyForm,
+      ...initial,
+      total_loan_amount: looseToTrInputString(initial.total_loan_amount),
+      total_repayment_planned: looseToTrInputString(initial.total_repayment_planned),
+      remaining_debt: looseToTrInputString(initial.remaining_debt),
+      remaining_installments: looseToTrInputString(initial.remaining_installments, 0),
+    })
   }, [open, initial])
 
   const activeAccounts = accounts.filter((a) => a.is_active !== false)
@@ -79,8 +92,8 @@ export default function LoanModal({
     }
 
     if (isCreate) {
-      const principal = parseFloat(String(form.total_loan_amount).replace(',', '.'))
-      const planned = parseFloat(String(form.total_repayment_planned).replace(',', '.'))
+      const principal = parseTrNumberInput(form.total_loan_amount)
+      const planned = parseTrNumberInput(form.total_repayment_planned)
       if (Number.isNaN(principal) || principal <= 0) {
         toast.error('Geçerli çekilen tutar girin')
         return
@@ -89,7 +102,7 @@ export default function LoanModal({
         toast.error('Geçerli ödenecek toplam tutar girin')
         return
       }
-      const inst = parseInt(String(form.remaining_installments).trim(), 10)
+      const inst = Math.trunc(parseTrNumberInput(form.remaining_installments))
       if (Number.isNaN(inst) || inst < 1 || inst > 144) {
         toast.error('Vade (taksit) 1–144 arasında olmalıdır')
         return
@@ -126,18 +139,18 @@ export default function LoanModal({
       return
     }
 
-    const debt = parseFloat(String(form.remaining_debt).replace(',', '.'))
+    const debt = parseTrNumberInput(form.remaining_debt)
     if (Number.isNaN(debt) || debt < 0) {
       toast.error('Geçerli kalan borç tutarı girin')
       return
     }
-    const inst = parseInt(String(form.remaining_installments).trim(), 10)
+    const inst = Math.trunc(parseTrNumberInput(form.remaining_installments))
     if (Number.isNaN(inst) || inst < 0 || inst > 144) {
       toast.error('Kalan taksit 0–144 arasında olmalıdır')
       return
     }
 
-    const principalEdit = parseFloat(String(form.total_loan_amount).replace(',', '.'))
+    const principalEdit = parseTrNumberInput(form.total_loan_amount)
     if (Number.isNaN(principalEdit) || principalEdit < 0) {
       toast.error('Geçerli çekilen tutar girin')
       return
@@ -154,7 +167,7 @@ export default function LoanModal({
       notes: form.notes.trim() || null,
     }
     if (form.total_repayment_planned.trim() !== '') {
-      const plannedEdit = parseFloat(String(form.total_repayment_planned).replace(',', '.'))
+      const plannedEdit = parseTrNumberInput(form.total_repayment_planned)
       if (Number.isNaN(plannedEdit) || plannedEdit < 0) {
         toast.error('Geçerli ödenecek toplam tutar girin')
         return
@@ -224,12 +237,11 @@ export default function LoanModal({
                   <label className="mb-1 block text-xs font-semibold text-slate-600">
                     <span className="text-red-600">*</span> Çekilen tutar (TL)
                   </label>
-                  <input
+                  <TrNumberInput
                     value={form.total_loan_amount}
-                    onChange={(e) => setForm((f) => ({ ...f, total_loan_amount: e.target.value }))}
-                    inputMode="decimal"
+                    onChange={(v) => setForm((f) => ({ ...f, total_loan_amount: v }))}
                     className={inputClass}
-                    placeholder="Örn. 100000"
+                    placeholder="Örn. 100.000"
                     required
                   />
                 </div>
@@ -237,10 +249,9 @@ export default function LoanModal({
                   <label className="mb-1 block text-xs font-semibold text-slate-600">
                     <span className="text-red-600">*</span> Ödenecek toplam tutar (TL)
                   </label>
-                  <input
+                  <TrNumberInput
                     value={form.total_repayment_planned}
-                    onChange={(e) => setForm((f) => ({ ...f, total_repayment_planned: e.target.value }))}
-                    inputMode="decimal"
+                    onChange={(v) => setForm((f) => ({ ...f, total_repayment_planned: v }))}
                     className={inputClass}
                     placeholder="Faiz, vergi ve masraflar dahil toplam"
                     required
@@ -253,12 +264,9 @@ export default function LoanModal({
                   <label className="mb-1 block text-xs font-semibold text-slate-600">
                     <span className="text-red-600">*</span> Vade (taksit sayısı)
                   </label>
-                  <input
-                    type="number"
-                    min={1}
-                    max={144}
+                  <TrNumberInput
                     value={form.remaining_installments}
-                    onChange={(e) => setForm((f) => ({ ...f, remaining_installments: e.target.value }))}
+                    onChange={(v) => setForm((f) => ({ ...f, remaining_installments: v }))}
                     className={inputClass}
                     placeholder="Örn. 36"
                     required
@@ -269,39 +277,33 @@ export default function LoanModal({
               <>
                 <div>
                   <label className="mb-1 block text-xs font-semibold text-slate-600">Çekilen tutar (TL)</label>
-                  <input
+                  <TrNumberInput
                     value={form.total_loan_amount}
-                    onChange={(e) => setForm((f) => ({ ...f, total_loan_amount: e.target.value }))}
-                    inputMode="decimal"
+                    onChange={(v) => setForm((f) => ({ ...f, total_loan_amount: v }))}
                     className={inputClass}
                   />
                 </div>
                 <div>
                   <label className="mb-1 block text-xs font-semibold text-slate-600">Ödenecek toplam tutar (plan, TL)</label>
-                  <input
+                  <TrNumberInput
                     value={form.total_repayment_planned}
-                    onChange={(e) => setForm((f) => ({ ...f, total_repayment_planned: e.target.value }))}
-                    inputMode="decimal"
+                    onChange={(v) => setForm((f) => ({ ...f, total_repayment_planned: v }))}
                     className={inputClass}
                   />
                 </div>
                 <div>
                   <label className="mb-1 block text-xs font-semibold text-slate-600">Kalan borç (TL)</label>
-                  <input
+                  <TrNumberInput
                     value={form.remaining_debt}
-                    onChange={(e) => setForm((f) => ({ ...f, remaining_debt: e.target.value }))}
-                    inputMode="decimal"
+                    onChange={(v) => setForm((f) => ({ ...f, remaining_debt: v }))}
                     className={inputClass}
                   />
                 </div>
                 <div>
                   <label className="mb-1 block text-xs font-semibold text-slate-600">Kalan taksit sayısı</label>
-                  <input
-                    type="number"
-                    min={0}
-                    max={144}
+                  <TrNumberInput
                     value={form.remaining_installments}
-                    onChange={(e) => setForm((f) => ({ ...f, remaining_installments: e.target.value }))}
+                    onChange={(v) => setForm((f) => ({ ...f, remaining_installments: v }))}
                     className={inputClass}
                   />
                   <p className="mt-1 text-xs text-red-600">Maksimum 144 taksit</p>

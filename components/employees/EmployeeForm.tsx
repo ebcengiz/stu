@@ -20,6 +20,8 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { toast } from 'react-hot-toast'
+import TrNumberInput from '@/components/ui/TrNumberInput'
+import { parseTrNumberInput } from '@/lib/tr-number-input'
 
 export interface EmployeeFormState {
   name: string
@@ -141,7 +143,8 @@ export default function EmployeeForm({ employeeId }: { employeeId?: string }) {
     leave_date: leaveDateOverride !== undefined ? leaveDateOverride : form.leave_date || null,
     birth_date: form.birth_date || null,
     national_id: form.national_id.trim() || null,
-    monthly_net_salary: form.monthly_net_salary === '' ? null : form.monthly_net_salary,
+    monthly_net_salary:
+      form.monthly_net_salary === '' ? null : parseTrNumberInput(form.monthly_net_salary),
     bank_account_no: form.bank_account_no.trim() || null,
     department: form.department.trim() || null,
     address: form.address.trim() || null,
@@ -448,12 +451,9 @@ export default function EmployeeForm({ employeeId }: { employeeId?: string }) {
                   <label className="block text-xs font-semibold text-gray-500 mb-1.5">Aylık Net Maaş</label>
                   <div className="relative">
                     <Banknote className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                    <input
-                      type="number"
-                      step="any"
-                      min="0"
+                    <TrNumberInput
                       value={form.monthly_net_salary}
-                      onChange={(e) => setField('monthly_net_salary', e.target.value)}
+                      onChange={(v) => setField('monthly_net_salary', v)}
                       className="w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
                       placeholder="İsteğe bağlı"
                     />

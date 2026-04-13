@@ -9,6 +9,8 @@ import dynamic from 'next/dynamic'
 import BarcodeScanner from '@/components/barcode/BarcodeScanner'
 import { CURRENCY_SYMBOLS } from '@/lib/currency'
 import { toast } from 'react-hot-toast'
+import TrNumberInput from '@/components/ui/TrNumberInput'
+import { looseToTrInputString, parseTrNumberInput } from '@/lib/tr-number-input'
 
 // Dynamically import LocationPicker to avoid SSR issues with Leaflet
 const LocationPicker = dynamic(() => import('@/components/warehouse/LocationPicker'), {
@@ -101,8 +103,8 @@ function ProductsPageContent() {
     description: '',
     price: '' as string | number,
     purchase_price: '' as string | number,
-    tax_rate: 20 as string | number,
-    discount_rate: 0 as string | number,
+    tax_rate: '20' as string | number,
+    discount_rate: '0' as string | number,
     currency: 'TRY',
     unit: 'adet',
     min_stock_level: '' as string | number,
@@ -238,12 +240,12 @@ function ProductsPageContent() {
         sku: formData.sku?.trim() || null,
         barcode: formData.barcode?.trim() || null,
         description: formData.description?.trim() || null,
-        price: typeof formData.price === 'string' ? parseFloat(formData.price) || 0 : formData.price,
-        purchase_price: typeof formData.purchase_price === 'string' ? parseFloat(formData.purchase_price) || 0 : formData.purchase_price,
-        tax_rate: typeof formData.tax_rate === 'string' ? parseFloat(formData.tax_rate) || 0 : formData.tax_rate,
-        discount_rate: typeof formData.discount_rate === 'string' ? parseFloat(formData.discount_rate) || 0 : formData.discount_rate,
-        min_stock_level: typeof formData.min_stock_level === 'string' ? parseFloat(formData.min_stock_level) || 0 : formData.min_stock_level,
-        initial_quantity: typeof formData.initial_quantity === 'string' ? parseFloat(formData.initial_quantity) || 0 : formData.initial_quantity,
+        price: parseTrNumberInput(String(formData.price)) || 0,
+        purchase_price: parseTrNumberInput(String(formData.purchase_price)) || 0,
+        tax_rate: parseTrNumberInput(String(formData.tax_rate)) || 0,
+        discount_rate: parseTrNumberInput(String(formData.discount_rate)) || 0,
+        min_stock_level: parseTrNumberInput(String(formData.min_stock_level)) || 0,
+        initial_quantity: parseTrNumberInput(String(formData.initial_quantity)) || 0,
       }
 
       const response = await fetch(url, {
@@ -276,13 +278,13 @@ function ProductsPageContent() {
       sku: product.sku || '',
       barcode: product.barcode || '',
       description: product.description || '',
-      price: product.price || '',
-      purchase_price: product.purchase_price || '',
-      tax_rate: product.tax_rate || 20,
-      discount_rate: product.discount_rate || 0,
+      price: looseToTrInputString(product.price ?? 0),
+      purchase_price: looseToTrInputString(product.purchase_price ?? 0),
+      tax_rate: looseToTrInputString(product.tax_rate ?? 20, 2),
+      discount_rate: looseToTrInputString(product.discount_rate ?? 0, 2),
       currency: product.currency || 'TRY',
       unit: product.unit,
-      min_stock_level: product.min_stock_level || '',
+      min_stock_level: looseToTrInputString(product.min_stock_level ?? 0),
       category_id: product.category_id || '',
       is_active: product.is_active,
       initial_quantity: '',
@@ -308,7 +310,7 @@ function ProductsPageContent() {
   const openNewModal = () => {
     setEditingProduct(null)
     setFormData({
-      name: '', sku: '', barcode: '', description: '', price: '', purchase_price: '', tax_rate: 20, discount_rate: 0,
+      name: '', sku: '', barcode: '', description: '', price: '', purchase_price: '', tax_rate: '20', discount_rate: '0',
       currency: 'TRY', unit: 'adet', min_stock_level: '', category_id: categories[0]?.id || '', is_active: true,
       initial_quantity: '', warehouse_id: warehouses[0]?.id || '', movement_type: 'in', image_url: ''
     })
@@ -596,9 +598,9 @@ function ProductsPageContent() {
                 <h3 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em] mb-6 flex items-center gap-2"><div className="h-1 w-1 rounded-full bg-primary-500"></div> Fiyatlandırma ve Vergi</h3>
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                   <div className="space-y-1.5"><label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Para Birimi</label><select value={formData.currency} onChange={(e) => setFormData({ ...formData, currency: e.target.value })} className="w-full px-4 py-3 border-2 border-gray-100 rounded-xl focus:border-primary-500 outline-none font-bold text-gray-900 bg-white"><option value="TRY">TRY (₺)</option><option value="USD">USD ($)</option><option value="EUR">EUR (€)</option></select></div>
-                  <div className="space-y-1.5"><label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Satış Fiyatı</label><input type="text" value={formData.price} onFocus={() => setFormData({...formData, price: ''})} onChange={(e) => setFormData({ ...formData, price: e.target.value })} className="w-full px-4 py-3 border-2 border-emerald-100 bg-emerald-50/20 rounded-xl focus:border-emerald-500 outline-none font-black text-emerald-700" /></div>
-                  <div className="space-y-1.5"><label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Alış Fiyatı</label><input type="text" value={formData.purchase_price} onFocus={() => setFormData({...formData, purchase_price: ''})} onChange={(e) => setFormData({ ...formData, purchase_price: e.target.value })} className="w-full px-4 py-3 border-2 border-red-100 bg-red-50/20 rounded-xl focus:border-red-500 outline-none font-black text-red-700" /></div>
-                  <div className="space-y-1.5"><label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">KDV (%)</label><input type="number" value={formData.tax_rate} onFocus={() => setFormData({...formData, tax_rate: '' as any})} onChange={(e) => setFormData({ ...formData, tax_rate: e.target.value })} className="w-full px-4 py-3 border-2 border-gray-100 rounded-xl focus:border-primary-500 outline-none font-bold text-gray-900" /></div>
+                  <div className="space-y-1.5"><label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Satış Fiyatı</label><TrNumberInput value={String(formData.price ?? '')} onChange={(v) => setFormData({ ...formData, price: v })} className="w-full px-4 py-3 border-2 border-emerald-100 bg-emerald-50/20 rounded-xl focus:border-emerald-500 outline-none font-black text-emerald-700" /></div>
+                  <div className="space-y-1.5"><label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Alış Fiyatı</label><TrNumberInput value={String(formData.purchase_price ?? '')} onChange={(v) => setFormData({ ...formData, purchase_price: v })} className="w-full px-4 py-3 border-2 border-red-100 bg-red-50/20 rounded-xl focus:border-red-500 outline-none font-black text-red-700" /></div>
+                  <div className="space-y-1.5"><label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">KDV (%)</label><TrNumberInput value={String(formData.tax_rate ?? '')} onChange={(v) => setFormData({ ...formData, tax_rate: v })} className="w-full px-4 py-3 border-2 border-gray-100 rounded-xl focus:border-primary-500 outline-none font-bold text-gray-900" /></div>
                 </div>
               </div>
 
@@ -606,7 +608,7 @@ function ProductsPageContent() {
               <div className="pt-8 border-t border-dashed border-gray-200">
                 <h3 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em] mb-6 flex items-center gap-2"><div className="h-1 w-1 rounded-full bg-primary-500"></div> Stok Ayarları</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="space-y-1.5"><label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Min. Stok Uyarı</label><input type="text" value={formData.min_stock_level} onFocus={() => setFormData({...formData, min_stock_level: '' as any})} onChange={(e) => setFormData({ ...formData, min_stock_level: e.target.value })} className="w-full px-4 py-3 border-2 border-gray-100 rounded-xl focus:border-primary-500 outline-none font-bold text-gray-900" /></div>
+                  <div className="space-y-1.5"><label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Min. Stok Uyarı</label><TrNumberInput value={String(formData.min_stock_level ?? '')} onChange={(v) => setFormData({ ...formData, min_stock_level: v })} className="w-full px-4 py-3 border-2 border-gray-100 rounded-xl focus:border-primary-500 outline-none font-bold text-gray-900" /></div>
                   
                   {!editingProduct && (
                     <>
@@ -620,7 +622,7 @@ function ProductsPageContent() {
                           <button type="button" onClick={() => setShowNewWarehouseModal(true)} className="p-3 bg-primary-50 text-primary-600 rounded-xl hover:bg-primary-100 transition-all active:scale-95 border-2 border-primary-100" title="Yeni Depo Ekle"><Plus className="h-5 w-5" /></button>
                         </div>
                       </div>
-                      <div className="space-y-1.5"><label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Başlangıç Miktarı</label><input type="text" value={formData.initial_quantity} onFocus={() => setFormData({...formData, initial_quantity: '' as any})} onChange={(e) => setFormData({ ...formData, initial_quantity: e.target.value })} className="w-full px-4 py-3 border-2 border-gray-100 rounded-xl focus:border-primary-500 outline-none font-bold text-gray-900" /></div>
+                      <div className="space-y-1.5"><label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Başlangıç Miktarı</label><TrNumberInput value={String(formData.initial_quantity ?? '')} onChange={(v) => setFormData({ ...formData, initial_quantity: v })} className="w-full px-4 py-3 border-2 border-gray-100 rounded-xl focus:border-primary-500 outline-none font-bold text-gray-900" /></div>
                     </>
                   )}
                 </div>

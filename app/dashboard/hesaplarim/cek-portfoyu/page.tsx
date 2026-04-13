@@ -14,6 +14,8 @@ import Link from 'next/link'
 import { toast } from 'react-hot-toast'
 import { accountTypeLabel, isOdemeHesabi } from '@/lib/account-sections'
 import type { MasrafGroup } from '@/lib/masraf-kalemleri'
+import TrNumberInput from '@/components/ui/TrNumberInput'
+import { numberToTrInputString, parseTrNumberInput } from '@/lib/tr-number-input'
 
 type CheckStatus =
   | 'portfolio'
@@ -299,7 +301,7 @@ export default function CekPortfoyuPage() {
 
   const openFactoring = (c: PortfolioCheckRow) => {
     setActiveCheck(c)
-    setFacTl(String(c.amount))
+    setFacTl(numberToTrInputString(Number(c.amount)))
     setFacExpense('')
     setFacExpenseItemKey('')
     setFacNotes('')
@@ -366,12 +368,12 @@ export default function CekPortfoyuPage() {
       toast.error('Tahsilat hesabını seçin')
       return
     }
-    const tl = parseFloat(facTl.replace(',', '.'))
+    const tl = parseTrNumberInput(facTl)
     if (!Number.isFinite(tl) || tl <= 0) {
       toast.error('Geçerli TL karşılığı girin')
       return
     }
-    const expParsed = facExpense ? parseFloat(facExpense.replace(',', '.')) : 0
+    const expParsed = facExpense ? parseTrNumberInput(facExpense) : NaN
     const expenseAmt = Number.isFinite(expParsed) && expParsed > 0 ? expParsed : 0
     if (expenseAmt > 0 && !facExpenseItemKey.trim()) {
       toast.error('Masraf kesintisi için masraf kalemi seçin')
@@ -1010,23 +1012,11 @@ export default function CekPortfoyuPage() {
               </div>
               <div>
                 <label className="text-xs font-semibold text-slate-700">TL karşılığı (hesaba geçecek net) *</label>
-                <input
-                  type="text"
-                  inputMode="decimal"
-                  value={facTl}
-                  onChange={(e) => setFacTl(e.target.value)}
-                  className="mt-1 w-full rounded border border-slate-200 px-3 py-2 text-sm"
-                />
+                <TrNumberInput value={facTl} onChange={setFacTl} className="mt-1 w-full rounded border border-slate-200 px-3 py-2 text-sm" />
               </div>
               <div>
                 <label className="text-xs font-semibold text-slate-700">Masraf kesintisi</label>
-                <input
-                  type="text"
-                  inputMode="decimal"
-                  value={facExpense}
-                  onChange={(e) => setFacExpense(e.target.value)}
-                  className="mt-1 w-full rounded border border-slate-200 px-3 py-2 text-sm"
-                />
+                <TrNumberInput value={facExpense} onChange={setFacExpense} className="mt-1 w-full rounded border border-slate-200 px-3 py-2 text-sm" />
               </div>
               <div>
                 <label className="text-xs font-semibold text-slate-700">Masraf kalemi (kesinti varsa)</label>

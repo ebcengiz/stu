@@ -28,6 +28,8 @@ import { toast } from 'react-hot-toast'
 import { isOdemeHesabi } from '@/lib/account-sections'
 import type { MasrafGroup } from '@/lib/masraf-kalemleri'
 import { MASRAF_GROUPS, findMasrafLabel, KDV_ORAN_OPTIONS } from '@/lib/masraf-kalemleri'
+import TrNumberInput from '@/components/ui/TrNumberInput'
+import { parseTrNumberInput } from '@/lib/tr-number-input'
 
 interface Employee {
   id: string
@@ -362,7 +364,7 @@ export default function EmployeeDetailView({ employeeId }: { employeeId: string 
   }
 
   const handleAccrualSubmit = () => {
-    const amt = parseFloat(amountStr.replace(',', '.'))
+    const amt = parseTrNumberInput(amountStr)
     if (!Number.isFinite(amt) || amt <= 0) {
       toast.error('Hakedilen net maaş için geçerli tutar girin')
       return
@@ -386,7 +388,7 @@ export default function EmployeeDetailView({ employeeId }: { employeeId: string 
   }
 
   const handlePaymentSubmit = () => {
-    const amt = parseFloat(paymentAmountStr.replace(',', '.'))
+    const amt = parseTrNumberInput(paymentAmountStr)
     if (!Number.isFinite(amt) || amt <= 0) {
       toast.error('Ödediğiniz net tutarı girin')
       return
@@ -406,7 +408,7 @@ export default function EmployeeDetailView({ employeeId }: { employeeId: string 
   }
 
   const handleAdvanceGivenSubmit = () => {
-    const amt = parseFloat(paymentAmountStr.replace(',', '.'))
+    const amt = parseTrNumberInput(paymentAmountStr)
     if (!Number.isFinite(amt) || amt <= 0) {
       toast.error('Geçerli avans tutarı girin')
       return
@@ -426,7 +428,7 @@ export default function EmployeeDetailView({ employeeId }: { employeeId: string 
   }
 
   const handleAdvanceSubmit = () => {
-    const amt = parseFloat(advanceAmountStr.replace(',', '.'))
+    const amt = parseTrNumberInput(advanceAmountStr)
     if (!Number.isFinite(amt) || amt <= 0) {
       toast.error('İade tutarını girin')
       return
@@ -446,7 +448,7 @@ export default function EmployeeDetailView({ employeeId }: { employeeId: string 
   }
 
   const handleSlipSubmit = () => {
-    const amt = parseFloat(slipAmountStr.replace(',', '.'))
+    const amt = parseTrNumberInput(slipAmountStr)
     if (!Number.isFinite(amt) || amt <= 0) {
       toast.error('Geçerli tutar girin')
       return
@@ -463,7 +465,7 @@ export default function EmployeeDetailView({ employeeId }: { employeeId: string 
 
   /** Masraf → Alacak sütunu (negatif signed), bakiye azalır. Tutar KDV dahil. */
   const handleExpenseSubmit = () => {
-    const amt = parseFloat(expenseGrossStr.replace(',', '.'))
+    const amt = parseTrNumberInput(expenseGrossStr)
     if (!Number.isFinite(amt) || amt <= 0) {
       toast.error('Tutar (KDV dahil) girin')
       return
@@ -866,13 +868,10 @@ export default function EmployeeDetailView({ employeeId }: { employeeId: string 
                   Hakedilen Net Maaş
                 </label>
                 <div className="flex rounded-lg border border-gray-200 overflow-hidden focus-within:ring-2 focus-within:ring-emerald-500 focus-within:border-emerald-500">
-                  <input
-                    type="number"
-                    step="any"
-                    min="0"
+                  <TrNumberInput
                     className="min-w-0 flex-1 border-0 px-3 py-2.5 font-semibold text-gray-900"
                     value={amountStr}
-                    onChange={(e) => setAmountStr(e.target.value)}
+                    onChange={setAmountStr}
                     placeholder="0,00"
                   />
                   <span className="shrink-0 flex items-center px-4 bg-gray-100 text-gray-700 font-bold text-sm border-l border-gray-200">
@@ -1027,13 +1026,10 @@ export default function EmployeeDetailView({ employeeId }: { employeeId: string 
                   {modal?.kind === 'advance_given' ? 'Avans Tutarı' : 'Ödediğiniz Net Tutar'}
                 </label>
                 <div className="flex rounded-lg border border-gray-200 overflow-hidden focus-within:ring-2 focus-within:ring-emerald-500">
-                  <input
-                    type="number"
-                    step="any"
-                    min="0"
+                  <TrNumberInput
                     className="min-w-0 flex-1 border-0 px-3 py-2.5 font-semibold text-gray-900"
                     value={paymentAmountStr}
-                    onChange={(e) => setPaymentAmountStr(e.target.value)}
+                    onChange={setPaymentAmountStr}
                     placeholder="0,00"
                   />
                   <span className="shrink-0 flex items-center px-4 bg-gray-100 text-gray-700 font-bold text-sm border-l border-gray-200">
@@ -1145,13 +1141,10 @@ export default function EmployeeDetailView({ employeeId }: { employeeId: string 
               <div>
                 <label className="block text-xs font-black text-gray-800 mb-1.5">İade Tutarı</label>
                 <div className="flex rounded-lg border border-gray-200 overflow-hidden focus-within:ring-2 focus-within:ring-teal-500">
-                  <input
-                    type="number"
-                    step="any"
-                    min="0"
+                  <TrNumberInput
                     className="min-w-0 flex-1 border-0 px-3 py-2.5 font-semibold text-gray-900"
                     value={advanceAmountStr}
-                    onChange={(e) => setAdvanceAmountStr(e.target.value)}
+                    onChange={setAdvanceAmountStr}
                     placeholder="0,00"
                   />
                   <span className="shrink-0 flex items-center px-4 bg-gray-100 text-gray-700 font-bold text-sm border-l border-gray-200">
@@ -1256,13 +1249,10 @@ export default function EmployeeDetailView({ employeeId }: { employeeId: string 
                   Tutar (KDV Dahil)
                 </label>
                 <div className="flex rounded-lg border border-gray-200 overflow-hidden focus-within:ring-2 focus-within:ring-emerald-500">
-                  <input
-                    type="number"
-                    step="any"
-                    min="0"
+                  <TrNumberInput
                     className="min-w-0 flex-1 border-0 px-3 py-2.5 font-semibold text-gray-900"
                     value={expenseGrossStr}
-                    onChange={(e) => setExpenseGrossStr(e.target.value)}
+                    onChange={setExpenseGrossStr}
                     placeholder="0,00"
                   />
                   <span className="shrink-0 flex items-center px-4 bg-gray-100 text-gray-700 font-bold text-sm border-l border-gray-200">
@@ -1363,13 +1353,10 @@ export default function EmployeeDetailView({ employeeId }: { employeeId: string 
               <div>
                 <label className="block text-xs font-bold text-gray-600 mb-1.5">Tutar</label>
                 <div className="flex rounded-lg border border-gray-200 overflow-hidden focus-within:ring-2 focus-within:ring-emerald-500">
-                  <input
-                    type="number"
-                    step="any"
-                    min="0"
+                  <TrNumberInput
                     className="min-w-0 flex-1 border-0 px-3 py-2.5 font-semibold text-gray-900"
                     value={slipAmountStr}
-                    onChange={(e) => setSlipAmountStr(e.target.value)}
+                    onChange={setSlipAmountStr}
                     placeholder="0,00"
                   />
                   <span className="shrink-0 flex items-center px-4 bg-gray-100 text-gray-700 font-bold text-sm border-l border-gray-200">

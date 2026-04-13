@@ -5,6 +5,8 @@ import Link from 'next/link'
 import { ArrowLeft, Plus } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 import type { ExpenseItemDefinitionRow } from '@/lib/masraf-kalemleri'
+import TrNumberInput from '@/components/ui/TrNumberInput'
+import { parseTrNumberInput } from '@/lib/tr-number-input'
 
 /** Tek tip rozet: hafif alternans (renk gürültüsü yok) */
 const chipClass = (i: number) =>
@@ -212,7 +214,7 @@ export default function MasrafKalemleriPage() {
         body: JSON.stringify({
           group_name,
           label,
-          sort_order: parseInt(editSort, 10) || 0,
+          sort_order: Math.trunc(parseTrNumberInput(editSort)) || 0,
         }),
       })
       const data = await res.json().catch(() => ({}))
@@ -456,10 +458,9 @@ export default function MasrafKalemleriPage() {
               </div>
               <div>
                 <label className="mb-0.5 block text-[11px] font-medium text-slate-600">Sıra</label>
-                <input
-                  type="number"
+                <TrNumberInput
                   value={editSort}
-                  onChange={(e) => setEditSort(e.target.value)}
+                  onChange={setEditSort}
                   className={inputClass}
                 />
               </div>

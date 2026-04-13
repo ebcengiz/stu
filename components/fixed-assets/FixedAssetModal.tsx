@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react'
 import { X, Check } from 'lucide-react'
 import { toast } from 'react-hot-toast'
+import TrNumberInput from '@/components/ui/TrNumberInput'
+import { looseToTrInputString, parseTrNumberInput } from '@/lib/tr-number-input'
 
 const inputClass =
   'w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20'
@@ -42,7 +44,15 @@ export default function FixedAssetModal({
 
   useEffect(() => {
     if (!open) return
-    setForm(initial ? { ...emptyForm, ...initial } : emptyForm)
+    setForm(
+      initial
+        ? {
+            ...emptyForm,
+            ...initial,
+            price: looseToTrInputString(initial.price),
+          }
+        : emptyForm
+    )
   }, [open, initial])
 
   const submit = async (e: React.FormEvent) => {
@@ -60,7 +70,7 @@ export default function FixedAssetModal({
       purchase_date: form.purchase_date.trim() || null,
     }
     if (form.price.trim() !== '') {
-      const p = parseFloat(String(form.price).replace(',', '.'))
+      const p = parseTrNumberInput(form.price)
       if (Number.isNaN(p) || p < 0) {
         toast.error('Geçerli fiyat girin')
         return
@@ -166,10 +176,9 @@ export default function FixedAssetModal({
                 Fiyatı{' '}
                 <span className="font-normal text-slate-400">(isteğe bağlı)</span>
               </label>
-              <input
+              <TrNumberInput
                 value={form.price}
-                onChange={(e) => setForm((f) => ({ ...f, price: e.target.value }))}
-                inputMode="decimal"
+                onChange={(v) => setForm((f) => ({ ...f, price: v }))}
                 className={inputClass}
                 placeholder="0,00"
               />

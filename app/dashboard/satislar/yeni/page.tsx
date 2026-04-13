@@ -9,6 +9,8 @@ import { toast } from 'react-hot-toast'
 import { CURRENCY_SYMBOLS } from '@/lib/currency'
 import { isOdemeHesabi } from '@/lib/account-sections'
 import ProjectSelect from '@/components/projects/ProjectSelect'
+import TrNumberInput from '@/components/ui/TrNumberInput'
+import { looseToTrInputString, parseTrNumberInput } from '@/lib/tr-number-input'
 
 interface Product {
   id: string
@@ -62,7 +64,7 @@ function SaleEntryForm() {
     order_no: '',
     status: 'Bekliyor',
     description: '',
-    collected_amount: 0,
+    collected_amount: '',
     collection_account_id: '',
     currency: 'TRY',
     project_id: '',
@@ -122,9 +124,14 @@ function SaleEntryForm() {
     setItems(newItems)
   }
 
-  const handleItemChange = (index: number, field: string, value: any) => {
+  const handleItemChange = (index: number, field: string, value: string | number) => {
     const newItems = [...items]
-    newItems[index][field] = value
+    if (field === 'quantity' || field === 'unit_price') {
+      const n = parseTrNumberInput(String(value))
+      newItems[index][field] = Number.isFinite(n) ? n : 0
+    } else {
+      newItems[index][field] = value
+    }
 
     if (field === 'product_id') {
       const product = products.find(p => p.id === value)
@@ -165,9 +172,11 @@ function SaleEntryForm() {
 
     setSaving(true)
 
+    const collectedNum = parseTrNumberInput(formData.collected_amount)
     if (
       customerId &&
-      formData.collected_amount > 0 &&
+      Number.isFinite(collectedNum) &&
+      collectedNum > 0 &&
       !formData.collection_account_id
     ) {
       toast.error('Tahsilat için paranın yatırılacağı kasa veya banka hesabını seçin')
@@ -177,6 +186,7 @@ function SaleEntryForm() {
 
     const payload = {
       ...formData,
+      collected_amount: Number.isFinite(collectedNum) ? collectedNum : 0,
       customer_id: customerId || null,
       total_amount: calculateTotal(),
       collection_account_id: formData.collection_account_id || undefined,
@@ -241,16 +251,19 @@ function SaleEntryForm() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Tahsil Edilen Tutar ({getCurrencySymbol()})</label>
-                <input type="number" step="0.01" value={formData.collected_amount} onChange={(e) => {
-                  const v = parseFloat(e.target.value) || 0
-                  setFormData(prev => ({
-                    ...prev,
-                    collected_amount: v,
-                    collection_account_id: v > 0 ? prev.collection_account_id : ''
-                  }))
-                }} className="w-full px-3 py-2 border border-green-300 bg-green-50 rounded-lg font-bold text-green-700" />
+                <TrNumberInput
+                  value={formData.collected_amount}
+                  onChange={(v) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      collected_amount: v,
+                      collection_account_id: parseTrNumberInput(v) > 0 ? prev.collection_account_id : '',
+                    }))
+                  }
+                  className="w-full px-3 py-2 border border-green-300 bg-green-50 rounded-lg font-bold text-green-700"
+                />
               </div>
-              {customerId && formData.collected_amount > 0 && (
+              {customerId && parseTrNumberInput(formData.collected_amount) > 0 && (
                 <div className="md:col-span-3">
                   <label className="block text-sm font-medium text-gray-700 mb-1">Tahsilatın yatırılacağı hesap *</label>
                   <select
@@ -322,8 +335,20 @@ function SaleEntryForm() {
                             {warehouses.map(w => <option key={w.id} value={w.id}>{w.name} ({getAvailableStock(item.product_id, w.id)} {unit})</option>)}
                           </select>
                         </td>
-                        <td className="px-4 py-2"><input type="number" step="0.01" value={item.quantity} onChange={(e) => handleItemChange(index, 'quantity', parseFloat(e.target.value) || 0)} className="w-full px-2 py-1.5 border border-gray-300 rounded text-sm text-center" /></td>
-                        <td className="px-4 py-2"><input type="number" step="0.01" value={item.unit_price} onChange={(e) => handleItemChange(index, 'unit_price', parseFloat(e.target.value) || 0)} className="w-full px-2 py-1.5 border border-gray-300 rounded text-sm text-center" /></td>
+                        <td className="px-4 py-2">
+                          <TrNumberInput
+                            value={looseToTrInputString(item.quantity)}
+                            onChange={(v) => handleItemChange(index, 'quantity', v)}
+                            className="w-full px-2 py-1.5 border border-gray-300 rounded text-sm text-center"
+                          />
+                        </td>
+                        <td className="px-4 py-2">
+                          <TrNumberInput
+                            value={looseToTrInputString(item.unit_price)}
+                            onChange={(v) => handleItemChange(index, 'unit_price', v)}
+                            className="w-full px-2 py-1.5 border border-gray-300 rounded text-sm text-center"
+                          />
+                        </td>
                         <td className="px-4 py-2 text-right font-bold">{calculateRowTotal(item).toLocaleString('tr-TR')} {getCurrencySymbol()}</td>
                         <td className="px-4 py-2 text-center"><button type="button" onClick={() => removeItem(index)} className="text-red-500"><Trash2 className="h-4 w-4" /></button></td>
                       </tr>

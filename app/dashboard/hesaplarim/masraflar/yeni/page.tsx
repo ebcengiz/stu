@@ -10,6 +10,8 @@ import type { MasrafGroup } from '@/lib/masraf-kalemleri'
 import { KDV_ORAN_OPTIONS, MASRAF_GROUPS } from '@/lib/masraf-kalemleri'
 import { formatAccountBalance } from '@/lib/account-sections'
 import ProjectSelect from '@/components/projects/ProjectSelect'
+import TrNumberInput from '@/components/ui/TrNumberInput'
+import { looseToTrInputString, parseTrNumberInput } from '@/lib/tr-number-input'
 
 const PAYMENT_STATUS_OPTIONS = [
   { value: 'later', label: 'Daha sonra ödenecek' },
@@ -137,9 +139,7 @@ function YeniMasrafForm() {
         setDescription(row.description ?? '')
         setPaymentStatus(String(row.payment_status ?? 'later'))
         setPaymentDate(String(row.payment_date ?? '').slice(0, 10) || paymentDate)
-        setAmountGross(
-          row.amount_gross != null ? String(row.amount_gross).replace('.', ',') : ''
-        )
+        setAmountGross(looseToTrInputString(row.amount_gross))
         setVatRate(row.vat_rate != null && row.vat_rate !== '' ? String(row.vat_rate) : '0')
         setRecurring(Boolean(row.recurring))
         setCurrency(String(row.currency || 'TRY'))
@@ -176,7 +176,7 @@ function YeniMasrafForm() {
       toast.error('Masraf kalemi seçin')
       return
     }
-    const amt = parseFloat(String(amountGross).replace(',', '.'))
+    const amt = parseTrNumberInput(amountGross)
     if (Number.isNaN(amt) || amt <= 0) {
       toast.error('Geçerli bir tutar girin')
       return
@@ -451,11 +451,9 @@ function YeniMasrafForm() {
               <div>
                 <label className="mb-1 block text-xs font-black text-gray-800">Tutar (KDV dahil)</label>
                 <div className="flex overflow-hidden rounded-lg border border-gray-200 focus-within:ring-2 focus-within:ring-emerald-500/30">
-                  <input
-                    type="text"
-                    inputMode="decimal"
+                  <TrNumberInput
                     value={amountGross}
-                    onChange={(e) => setAmountGross(e.target.value)}
+                    onChange={setAmountGross}
                     className="min-w-0 flex-1 border-0 px-3 py-2 text-sm font-semibold text-gray-900 outline-none"
                     placeholder="0,00"
                   />
