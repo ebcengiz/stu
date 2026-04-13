@@ -10,8 +10,10 @@ import {
   X,
   Check,
 } from 'lucide-react'
+import Link from 'next/link'
 import { toast } from 'react-hot-toast'
 import { accountTypeLabel, isOdemeHesabi } from '@/lib/account-sections'
+import type { MasrafGroup } from '@/lib/masraf-kalemleri'
 
 type CheckStatus =
   | 'portfolio'
@@ -166,8 +168,9 @@ export default function CekPortfoyuPage() {
 
   const [facTl, setFacTl] = useState('')
   const [facExpense, setFacExpense] = useState('')
-  const [facExpenseAcc, setFacExpenseAcc] = useState('')
+  const [facExpenseItemKey, setFacExpenseItemKey] = useState('')
   const [facNotes, setFacNotes] = useState('')
+  const [masrafGroups, setMasrafGroups] = useState<MasrafGroup[]>([])
   const [facDate, setFacDate] = useState(() => new Date().toISOString().slice(0, 10))
 
   const load = useCallback(async () => {
@@ -201,6 +204,19 @@ export default function CekPortfoyuPage() {
         if (!res.ok) return
         const data = await res.json()
         setAccounts(Array.isArray(data) ? data.filter((a: CashAccount) => a.is_active !== false) : [])
+      } catch {
+        /* ignore */
+      }
+    })()
+  }, [])
+
+  useEffect(() => {
+    void (async () => {
+      try {
+        const res = await fetch('/api/expense-items')
+        if (!res.ok) return
+        const j = await res.json().catch(() => ({}))
+        if (Array.isArray(j.groups)) setMasrafGroups(j.groups)
       } catch {
         /* ignore */
       }
@@ -285,7 +301,7 @@ export default function CekPortfoyuPage() {
     setActiveCheck(c)
     setFacTl(String(c.amount))
     setFacExpense('')
-    setFacExpenseAcc('')
+    setFacExpenseItemKey('')
     setFacNotes('')
     setFacDate(new Date().toISOString().slice(0, 10))
     setCollectAccountId('')
@@ -355,6 +371,12 @@ export default function CekPortfoyuPage() {
       toast.error('Geçerli TL karşılığı girin')
       return
     }
+    const expParsed = facExpense ? parseFloat(facExpense.replace(',', '.')) : 0
+    const expenseAmt = Number.isFinite(expParsed) && expParsed > 0 ? expParsed : 0
+    if (expenseAmt > 0 && !facExpenseItemKey.trim()) {
+      toast.error('Masraf kesintisi için masraf kalemi seçin')
+      return
+    }
     try {
       const res = await fetch(`/api/portfolio-checks/${activeCheck.id}`, {
         method: 'PATCH',
@@ -364,8 +386,8 @@ export default function CekPortfoyuPage() {
           collection_account_id: collectAccountId,
           collection_date: facDate,
           factoring_tl_amount: tl,
-          factoring_expense: facExpense ? parseFloat(facExpense.replace(',', '.')) : 0,
-          factoring_expense_account_id: facExpenseAcc || null,
+          factoring_expense: expenseAmt,
+          factoring_expense_item_key: expenseAmt > 0 ? facExpenseItemKey.trim() : null,
           factoring_notes: facNotes || null,
         }),
       })
@@ -1007,19 +1029,33 @@ export default function CekPortfoyuPage() {
                 />
               </div>
               <div>
-                <label className="text-xs font-semibold text-slate-700">Masraf / gider hesabı (isteğe bağlı)</label>
+                <label className="text-xs font-semibold text-slate-700">Masraf kalemi (kesinti varsa)</label>
                 <select
-                  value={facExpenseAcc}
-                  onChange={(e) => setFacExpenseAcc(e.target.value)}
+                  value={facExpenseItemKey}
+                  onChange={(e) => setFacExpenseItemKey(e.target.value)}
                   className="mt-1 w-full rounded border border-slate-200 px-3 py-2 text-sm"
                 >
                   <option value="">—</option>
-                  {tryAccounts.map((a) => (
-                    <option key={a.id} value={a.id}>
-                      {a.name} ({accountTypeLabel(a.type)})
-                    </option>
+                  {masrafGroups.map((g) => (
+                    <optgroup key={g.group} label={g.group}>
+                      {g.items.map((m) => (
+                        <option key={m.value} value={m.value}>
+                          {m.label}
+                        </option>
+                      ))}
+                    </optgroup>
                   ))}
                 </select>
+                <Link
+                  href="/dashboard/hesaplarim/masraflar/kalemleri"
+                  className="mt-1 inline-block text-xs font-medium text-teal-700 hover:text-teal-900 hover:underline"
+                >
+                  Masraf kalemlerini düzenle
+                </Link>
+                <p className="mt-1 text-[11px] leading-snug text-slate-500">
+                  Kesinti tutarı girildiğinde kalem seçmeniz gerekir; kayıt Genel Masraflar listesine düşer (tutar zaten net
+                  tahsilata yansır).
+                </p>
               </div>
               <div>
                 <label className="text-xs font-semibold text-slate-700">Paranın yatacağı kasa / banka *</label>
