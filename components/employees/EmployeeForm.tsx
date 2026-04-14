@@ -362,7 +362,7 @@ export default function EmployeeForm({ employeeId }: { employeeId?: string }) {
                   {form.photo_url ? (
                     <img src={form.photo_url} alt="" className="w-full h-full object-cover" />
                   ) : (
-                    <ImageIcon className="h-12 w-12 text-gray-300" />
+                    <ImageIcon className="h-12 w-12 text-gray-500" />
                   )}
                 </div>
                 <label className="mt-3">

@@ -156,7 +156,7 @@ export default function ProjeDetayPage() {
   }
 
   if (loading) {
-    return <p className="text-sm text-slate-500">Yükleniyor…</p>
+    return <p className="text-sm text-gray-400">Yükleniyor…</p>
   }
 
   if (loadError || !project) {
@@ -183,7 +183,7 @@ export default function ProjeDetayPage() {
     <div className="mx-auto w-full min-w-0 max-w-full space-y-4 overflow-x-hidden pb-4">
       <Link
         href="/dashboard/hesaplarim/projeler"
-        className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-600 hover:text-emerald-700"
+        className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-emerald-700"
       >
         <ArrowLeft className="h-4 w-4" />
         Projelere dön
@@ -194,13 +194,13 @@ export default function ProjeDetayPage() {
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h1 className="text-sm font-bold uppercase tracking-wide text-white sm:text-base">{project.name}</h1>
             {!project.is_active && (
-              <span className="shrink-0 rounded bg-white/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white/95">
+              <span className="shrink-0 rounded bg-gray-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white/95">
                 Kapalı
               </span>
             )}
           </div>
         </div>
-        <div className="p-4 text-sm text-slate-800">
+        <div className="p-4 text-sm text-gray-800">
           <p className="whitespace-pre-wrap">{project.description?.trim() || '—'}</p>
         </div>
       </div>
@@ -244,7 +244,7 @@ export default function ProjeDetayPage() {
         )}
         <Link
           href={`/dashboard/hesaplarim/projeler/${id}/notlar`}
-          className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-slate-800 px-3 py-2 text-xs font-semibold text-white shadow-sm hover:bg-slate-900"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-white shadow-sm hover:bg-[#f0f5f2]"
         >
           <StickyNote className="h-3.5 w-3.5" />
           Notlar
@@ -294,12 +294,12 @@ export default function ProjeDetayPage() {
             <p className="text-lg font-bold text-emerald-950">{formatMoney(totals?.sales ?? 0, 'TRY')}</p>
           </div>
         </div>
-        <div className="flex items-center gap-3 rounded-xl border border-slate-300 bg-slate-800 px-4 py-4 shadow-sm text-white">
-          <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-white/10">
+        <div className="flex items-center gap-3 rounded-xl border border-gray-200 bg-white px-4 py-4 shadow-sm text-white">
+          <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-gray-50">
             <MinusCircle className="h-6 w-6" />
           </div>
           <div>
-            <p className="text-xs font-semibold uppercase text-slate-200">Ödemeler (cari)</p>
+            <p className="text-xs font-semibold uppercase text-gray-700">Ödemeler (cari)</p>
             <p className="text-lg font-bold">{formatMoney(payTotal, 'TRY')}</p>
           </div>
         </div>
@@ -313,9 +313,9 @@ export default function ProjeDetayPage() {
             <ul className="divide-y divide-amber-100 text-sm">
               {expenses.map((r) => (
                 <li key={String(r.id)} className="flex flex-wrap justify-between gap-2 py-2">
-                  <span className="text-slate-700">{formatDate(String(r.transaction_date))}</span>
-                  <span className="font-semibold text-slate-900">{formatMoney(r.amount_gross as number, String(r.currency))}</span>
-                  <span className="w-full text-xs text-slate-500">{(r.description as string) || '—'}</span>
+                  <span className="text-gray-600">{formatDate(String(r.transaction_date))}</span>
+                  <span className="font-semibold text-gray-900">{formatMoney(r.amount_gross as number, String(r.currency))}</span>
+                  <span className="w-full text-xs text-gray-400">{(r.description as string) || '—'}</span>
                 </li>
               ))}
             </ul>
@@ -331,7 +331,7 @@ export default function ProjeDetayPage() {
                 <li key={String(r.id)} className="flex flex-wrap justify-between gap-2 py-2">
                   <span>{formatDate(String(r.sale_date))}</span>
                   <span className="font-semibold">{formatMoney(r.total_amount as number, String(r.currency))}</span>
-                  <span className="w-full text-xs text-slate-500">
+                  <span className="w-full text-xs text-gray-400">
                     Belge: {(r.document_no as string) || '—'} · {(r.description as string)?.trim() || ''}
                   </span>
                 </li>
@@ -349,7 +349,7 @@ export default function ProjeDetayPage() {
                 <li key={String(r.id)} className="flex flex-wrap justify-between gap-2 py-2">
                   <span>{formatDate(String(r.purchase_date))}</span>
                   <span className="font-semibold">{formatMoney(r.total_amount as number, String(r.currency))}</span>
-                  <span className="w-full text-xs text-slate-500">
+                  <span className="w-full text-xs text-gray-400">
                     Belge: {(r.document_no as string) || '—'} · {(r.description as string)?.trim() || ''}
                   </span>
                 </li>
@@ -366,13 +366,13 @@ export default function ProjeDetayPage() {
               {cari.map((r) => (
                 <li key={`${r.source}-${String(r.id)}`} className="py-2">
                   <div className="flex flex-wrap justify-between gap-2">
-                    <span className="text-slate-600">{formatDate(String(r.transaction_date))}</span>
-                    <span className="font-semibold text-slate-900">{formatMoney(r.amount as number, String(r.currency))}</span>
+                    <span className="text-gray-500">{formatDate(String(r.transaction_date))}</span>
+                    <span className="font-semibold text-gray-900">{formatMoney(r.amount as number, String(r.currency))}</span>
                   </div>
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-gray-400">
                     {String(r.source) === 'customer' ? 'Müşteri' : 'Tedarikçi'}: {String(r.party)} · {String(r.type)}
                   </p>
-                  <p className="text-xs text-slate-600">{(r.description as string) || '—'}</p>
+                  <p className="text-xs text-gray-500">{(r.description as string) || '—'}</p>
                 </li>
               ))}
             </ul>
@@ -380,7 +380,7 @@ export default function ProjeDetayPage() {
         </Panel>
       </div>
 
-      <p className="text-xs text-slate-400">{new Date().getFullYear()} © Mikro Muhasebe</p>
+      <p className="text-xs text-gray-500">{new Date().getFullYear()} © Mikro Muhasebe</p>
 
       <ProjectModal
         open={modalOpen}
@@ -408,7 +408,7 @@ export default function ProjeDetayPage() {
               </h2>
               <button
                 type="button"
-                className="rounded-md p-1 text-white transition hover:bg-white/15"
+                className="rounded-md p-1 text-white transition hover:bg-gray-100"
                 aria-label="Kapat"
                 onClick={() => setDeleteConfirmOpen(false)}
               >
@@ -422,7 +422,7 @@ export default function ProjeDetayPage() {
                 projeye ait eski hareketler (alışlar, masraflar vs) silinmeyecektir. Bunları silmek istiyorsanız ilgili
                 hareketleri ayrıca silin.
               </div>
-              <p className="text-base font-semibold text-slate-900">Proje silme işlemini onaylıyor musunuz?</p>
+              <p className="text-base font-semibold text-gray-900">Proje silme işlemini onaylıyor musunuz?</p>
               <div className="flex flex-wrap justify-end gap-2 pt-1">
                 <button
                   type="button"
@@ -466,7 +466,7 @@ export default function ProjeDetayPage() {
               </h2>
               <button
                 type="button"
-                className="rounded-md p-1 text-white transition hover:bg-white/15"
+                className="rounded-md p-1 text-white transition hover:bg-gray-100"
                 aria-label="Kapat"
                 onClick={() => setCloseConfirmOpen(false)}
               >
@@ -478,7 +478,7 @@ export default function ProjeDetayPage() {
                 Kapattığınız proje masraf, alış ve satış ekranlarında artık seçilemez ve listelerde varsayılan
                 görünümde yer almaz. Kapalı bir projeyi istediğiniz zaman bu sayfadan tekrar açabilirsiniz.
               </div>
-              <p className="text-base font-semibold text-slate-900">Proje kapatmayı onaylıyor musunuz?</p>
+              <p className="text-base font-semibold text-gray-900">Proje kapatmayı onaylıyor musunuz?</p>
               <div className="flex flex-wrap justify-end gap-2 pt-1">
                 <button
                   type="button"
@@ -524,7 +524,7 @@ function Panel({
       <button
         type="button"
         onClick={onToggle}
-        className="flex w-full items-center justify-between border-b border-gray-100 bg-slate-800 px-3 py-2 text-left"
+        className="flex w-full items-center justify-between border-b border-gray-100 bg-white px-3 py-2 text-left"
       >
         <span className="text-xs font-bold uppercase tracking-wide text-white">{title}</span>
         <ChevronDown className={`h-4 w-4 text-white transition-transform ${open ? 'rotate-180' : ''}`} />

@@ -230,7 +230,7 @@ function YeniMasrafForm() {
     <div className="mx-auto w-full min-w-0 max-w-full space-y-4 overflow-x-hidden pb-4">
       <form onSubmit={handleSave} className="space-y-4">
         <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
-          <h1 className="text-xl font-bold tracking-tight text-slate-900">
+          <h1 className="text-xl font-bold tracking-tight text-gray-900">
             {editId ? 'Masraf düzenle' : 'Yeni masraf'}
           </h1>
           <div className="flex flex-wrap gap-3">
@@ -244,7 +244,7 @@ function YeniMasrafForm() {
           </Button>
           <Link
             href="/dashboard/hesaplarim/masraflar"
-            className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50"
+            className="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-600 shadow-sm transition hover:bg-gray-50"
           >
             <Undo2 className="h-4 w-4" />
             Geri Dön
@@ -255,7 +255,7 @@ function YeniMasrafForm() {
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:items-start">
           {/* HESAP KALEMİ */}
           <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-md">
-            <div className="bg-blue-700 px-3 py-2 text-xs font-black uppercase tracking-wide text-white">
+            <div className="bg-primary-700 px-3 py-2 text-xs font-black uppercase tracking-wide text-white">
               Hesap kalemi
             </div>
             <div className="space-y-3 p-4">
@@ -486,14 +486,14 @@ function YeniMasrafForm() {
         </div>
       </form>
 
-      <p className="text-xs text-slate-400">{new Date().getFullYear()} © Mikro Muhasebe</p>
+      <p className="text-xs text-gray-500">{new Date().getFullYear()} © Mikro Muhasebe</p>
     </div>
   )
 }
 
 export default function YeniMasrafPage() {
   return (
-    <Suspense fallback={<div className="p-4 text-center text-sm text-slate-500">Yükleniyor…</div>}>
+    <Suspense fallback={<div className="p-4 text-center text-sm text-gray-400">Yükleniyor…</div>}>
       <YeniMasrafForm />
     </Suspense>
   )

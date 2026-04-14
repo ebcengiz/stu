@@ -107,7 +107,7 @@ export default function FixedAssetModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-3" onClick={onClose}>
       <div
-        className="flex max-h-[min(90vh,640px)] w-full max-w-lg flex-col overflow-hidden rounded-lg border border-slate-200 bg-white shadow-xl"
+        className="flex max-h-[min(90vh,640px)] w-full max-w-lg flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-xl"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
@@ -195,7 +195,7 @@ export default function FixedAssetModal({
             </div>
           </div>
 
-          <div className="flex justify-end gap-2 border-t border-slate-100 bg-slate-50/80 px-4 py-3">
+          <div className="flex justify-end gap-2 border-t border-gray-100 bg-slate-50/80 px-4 py-3">
             <button
               type="button"
               onClick={onClose}

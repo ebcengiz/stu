@@ -126,7 +126,7 @@ export default function OfferDetailPage() {
         <div className="flex flex-wrap gap-2">
           {offer.status === 'Beklemede' && (
             <>
-              <Button onClick={() => router.push(`/dashboard/teklifler/duzenle/${offer.id}`)} variant="outline" className="text-blue-600 border-blue-200 hover:bg-blue-50">
+              <Button onClick={() => router.push(`/dashboard/teklifler/duzenle/${offer.id}`)} variant="outline" className="text-primary-600 border-primary-200 hover:bg-primary-50">
                 Teklifi Düzenle
               </Button>
               <Button onClick={handleApprove} disabled={approving} className="bg-green-600 hover:bg-green-700">

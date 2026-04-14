@@ -15,7 +15,7 @@ import { looseToTrInputString, parseTrNumberInput } from '@/lib/tr-number-input'
 // Dynamically import LocationPicker to avoid SSR issues with Leaflet
 const LocationPicker = dynamic(() => import('@/components/warehouse/LocationPicker'), {
   ssr: false,
-  loading: () => <div className="h-64 bg-gray-100 rounded flex items-center justify-center">Harita yükleniyor...</div>
+  loading: () => <div className="h-64 bg-gray-50 rounded-xl flex items-center justify-center text-gray-500">Harita yükleniyor...</div>
 })
 
 interface Category {
@@ -192,7 +192,7 @@ function ProductsPageContent() {
   }
 
   const getSortIcon = (key: keyof Product) => {
-    if (!sortConfig || sortConfig.key !== key) return <ArrowUpDown className="h-3 w-3 ml-1 text-gray-400" />
+    if (!sortConfig || sortConfig.key !== key) return <ArrowUpDown className="h-3 w-3 ml-1 text-gray-500" />
     return sortConfig.direction === 'asc' ? <ArrowUp className="h-3 w-3 ml-1 text-primary-600" /> : <ArrowDown className="h-3 w-3 ml-1 text-primary-600" />
   }
 
@@ -397,45 +397,45 @@ function ProductsPageContent() {
     })
   }, [filteredProducts, sortConfig])
 
-  if (loading && products.length === 0) return <div className="p-8">Yükleniyor...</div>
+  if (loading && products.length === 0) return <div className="p-8 text-gray-500">Yükleniyor...</div>
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 font-black">Ürünler</h1>
-          <p className="mt-2 text-gray-600">Ürünlerinizi yönetin ve stok takibi yapın</p>
+          <h1 className="text-3xl font-bold text-gray-800">Ürünler</h1>
+          <p className="mt-2 text-gray-500">Ürünlerinizi yönetin ve stok takibi yapın</p>
         </div>
-        <Button onClick={openNewModal} className="h-12 px-6 rounded-xl font-bold shadow-lg shadow-primary-100"><Plus className="mr-2 h-5 w-5" />Yeni Ürün</Button>
+        <Button onClick={openNewModal} className="h-12 px-6 rounded-xl font-bold"><Plus className="mr-2 h-5 w-5" />Yeni Ürün</Button>
       </div>
 
-      <Card className="border-0 shadow-xl shadow-gray-100/50 rounded-3xl overflow-hidden">
-        <CardHeader className="bg-gray-50/50 border-b border-gray-100">
+      <Card className="rounded-2xl overflow-hidden">
+        <CardHeader className="bg-gray-50/50">
           <div className="flex flex-col gap-4">
             <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
-              <CardTitle className="text-lg font-black text-gray-800 uppercase tracking-widest">Ürün Listesi</CardTitle>
+              <CardTitle className="text-lg font-bold text-gray-700 uppercase tracking-widest">Ürün Listesi</CardTitle>
               <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                 <div className="relative flex-grow sm:flex-grow-0">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                  <input type="text" placeholder="Ürün ara..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full sm:w-64 pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-primary-500 outline-none transition-all" />
+                  <input type="text" placeholder="Ürün ara..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full sm:w-64 pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-700 focus:ring-2 focus:ring-primary-500/30 outline-none transition-all" />
                 </div>
                 <div className="flex gap-2">
-                  <Button type="button" variant="outline" onClick={() => setShowFilters(!showFilters)} className={`h-10 px-4 rounded-xl flex items-center gap-2 font-bold transition-all ${showFilters || categoryFilter || warehouseFilter || stockFilter === 'low-stock' ? 'border-primary-500 text-primary-700 bg-primary-50' : 'border-gray-200 text-gray-600'}`}><Filter className="h-4 w-4" /><span className="hidden sm:inline">Filtrele</span></Button>
-                  <Button type="button" variant="outline" onClick={() => setShowBarcodeScanner(true)} className="h-10 px-4 rounded-xl flex items-center gap-2 font-bold border-gray-200 text-gray-600"><ScanBarcode className="h-4 w-4" /><span className="hidden sm:inline">Barkod</span></Button>
+                  <Button type="button" variant="outline" onClick={() => setShowFilters(!showFilters)} className={`h-10 px-4 rounded-xl flex items-center gap-2 font-bold transition-all ${showFilters || categoryFilter || warehouseFilter || stockFilter === 'low-stock' ? 'border-primary-400 text-primary-700 bg-primary-50/50' : ''}`}><Filter className="h-4 w-4" /><span className="hidden sm:inline">Filtrele</span></Button>
+                  <Button type="button" variant="outline" onClick={() => setShowBarcodeScanner(true)} className="h-10 px-4 rounded-xl flex items-center gap-2 font-bold"><ScanBarcode className="h-4 w-4" /><span className="hidden sm:inline">Barkod</span></Button>
                 </div>
               </div>
             </div>
             {showFilters && (
-              <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-inner grid grid-cols-1 sm:grid-cols-3 gap-6 animate-in slide-in-from-top-2 duration-200">
+              <div className="bg-gray-50 p-5 rounded-2xl border border-gray-100 grid grid-cols-1 sm:grid-cols-3 gap-6 animate-in slide-in-from-top-2 duration-200">
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Kategori</label>
-                  <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)} className="w-full bg-gray-50 border-none rounded-xl py-2.5 px-3 text-[11px] font-semibold text-gray-700 focus:ring-2 focus:ring-primary-500 transition-all">
+                  <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)} className="w-full bg-gray-50 border border-gray-200 rounded-xl py-2.5 px-3 text-sm text-gray-700 focus:ring-2 focus:ring-primary-500/30 transition-all">
                     <option value="">Tüm Kategoriler</option>
                     {categories.map((c) => (<option key={c.id} value={c.id}>{c.name}</option>))}
                   </select>
                 </div>
-                <div className="space-y-1.5"><label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Depo</label><select value={warehouseFilter} onChange={(e) => setWarehouseFilter(e.target.value)} className="w-full bg-gray-50 border-none rounded-xl py-2.5 px-3 text-sm font-bold text-gray-700 focus:ring-2 focus:ring-primary-500"><option value="">Tüm Depolar</option>{warehouses.map((w) => (<option key={w.id} value={w.id}>{w.name}</option>))}</select></div>
-                <div className="space-y-1.5"><label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Durum</label><label className={`flex items-center justify-between w-full bg-gray-50 rounded-xl py-2.5 px-4 text-sm font-bold cursor-pointer transition-all ${stockFilter === 'low-stock' ? 'bg-red-50 text-red-700 ring-2 ring-red-200' : 'text-gray-600 hover:bg-gray-100'}`}><span>Düşük Stok</span><input type="checkbox" checked={stockFilter === 'low-stock'} onChange={(e) => setStockFilter(e.target.checked ? 'low-stock' : 'all')} className="h-4 w-4 rounded-full border-gray-300 text-red-600 focus:ring-red-500" /></label></div>
+                <div className="space-y-1.5"><label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Depo</label><select value={warehouseFilter} onChange={(e) => setWarehouseFilter(e.target.value)} className="w-full bg-gray-50 border border-gray-200 rounded-xl py-2.5 px-3 text-sm text-gray-700 focus:ring-2 focus:ring-primary-500/30"><option value="">Tüm Depolar</option>{warehouses.map((w) => (<option key={w.id} value={w.id}>{w.name}</option>))}</select></div>
+                <div className="space-y-1.5"><label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Durum</label><label className={`flex items-center justify-between w-full bg-gray-50 rounded-xl py-2.5 px-4 text-sm font-bold cursor-pointer transition-all ${stockFilter === 'low-stock' ? 'bg-red-50 text-red-500 ring-2 ring-red-200' : 'text-gray-500 hover:bg-gray-100'}`}><span>Düşük Stok</span><input type="checkbox" checked={stockFilter === 'low-stock'} onChange={(e) => setStockFilter(e.target.checked ? 'low-stock' : 'all')} className="h-4 w-4 rounded-full border-gray-200 text-red-600 focus:ring-red-200 bg-gray-100" /></label></div>
               </div>
             )}
           </div>
@@ -459,32 +459,32 @@ function ProductsPageContent() {
                   <th className="px-6 py-4 text-right text-[10px] font-black text-gray-400 uppercase tracking-wider min-w-[100px]">İşlemler</th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-50">
+              <tbody className="divide-y divide-gray-100">
                 {sortedProducts.length > 0 ? (
                   sortedProducts.map((product) => {
                     const totalStock = calculateTotalStock(product.stock)
                     const isLow = totalStock <= product.min_stock_level
                     const symbol = CURRENCY_SYMBOLS[product.currency || 'TRY'] || product.currency || '₺'
                     return (
-                      <tr key={product.id} className={`group transition-colors ${isLow ? 'bg-red-50/30 hover:bg-red-50/50' : 'hover:bg-gray-50/80'}`}>
+                      <tr key={product.id} className={`group transition-colors ${isLow ? 'bg-red-50/30 hover:bg-red-50/50' : 'hover:bg-gray-50'}`}>
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-4 min-w-[200px]">
-                            <div className="h-12 w-12 rounded-xl bg-gray-100 flex-shrink-0 overflow-hidden border border-gray-100 group-hover:border-primary-200 transition-all shadow-sm">
+                            <div className="h-12 w-12 rounded-xl bg-gray-50 flex-shrink-0 overflow-hidden border border-gray-100 group-hover:border-primary-300 transition-all">
                               {product.image_url ? (
                                 <img src={product.image_url} alt={product.name} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" />
                               ) : (
-                                <div className="h-full w-full flex items-center justify-center text-gray-300">
+                                <div className="h-full w-full flex items-center justify-center text-gray-500">
                                   <ImageIcon className="h-6 w-6" />
                                 </div>
                               )}
                             </div>
-                            <div className="text-sm font-bold text-gray-900 group-hover:text-primary-600 transition-colors leading-tight">{product.name}</div>
+                            <div className="text-sm font-bold text-gray-700 group-hover:text-primary-700 transition-colors leading-tight">{product.name}</div>
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-500 bg-gray-50/50 group-hover:bg-white transition-colors">{product.sku || '---'}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-400">{product.sku || '---'}</td>
                         <td className="px-6 py-4">
                           <div className="min-w-[120px]">
-                            <span className="px-3 py-1 rounded-lg bg-gray-100 text-gray-600 text-[10px] font-black uppercase tracking-wider inline-block text-center leading-tight">
+                            <span className="px-3 py-1 rounded-lg bg-gray-50 text-gray-500 text-[10px] font-black uppercase tracking-wider inline-block text-center leading-tight">
                               {product.categories?.name || 'Genel'}
                             </span>
                           </div>
@@ -495,15 +495,15 @@ function ProductsPageContent() {
                             {product.purchase_price && (<span className="text-[10px] font-bold text-gray-400">Maliyet: {symbol}{Number(product.purchase_price).toLocaleString('tr-TR', { minimumFractionDigits: 2 })}</span>)}
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-center"><div className="flex flex-col gap-1"><span className="text-[10px] font-black text-blue-500 bg-blue-50 px-2 py-0.5 rounded-md">% {product.tax_rate || 0} KDV</span><span className="text-[10px] font-black text-orange-500 bg-orange-50 px-2 py-0.5 rounded-md">% {product.discount_rate || 0} İSK</span></div></td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right"><span className={`text-sm font-black ${isLow ? 'text-red-600' : 'text-gray-900'}`}>{totalStock.toFixed(2)} <span className="text-[10px] text-gray-400 uppercase ml-0.5">{product.unit}</span></span></td>
-                        <td className="px-6 py-4 whitespace-nowrap">{product.is_active ? (<span className={`px-3 py-1 inline-flex text-[10px] font-black uppercase tracking-widest rounded-full ${isLow ? 'bg-red-100 text-red-700 animate-pulse' : 'bg-emerald-100 text-emerald-700'}`}>{isLow ? 'Düşük Stok' : 'Aktif'}</span>) : (<span className="px-3 py-1 inline-flex text-[10px] font-black uppercase tracking-widest rounded-full bg-gray-100 text-gray-500">Pasif</span>)}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium"><div className="flex justify-end gap-2"><button onClick={() => handleEdit(product)} className="p-2 text-blue-500 hover:bg-blue-50 rounded-xl transition-all active:scale-90"><Edit2 className="h-4 w-4" /></button><button onClick={() => handleDelete(product.id)} className="p-2 text-red-500 hover:bg-red-50 rounded-xl transition-all active:scale-90"><Trash2 className="h-4 w-4" /></button></div></td>
+                        <td className="px-6 py-4 whitespace-nowrap text-center"><div className="flex flex-col gap-1"><span className="text-[10px] font-black text-sky-600 bg-sky-50 px-2 py-0.5 rounded-md">% {product.tax_rate || 0} KDV</span><span className="text-[10px] font-black text-amber-600 bg-amber-50 px-2 py-0.5 rounded-md">% {product.discount_rate || 0} İSK</span></div></td>
+                        <td className="px-6 py-4 whitespace-nowrap text-right"><span className={`text-sm font-black ${isLow ? 'text-red-500' : 'text-gray-700'}`}>{totalStock.toFixed(2)} <span className="text-[10px] text-gray-400 uppercase ml-0.5">{product.unit}</span></span></td>
+                        <td className="px-6 py-4 whitespace-nowrap">{product.is_active ? (<span className={`px-3 py-1 inline-flex text-[10px] font-black uppercase tracking-widest rounded-full ${isLow ? 'bg-red-50 text-red-500 animate-pulse' : 'bg-emerald-50 text-emerald-600'}`}>{isLow ? 'Düşük Stok' : 'Aktif'}</span>) : (<span className="px-3 py-1 inline-flex text-[10px] font-black uppercase tracking-widest rounded-full bg-gray-50 text-gray-400">Pasif</span>)}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium"><div className="flex justify-end gap-2"><button onClick={() => handleEdit(product)} className="p-2 text-primary-600 hover:bg-primary-50/50 rounded-xl transition-all active:scale-90"><Edit2 className="h-4 w-4" /></button><button onClick={() => handleDelete(product.id)} className="p-2 text-red-500 hover:bg-red-50/50 rounded-xl transition-all active:scale-90"><Trash2 className="h-4 w-4" /></button></div></td>
                       </tr>
                     )
                   })
                 ) : (
-                  <tr><td colSpan={9} className="px-6 py-20 text-center text-gray-400"><div className="flex flex-col items-center gap-2"><Package className="h-12 w-12 text-gray-200" /><span className="text-sm font-bold uppercase tracking-widest">Aranan kriterlere uygun ürün bulunamadı.</span></div></td></tr>
+                  <tr><td colSpan={9} className="px-6 py-20 text-center text-gray-400"><div className="flex flex-col items-center gap-2"><Package className="h-12 w-12 text-gray-600" /><span className="text-sm font-bold uppercase tracking-widest">Aranan kriterlere uygun ürün bulunamadı.</span></div></td></tr>
                 )}
               </tbody>
             </table>
@@ -513,17 +513,17 @@ function ProductsPageContent() {
 
       {/* Product Add/Edit Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-[8px] flex items-center justify-center z-[9999] p-4 animate-in fade-in duration-300">
-          <div className="bg-white rounded-[2rem] shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden border-0 animate-in zoom-in-95 duration-200">
-            <div className="px-8 py-6 border-b flex justify-between items-center bg-gray-50/50">
+        <div className="fixed inset-0 bg-black/30  flex items-center justify-center z-[9999] p-4 animate-in fade-in duration-300">
+          <div className="bg-white  rounded-2xl shadow-xl shadow-gray-200/50 w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden border border-gray-200 animate-in zoom-in-95 duration-200">
+            <div className="px-8 py-6 border-b border-gray-200 flex justify-between items-center">
               <div className="flex items-center gap-4">
-                <div className="p-3 bg-white rounded-2xl shadow-sm border border-gray-100"><Package className="h-6 w-6 text-primary-500" /></div>
+                <div className="p-3 bg-primary-50 rounded-2xl border border-primary-200"><Package className="h-6 w-6 text-primary-600" /></div>
                 <div>
-                  <h2 className="text-xl font-black text-gray-800 uppercase tracking-widest">{editingProduct ? 'Ürünü Düzenle' : 'Yeni Ürün Ekle'}</h2>
+                  <h2 className="text-xl font-bold text-gray-800">{editingProduct ? 'Ürünü Düzenle' : 'Yeni Ürün Ekle'}</h2>
                   <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mt-0.5">Lütfen ürün detaylarını eksiksiz doldurunuz</p>
                 </div>
               </div>
-              <button onClick={() => setShowModal(false)} className="p-3 hover:bg-gray-200 rounded-full transition-all active:scale-90"><X className="h-6 w-6 text-gray-400" /></button>
+              <button onClick={() => setShowModal(false)} className="p-3 hover:bg-gray-50 rounded-full transition-all active:scale-90"><X className="h-6 w-6 text-gray-500" /></button>
             </div>
             
             <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-8 space-y-8">
@@ -532,26 +532,26 @@ function ProductsPageContent() {
                 <div className="lg:col-span-1 space-y-4">
                   <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Ürün Görseli</label>
                   {formData.image_url ? (
-                    <div className="relative group rounded-3xl overflow-hidden aspect-square border-2 border-gray-100 shadow-inner bg-gray-50">
+                    <div className="relative group rounded-2xl overflow-hidden aspect-square border-2 border-gray-100 bg-gray-50">
                       <img src={formData.image_url} alt="Ürün" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
-                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                        <button type="button" onClick={removeImage} className="bg-white/20 backdrop-blur-md text-white p-4 rounded-full hover:bg-white/40 transition-all active:scale-90"><X className="h-8 w-8" /></button>
+                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <button type="button" onClick={removeImage} className="bg-gray-50 backdrop-blur-md text-white p-4 rounded-full hover:bg-gray-100 transition-all active:scale-90"><X className="h-8 w-8" /></button>
                       </div>
                     </div>
                   ) : (
-                    <label className={`flex flex-col items-center justify-center aspect-square border-4 border-dashed border-gray-100 rounded-3xl cursor-pointer hover:border-primary-400 hover:bg-primary-50/30 transition-all text-center p-10 ${uploading ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''}`}>
+                    <label className={`flex flex-col items-center justify-center aspect-square border-2 border-dashed border-gray-200 rounded-2xl cursor-pointer hover:border-primary-400 hover:bg-primary-50/30 transition-all text-center p-10 ${uploading ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''}`}>
                       <input type="file" className="hidden" accept="image/*" onChange={handleImageUpload} disabled={uploading} />
-                      {uploading ? <Loader2 className="h-12 w-12 text-primary-500 animate-spin" /> : (
+                      {uploading ? <Loader2 className="h-12 w-12 text-primary-600 animate-spin" /> : (
                         <>
-                          <div className="p-6 bg-primary-50 rounded-2xl mb-4 group-hover:scale-110 transition-transform"><UploadCloud className="h-10 w-10 text-primary-500" /></div>
-                          <p className="text-[11px] font-black text-gray-800 uppercase tracking-wider mb-1">Görsel Seç</p>
+                          <div className="p-6 bg-primary-50/50 rounded-2xl mb-4"><UploadCloud className="h-10 w-10 text-primary-600" /></div>
+                          <p className="text-[11px] font-black text-gray-600 uppercase tracking-wider mb-1">Görsel Seç</p>
                           <p className="text-[9px] font-bold text-gray-400 uppercase">Max 5MB</p>
                         </>
                       )}
                     </label>
                   )}
-                  <div className="p-4 bg-amber-50 rounded-2xl border border-amber-100">
-                    <p className="text-[9px] leading-relaxed text-amber-800 font-bold uppercase text-center">* Profesyonel görünüm için beyaz arka plan önerilir.</p>
+                  <div className="p-4 bg-amber-50/50 rounded-2xl border border-amber-200">
+                    <p className="text-[9px] leading-relaxed text-amber-600 font-bold uppercase text-center">* Profesyonel görünüm için beyaz arka plan önerilir.</p>
                   </div>
                 </div>
 
@@ -559,80 +559,80 @@ function ProductsPageContent() {
                 <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
                   <div className="space-y-1.5 md:col-span-2">
                     <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Ürün Adı *</label>
-                    <input type="text" required value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="w-full px-5 py-3.5 border-2 border-gray-100 rounded-2xl focus:border-primary-500 focus:ring-4 focus:ring-primary-50 outline-none font-bold text-gray-900 transition-all" placeholder="Örn: iPhone 15 Pro Max" />
+                    <input type="text" required value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="w-full px-5 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none font-bold text-gray-700 transition-all" placeholder="Örn: iPhone 15 Pro Max" />
                   </div>
                   
                   <div className="space-y-1.5 min-w-0">
                     <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Kategori *</label>
                     <div className="flex gap-2 relative">
                       <div className="relative flex-1 min-w-0">
-                        <select required value={formData.category_id} onChange={(e) => setFormData({ ...formData, category_id: e.target.value })} className="w-full px-4 pr-10 py-3.5 border-2 border-gray-100 rounded-2xl focus:border-primary-500 focus:ring-4 focus:ring-primary-50 outline-none text-[11px] font-semibold text-gray-700 transition-all bg-white shadow-sm appearance-none truncate">
+                        <select required value={formData.category_id} onChange={(e) => setFormData({ ...formData, category_id: e.target.value })} className="w-full px-4 pr-10 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none text-sm text-gray-700 transition-all appearance-none truncate">
                           <option value="">Seçiniz</option>
                           {categories.map((c) => (<option key={c.id} value={c.id}>{c.name}</option>))}
                         </select>
                         <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
                       </div>
-                      <button type="button" onClick={() => setShowNewCategoryModal(true)} className="flex-shrink-0 h-[52px] w-[52px] flex items-center justify-center bg-primary-50 text-primary-600 rounded-2xl hover:bg-primary-100 transition-all active:scale-95 border-2 border-primary-100" title="Yeni Kategori Ekle"><Plus className="h-5 w-5" /></button>
+                      <button type="button" onClick={() => setShowNewCategoryModal(true)} className="flex-shrink-0 h-[52px] w-[52px] flex items-center justify-center bg-primary-50 text-primary-600 rounded-xl hover:bg-primary-100 transition-all active:scale-95 border border-primary-200" title="Yeni Kategori Ekle"><Plus className="h-5 w-5" /></button>
                     </div>
                   </div>
 
                   <div className="space-y-1.5 min-w-0">
                     <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">SKU (Stok Kodu)</label>
-                    <input type="text" value={formData.sku} onChange={(e) => setFormData({ ...formData, sku: e.target.value })} className="w-full px-5 py-3.5 border-2 border-gray-100 rounded-2xl focus:border-primary-500 focus:ring-4 focus:ring-primary-50 outline-none font-bold text-gray-900 transition-all uppercase" placeholder="ABC-123" />
+                    <input type="text" value={formData.sku} onChange={(e) => setFormData({ ...formData, sku: e.target.value })} className="w-full px-5 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none font-bold text-gray-700 transition-all uppercase" placeholder="ABC-123" />
                   </div>
 
                   <div className="space-y-1.5">
                     <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Barkod No</label>
-                    <input type="text" value={formData.barcode} onChange={(e) => setFormData({ ...formData, barcode: e.target.value })} className="w-full px-5 py-3.5 border-2 border-gray-100 rounded-2xl focus:border-primary-500 focus:ring-4 focus:ring-primary-50 outline-none font-bold text-gray-900 transition-all" placeholder="8690000000000" />
+                    <input type="text" value={formData.barcode} onChange={(e) => setFormData({ ...formData, barcode: e.target.value })} className="w-full px-5 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none font-bold text-gray-700 transition-all" placeholder="8690000000000" />
                   </div>
 
                   <div className="space-y-1.5">
                     <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Birim</label>
-                    <select required value={formData.unit} onChange={(e) => setFormData({ ...formData, unit: e.target.value })} className="w-full px-5 py-3.5 border-2 border-gray-100 rounded-2xl focus:border-primary-500 focus:ring-4 focus:ring-primary-50 outline-none font-bold text-gray-900 transition-all bg-white shadow-sm appearance-none"><option value="adet">Adet</option><option value="kg">Kilogram</option><option value="litre">Litre</option><option value="metre">Metre</option><option value="paket">Paket</option></select>
+                    <select required value={formData.unit} onChange={(e) => setFormData({ ...formData, unit: e.target.value })} className="w-full px-5 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none font-bold text-gray-700 transition-all appearance-none"><option value="adet">Adet</option><option value="kg">Kilogram</option><option value="litre">Litre</option><option value="metre">Metre</option><option value="paket">Paket</option></select>
                   </div>
                 </div>
               </div>
 
               {/* Pricing Section */}
-              <div className="pt-8 border-t border-dashed border-gray-200">
+              <div className="pt-8 border-t border-dashed border-gray-100">
                 <h3 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em] mb-6 flex items-center gap-2"><div className="h-1 w-1 rounded-full bg-primary-500"></div> Fiyatlandırma ve Vergi</h3>
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                  <div className="space-y-1.5"><label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Para Birimi</label><select value={formData.currency} onChange={(e) => setFormData({ ...formData, currency: e.target.value })} className="w-full px-4 py-3 border-2 border-gray-100 rounded-xl focus:border-primary-500 outline-none font-bold text-gray-900 bg-white"><option value="TRY">TRY (₺)</option><option value="USD">USD ($)</option><option value="EUR">EUR (€)</option></select></div>
-                  <div className="space-y-1.5"><label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Satış Fiyatı</label><TrNumberInput value={String(formData.price ?? '')} onChange={(v) => setFormData({ ...formData, price: v })} className="w-full px-4 py-3 border-2 border-emerald-100 bg-emerald-50/20 rounded-xl focus:border-emerald-500 outline-none font-black text-emerald-700" /></div>
-                  <div className="space-y-1.5"><label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Alış Fiyatı</label><TrNumberInput value={String(formData.purchase_price ?? '')} onChange={(v) => setFormData({ ...formData, purchase_price: v })} className="w-full px-4 py-3 border-2 border-red-100 bg-red-50/20 rounded-xl focus:border-red-500 outline-none font-black text-red-700" /></div>
-                  <div className="space-y-1.5"><label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">KDV (%)</label><TrNumberInput value={String(formData.tax_rate ?? '')} onChange={(v) => setFormData({ ...formData, tax_rate: v })} className="w-full px-4 py-3 border-2 border-gray-100 rounded-xl focus:border-primary-500 outline-none font-bold text-gray-900" /></div>
+                  <div className="space-y-1.5"><label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Para Birimi</label><select value={formData.currency} onChange={(e) => setFormData({ ...formData, currency: e.target.value })} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:border-primary-500 outline-none font-bold text-gray-700"><option value="TRY">TRY (₺)</option><option value="USD">USD ($)</option><option value="EUR">EUR (€)</option></select></div>
+                  <div className="space-y-1.5"><label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Satış Fiyatı</label><TrNumberInput value={String(formData.price ?? '')} onChange={(v) => setFormData({ ...formData, price: v })} className="w-full px-4 py-3 bg-emerald-50/50 border border-emerald-200 rounded-xl focus:border-emerald-500 outline-none font-black text-emerald-600" /></div>
+                  <div className="space-y-1.5"><label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Alış Fiyatı</label><TrNumberInput value={String(formData.purchase_price ?? '')} onChange={(v) => setFormData({ ...formData, purchase_price: v })} className="w-full px-4 py-3 bg-red-50/50 border border-red-200 rounded-xl focus:border-red-500 outline-none font-black text-red-500" /></div>
+                  <div className="space-y-1.5"><label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">KDV (%)</label><TrNumberInput value={String(formData.tax_rate ?? '')} onChange={(v) => setFormData({ ...formData, tax_rate: v })} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:border-primary-500 outline-none font-bold text-gray-700" /></div>
                 </div>
               </div>
 
               {/* Stock and Advanced Section */}
-              <div className="pt-8 border-t border-dashed border-gray-200">
+              <div className="pt-8 border-t border-dashed border-gray-100">
                 <h3 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em] mb-6 flex items-center gap-2"><div className="h-1 w-1 rounded-full bg-primary-500"></div> Stok Ayarları</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="space-y-1.5"><label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Min. Stok Uyarı</label><TrNumberInput value={String(formData.min_stock_level ?? '')} onChange={(v) => setFormData({ ...formData, min_stock_level: v })} className="w-full px-4 py-3 border-2 border-gray-100 rounded-xl focus:border-primary-500 outline-none font-bold text-gray-900" /></div>
+                  <div className="space-y-1.5"><label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Min. Stok Uyarı</label><TrNumberInput value={String(formData.min_stock_level ?? '')} onChange={(v) => setFormData({ ...formData, min_stock_level: v })} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:border-primary-500 outline-none font-bold text-gray-700" /></div>
                   
                   {!editingProduct && (
                     <>
                       <div className="space-y-1.5">
                         <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Başlangıç Deposu *</label>
                         <div className="flex gap-2">
-                          <select required value={formData.warehouse_id} onChange={(e) => setFormData({ ...formData, warehouse_id: e.target.value })} className="flex-1 px-4 py-3 border-2 border-gray-100 rounded-xl focus:border-primary-500 outline-none font-bold text-gray-900 bg-white">
+                          <select required value={formData.warehouse_id} onChange={(e) => setFormData({ ...formData, warehouse_id: e.target.value })} className="flex-1 px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:border-primary-500 outline-none font-bold text-gray-700">
                             <option value="">Seçiniz</option>
                             {warehouses.map((w) => (<option key={w.id} value={w.id}>{w.name}</option>))}
                           </select>
-                          <button type="button" onClick={() => setShowNewWarehouseModal(true)} className="p-3 bg-primary-50 text-primary-600 rounded-xl hover:bg-primary-100 transition-all active:scale-95 border-2 border-primary-100" title="Yeni Depo Ekle"><Plus className="h-5 w-5" /></button>
+                          <button type="button" onClick={() => setShowNewWarehouseModal(true)} className="p-3 bg-primary-50 text-primary-600 rounded-xl hover:bg-primary-100 transition-all active:scale-95 border border-primary-200" title="Yeni Depo Ekle"><Plus className="h-5 w-5" /></button>
                         </div>
                       </div>
-                      <div className="space-y-1.5"><label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Başlangıç Miktarı</label><TrNumberInput value={String(formData.initial_quantity ?? '')} onChange={(v) => setFormData({ ...formData, initial_quantity: v })} className="w-full px-4 py-3 border-2 border-gray-100 rounded-xl focus:border-primary-500 outline-none font-bold text-gray-900" /></div>
+                      <div className="space-y-1.5"><label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Başlangıç Miktarı</label><TrNumberInput value={String(formData.initial_quantity ?? '')} onChange={(v) => setFormData({ ...formData, initial_quantity: v })} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:border-primary-500 outline-none font-bold text-gray-700" /></div>
                     </>
                   )}
                 </div>
               </div>
 
-              <div className="space-y-1.5 border-t border-dashed border-gray-200 pt-8"><label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Ürün Açıklaması</label><textarea rows={3} value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} className="w-full px-5 py-4 border-2 border-gray-100 rounded-2xl focus:border-primary-500 outline-none font-bold text-gray-900 transition-all shadow-sm" placeholder="Ürün hakkında kısa bir açıklama..." /></div>
+              <div className="space-y-1.5 border-t border-dashed border-gray-100 pt-8"><label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Ürün Açıklaması</label><textarea rows={3} value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-xl focus:border-primary-500 outline-none font-bold text-gray-700 transition-all" placeholder="Ürün hakkında kısa bir açıklama..." /></div>
 
-              <div className="flex justify-end gap-4 pt-8 border-t border-gray-100">
-                <Button type="button" variant="outline" onClick={() => setShowModal(false)} className="px-10 h-14 rounded-2xl font-bold text-gray-500 border-2">Vazgeç</Button>
-                <Button type="submit" disabled={loading} className="px-14 h-14 rounded-2xl font-black text-lg shadow-xl shadow-primary-100 transition-all active:scale-95">
+              <div className="flex justify-end gap-4 pt-8 border-t border-gray-200">
+                <Button type="button" variant="outline" onClick={() => setShowModal(false)} className="px-10 h-14 rounded-xl font-bold">Vazgeç</Button>
+                <Button type="submit" disabled={loading} className="px-14 h-14 rounded-xl font-bold text-lg transition-all active:scale-95">
                   {loading ? <Loader2 className="h-6 w-6 animate-spin" /> : (editingProduct ? 'GÜNCELLE' : 'ÜRÜNÜ KAYDET')}
                 </Button>
               </div>
@@ -643,17 +643,17 @@ function ProductsPageContent() {
 
       {/* New Category Modal */}
       {showNewCategoryModal && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-[10001] p-4 animate-in fade-in duration-300">
-          <div className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-md overflow-hidden border-0 animate-in zoom-in-95 duration-200">
-            <div className="px-8 py-7 border-b flex justify-between items-center bg-gray-50/50">
+        <div className="fixed inset-0 bg-black/30  flex items-center justify-center z-[10001] p-4 animate-in fade-in duration-300">
+          <div className="bg-white  rounded-2xl shadow-xl shadow-gray-200/50 w-full max-w-md overflow-hidden border border-gray-200 animate-in zoom-in-95 duration-200">
+            <div className="px-8 py-7 border-b border-gray-200 flex justify-between items-center">
               <div className="flex items-center gap-3">
-                <div className="p-2.5 bg-primary-100 rounded-xl"><Layers className="h-5 w-5 text-primary-600" /></div>
-                <h3 className="text-base font-black text-gray-800 uppercase tracking-widest">Yeni Kategori</h3>
+                <div className="p-2.5 bg-primary-50 rounded-xl border border-primary-200"><Layers className="h-5 w-5 text-primary-600" /></div>
+                <h3 className="text-base font-bold text-gray-800">Yeni Kategori</h3>
               </div>
-              <button onClick={() => setShowNewCategoryModal(false)} className="p-2 hover:bg-gray-200 rounded-full transition-all active:scale-90"><X className="h-5 w-5 text-gray-400" /></button>
+              <button onClick={() => setShowNewCategoryModal(false)} className="p-2 hover:bg-gray-50 rounded-full transition-all active:scale-90"><X className="h-5 w-5 text-gray-500" /></button>
             </div>
-            <form onSubmit={handleCreateCategory} className="p-8 space-y-8">
-              <div className="space-y-3">
+            <form onSubmit={handleCreateCategory} className="p-8 space-y-6">
+              <div className="space-y-2">
                 <label className="block text-[11px] font-black text-gray-400 uppercase tracking-[0.15em] px-1">Kategori İsmi *</label>
                 <input 
                   type="text" 
@@ -661,23 +661,23 @@ function ProductsPageContent() {
                   value={newCategoryData.name} 
                   onFocus={(e) => e.target.select()}
                   onChange={(e) => setNewCategoryData({...newCategoryData, name: e.target.value})} 
-                  className="w-full px-5 py-4 border-2 border-gray-100 rounded-2xl focus:border-primary-500 focus:ring-4 focus:ring-primary-50 outline-none font-bold text-gray-900 transition-all placeholder:text-gray-300" 
+                  className="w-full px-5 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none font-bold text-gray-700 transition-all" 
                   placeholder="Örn: Elektronik Ürünler" 
                 />
               </div>
-              <div className="space-y-3">
+              <div className="space-y-2">
                 <label className="block text-[11px] font-black text-gray-400 uppercase tracking-[0.15em] px-1">Açıklama (Opsiyonel)</label>
                 <textarea 
                   rows={3} 
                   value={newCategoryData.description} 
                   onChange={(e) => setNewCategoryData({...newCategoryData, description: e.target.value})} 
-                  className="w-full px-5 py-4 border-2 border-gray-100 rounded-2xl focus:border-primary-500 focus:ring-4 focus:ring-primary-50 outline-none font-bold text-gray-900 transition-all placeholder:text-gray-300" 
+                  className="w-full px-5 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none font-bold text-gray-700 transition-all" 
                   placeholder="Kategori hakkında kısa bir not..." 
                 />
               </div>
               <div className="flex gap-4 pt-4">
-                <Button type="button" variant="outline" onClick={() => setShowNewCategoryModal(false)} className="flex-1 h-14 rounded-2xl font-bold text-gray-500 border-2">İptal</Button>
-                <Button type="submit" disabled={newCategoryLoading} className="flex-[1.5] h-14 rounded-2xl font-black text-lg shadow-xl shadow-primary-100 transition-all active:scale-95">
+                <Button type="button" variant="outline" onClick={() => setShowNewCategoryModal(false)} className="flex-1 h-12 rounded-xl font-bold">İptal</Button>
+                <Button type="submit" disabled={newCategoryLoading} className="flex-[1.5] h-12 rounded-xl font-bold text-lg transition-all active:scale-95">
                   {newCategoryLoading ? <Loader2 className="h-6 w-6 animate-spin" /> : 'KAYDET'}
                 </Button>
               </div>
@@ -688,17 +688,17 @@ function ProductsPageContent() {
 
       {/* New Warehouse Modal */}
       {showNewWarehouseModal && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-[10001] p-4 animate-in fade-in duration-300">
-          <div className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-md overflow-hidden border-0 animate-in zoom-in-95 duration-200">
-            <div className="px-8 py-7 border-b flex justify-between items-center bg-gray-50/50">
+        <div className="fixed inset-0 bg-black/30  flex items-center justify-center z-[10001] p-4 animate-in fade-in duration-300">
+          <div className="bg-white  rounded-2xl shadow-xl shadow-gray-200/50 w-full max-w-md overflow-hidden border border-gray-200 animate-in zoom-in-95 duration-200">
+            <div className="px-8 py-7 border-b border-gray-200 flex justify-between items-center">
               <div className="flex items-center gap-3">
-                <div className="p-2.5 bg-primary-100 rounded-xl"><WarehouseIcon className="h-5 w-5 text-primary-600" /></div>
-                <h3 className="text-base font-black text-gray-800 uppercase tracking-widest">Yeni Depo</h3>
+                <div className="p-2.5 bg-primary-50 rounded-xl border border-primary-200"><WarehouseIcon className="h-5 w-5 text-primary-600" /></div>
+                <h3 className="text-base font-bold text-gray-800">Yeni Depo</h3>
               </div>
-              <button onClick={() => setShowNewWarehouseModal(false)} className="p-2 hover:bg-gray-200 rounded-full transition-all active:scale-90"><X className="h-5 w-5 text-gray-400" /></button>
+              <button onClick={() => setShowNewWarehouseModal(false)} className="p-2 hover:bg-gray-50 rounded-full transition-all active:scale-90"><X className="h-5 w-5 text-gray-500" /></button>
             </div>
-            <form onSubmit={handleCreateWarehouse} className="p-8 space-y-8">
-              <div className="space-y-3">
+            <form onSubmit={handleCreateWarehouse} className="p-8 space-y-6">
+              <div className="space-y-2">
                 <label className="block text-[11px] font-black text-gray-400 uppercase tracking-[0.15em] px-1">Depo İsmi *</label>
                 <input 
                   type="text" 
@@ -706,11 +706,11 @@ function ProductsPageContent() {
                   value={newWarehouseData.name} 
                   onFocus={(e) => e.target.select()}
                   onChange={(e) => setNewWarehouseData({...newWarehouseData, name: e.target.value})} 
-                  className="w-full px-5 py-4 border-2 border-gray-100 rounded-2xl focus:border-primary-500 focus:ring-4 focus:ring-primary-50 outline-none font-bold text-gray-900 transition-all placeholder:text-gray-300" 
+                  className="w-full px-5 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none font-bold text-gray-700 transition-all" 
                   placeholder="Örn: Kuzey Lojistik Merkezi" 
                 />
               </div>
-              <div className="space-y-3">
+              <div className="space-y-2">
                 <label className="block text-[11px] font-black text-gray-400 uppercase tracking-[0.15em] px-1">Depo Konumu</label>
                 <LocationPicker 
                   value={newWarehouseData.location} 
@@ -718,8 +718,8 @@ function ProductsPageContent() {
                 />
               </div>
               <div className="flex gap-4 pt-4">
-                <Button type="button" variant="outline" onClick={() => setShowNewWarehouseModal(false)} className="flex-1 h-14 rounded-2xl font-bold text-gray-500 border-2">İptal</Button>
-                <Button type="submit" disabled={newWarehouseLoading} className="flex-[1.5] h-14 rounded-2xl font-black text-lg shadow-xl shadow-primary-100 transition-all active:scale-95">
+                <Button type="button" variant="outline" onClick={() => setShowNewWarehouseModal(false)} className="flex-1 h-12 rounded-xl font-bold">İptal</Button>
+                <Button type="submit" disabled={newWarehouseLoading} className="flex-[1.5] h-12 rounded-xl font-bold text-lg transition-all active:scale-95">
                   {newWarehouseLoading ? <Loader2 className="h-6 w-6 animate-spin" /> : 'KAYDET'}
                 </Button>
               </div>
@@ -729,11 +729,11 @@ function ProductsPageContent() {
       )}
 
       {showBarcodeScanner && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-[100] p-4">
-          <div className="bg-white rounded-3xl overflow-hidden w-full max-w-lg shadow-2xl">
-            <div className="p-6 border-b flex justify-between items-center bg-gray-50">
-              <h2 className="text-sm font-black uppercase tracking-widest">Barkod Tarat</h2>
-              <button onClick={() => setShowBarcodeScanner(false)} className="p-2 hover:bg-gray-200 rounded-full transition-colors"><X className="h-5 w-5" /></button>
+        <div className="fixed inset-0 bg-black/30  flex items-center justify-center z-[100] p-4">
+          <div className="bg-white  rounded-2xl overflow-hidden w-full max-w-lg shadow-xl shadow-gray-200/50 border border-gray-200">
+            <div className="p-6 border-b border-gray-200 flex justify-between items-center">
+              <h2 className="text-sm font-bold text-gray-800 uppercase tracking-widest">Barkod Tarat</h2>
+              <button onClick={() => setShowBarcodeScanner(false)} className="p-2 hover:bg-gray-50 rounded-full transition-colors"><X className="h-5 w-5 text-gray-500" /></button>
             </div>
             <div className="p-8">
               <BarcodeScanner 
@@ -753,7 +753,7 @@ function ProductsPageContent() {
 
 export default function ProductsPage() {
   return (
-    <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><Loader2 className="h-12 w-12 animate-spin text-primary-500" /></div>}>
+    <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><Loader2 className="h-12 w-12 animate-spin text-primary-600" /></div>}>
       <ProductsPageContent />
     </Suspense>
   )

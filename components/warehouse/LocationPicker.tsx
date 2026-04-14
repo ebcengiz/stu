@@ -229,15 +229,15 @@ export default function LocationPicker({ value, onChange }: LocationPickerProps)
 
       {/* Show map collapsed message when dropdown is active */}
       {showResults && (
-        <div className="p-4 bg-blue-50 border-2 border-blue-300 rounded-md text-center">
-          <MapPin className="h-5 w-5 text-blue-600 mx-auto mb-2" />
-          <p className="text-sm text-blue-700 font-medium">
+        <div className="p-4 bg-primary-50 border-2 border-primary-300 rounded-md text-center">
+          <MapPin className="h-5 w-5 text-primary-600 mx-auto mb-2" />
+          <p className="text-sm text-primary-700 font-medium">
             Harita gizlendi - Yukarıdan bir sonuç seçin
           </p>
           <button
             type="button"
             onClick={() => setShowResults(false)}
-            className="mt-2 text-xs text-blue-600 hover:text-blue-800 underline"
+            className="mt-2 text-xs text-primary-600 hover:text-blue-800 underline"
           >
             Haritayı tekrar göster
           </button>
@@ -257,8 +257,8 @@ export default function LocationPicker({ value, onChange }: LocationPickerProps)
         </div>
       )}
 
-      <div className="flex items-start gap-2 p-3 bg-blue-50 border border-blue-200 rounded-md">
-        <div className="text-xs text-blue-700">
+      <div className="flex items-start gap-2 p-3 bg-primary-50 border border-primary-200 rounded-md">
+        <div className="text-xs text-primary-700">
           <p className="font-semibold mb-1">💡 Nasıl Kullanılır:</p>
           <ul className="list-disc list-inside space-y-1">
             <li>Yukarıdaki kutuda adres arayın (örn: &quot;İstanbul Beşiktaş&quot;)</li>

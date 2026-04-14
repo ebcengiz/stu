@@ -119,11 +119,11 @@ export default function CustomersPage() {
     toast(
       (t) => (
         <div className="flex flex-col gap-3">
-          <div className="font-medium text-gray-900">Bu müşteriyi silmek istediğinize emin misiniz?</div>
+          <div className="font-medium text-gray-700">Bu müşteriyi silmek istediğinize emin misiniz?</div>
           <div className="flex justify-end gap-2">
             <button 
               onClick={() => toast.dismiss(t.id)} 
-              className="px-3 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-md transition-colors"
+              className="px-3 py-1.5 text-sm font-medium text-gray-500 hover:bg-gray-100 rounded-md transition-colors"
             >
               Vazgeç
             </button>
@@ -132,14 +132,14 @@ export default function CustomersPage() {
                 toast.dismiss(t.id)
                 executeDelete(id)
               }} 
-              className="px-3 py-1.5 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md transition-colors"
+              className="px-3 py-1.5 text-sm font-medium text-white bg-rose-600 hover:bg-rose-500 rounded-md transition-colors"
             >
               Evet, Sil
             </button>
           </div>
         </div>
       ),
-      { duration: 8000, position: 'top-center', style: { minWidth: '300px' } }
+      { duration: 8000, position: 'top-center', style: { minWidth: '300px', background: '#1e293b', color: '#e2e8f0', border: '1px solid rgba(100,116,139,0.3)' } }
     )
   }
 
@@ -181,15 +181,15 @@ export default function CustomersPage() {
   })
 
   if (loading && customers.length === 0) {
-    return <div className="p-8 flex justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div></div>
+    return <div className="p-8 flex justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500"></div></div>
   }
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Müşteriler</h1>
-          <p className="mt-2 text-gray-600">Müşteri ve firma bilgilerinizi yönetin</p>
+          <h1 className="text-3xl font-bold text-gray-800">Müşteriler</h1>
+          <p className="mt-2 text-gray-500">Müşteri ve firma bilgilerinizi yönetin</p>
         </div>
         <Button onClick={openNewModal}>
           <Plus className="mr-2 h-4 w-4" />
@@ -197,13 +197,13 @@ export default function CustomersPage() {
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 bg-white  p-4 rounded-2xl border border-gray-200 shadow-lg shadow-black/10">
         <div className="space-y-1">
           <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Müşteri Grubu</label>
           <select 
             value={categoryFilter} 
             onChange={(e) => setCategoryFilter(e.target.value)}
-            className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"
+            className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-700 outline-none focus:ring-2 focus:ring-primary-500/30"
           >
             <option value="all">Tüm Gruplar</option>
             {categories.map(cat => (
@@ -216,7 +216,7 @@ export default function CustomersPage() {
           <select 
             value={labelFilter} 
             onChange={(e) => setLabelFilter(e.target.value)}
-            className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"
+            className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-700 outline-none focus:ring-2 focus:ring-primary-500/30"
           >
             <option value="all">Tüm Etiketler</option>
             {labels.map(lbl => (
@@ -230,9 +230,9 @@ export default function CustomersPage() {
               type="checkbox" 
               checked={showOnlyWithBalance}
               onChange={(e) => setShowOnlyWithBalance(e.target.checked)}
-              className="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+              className="w-4 h-4 rounded border-gray-200 text-primary-500 focus:ring-primary-500/30 bg-gray-100"
             />
-            <span className="text-sm font-bold text-gray-600 group-hover:text-primary-600 transition-colors">Sadece Bakiyesi Olanlar</span>
+            <span className="text-sm font-bold text-gray-500 group-hover:text-primary-600 transition-colors">Sadece Bakiyesi Olanlar</span>
           </label>
         </div>
         <div className="space-y-1">
@@ -244,7 +244,7 @@ export default function CustomersPage() {
               placeholder="İsim, yetkili, tel..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"
+              className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-700 outline-none focus:ring-2 focus:ring-primary-500/30"
             />
           </div>
         </div>
@@ -254,7 +254,7 @@ export default function CustomersPage() {
         <CardBody className="p-0">
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+              <thead className="bg-gray-50/50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Firma Bilgisi</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">İletişim</th>
@@ -264,7 +264,7 @@ export default function CustomersPage() {
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">İşlemler</th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="divide-y divide-gray-100">
                 {filteredCustomers.length > 0 ? (
                   filteredCustomers.map((customer) => (
                     <tr 
@@ -277,26 +277,26 @@ export default function CustomersPage() {
                           {customer.company_logo ? (
                             <img src={customer.company_logo} alt={customer.company_name} className="h-10 w-10 rounded-full object-cover mr-3 bg-gray-100 border border-gray-200" />
                           ) : (
-                            <div className="h-10 w-10 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 font-bold mr-3 border border-primary-200">
+                            <div className="h-10 w-10 rounded-full bg-primary-100/50 flex items-center justify-center text-primary-700 font-bold mr-3 border border-primary-300">
                               {customer.company_name.charAt(0).toUpperCase()}
                             </div>
                           )}
                           <div>
-                            <div className="font-medium text-gray-900">{customer.company_name}</div>
+                            <div className="font-medium text-gray-700">{customer.company_name}</div>
                             <div className="flex flex-wrap gap-1 mt-1">
                               {customer.category1 && (
-                                <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-blue-100 text-blue-800">
+                                <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-sky-50 text-sky-600">
                                   {customer.category1}
                                 </span>
                               )}
                               {customer.category2 && (
-                                <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-purple-100 text-purple-800">
+                                <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-violet-500/15 text-violet-400">
                                   {customer.category2}
                                 </span>
                               )}
                             </div>
                             {customer.address && (
-                              <div className="text-xs text-gray-500 flex items-center mt-1 truncate max-w-[200px]" title={customer.address}>
+                              <div className="text-xs text-gray-400 flex items-center mt-1 truncate max-w-[200px]" title={customer.address}>
                                 <MapPin className="h-3 w-3 mr-1 flex-shrink-0" />
                                 <span className="truncate">{customer.address}</span>
                               </div>
@@ -305,38 +305,38 @@ export default function CustomersPage() {
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        <div className="text-sm text-gray-900 font-medium">{customer.contact_person || '-'}</div>
+                        <div className="text-sm text-gray-700 font-medium">{customer.contact_person || '-'}</div>
                         {customer.email && (
-                          <div className="text-xs text-gray-500 flex items-center mt-1">
+                          <div className="text-xs text-gray-400 flex items-center mt-1">
                             <Mail className="h-3 w-3 mr-1" />
                             {customer.email}
                           </div>
                         )}
                         {customer.phone && (
-                          <div className="text-xs text-gray-500 flex items-center mt-1">
+                          <div className="text-xs text-gray-400 flex items-center mt-1">
                             <Phone className="h-3 w-3 mr-1" />
                             {customer.phone}
                           </div>
                         )}
                       </td>
                       <td className="px-6 py-4">
-                        <div className="text-sm text-gray-900">
-                          {customer.tax_office ? <span className="text-gray-500 text-xs">VD: </span> : ''}
+                        <div className="text-sm text-gray-600">
+                          {customer.tax_office ? <span className="text-gray-400 text-xs">VD: </span> : ''}
                           {customer.tax_office || '-'}
                         </div>
-                        <div className="text-sm text-gray-900 mt-1">
-                          {customer.tax_number ? <span className="text-gray-500 text-xs">VN: </span> : ''}
+                        <div className="text-sm text-gray-600 mt-1">
+                          {customer.tax_number ? <span className="text-gray-400 text-xs">VN: </span> : ''}
                           {customer.tax_number || '-'}
                         </div>
                       </td>
                       <td className="px-6 py-4 text-right whitespace-nowrap">
-                        <div className={`text-sm font-bold ${customer.balance > 0 ? 'text-red-600' : customer.balance < 0 ? 'text-green-600' : 'text-gray-900'}`}>
+                        <div className={`text-sm font-bold ${customer.balance > 0 ? 'text-red-500' : customer.balance < 0 ? 'text-emerald-600' : 'text-gray-600'}`}>
                           {(customer.balance || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2 })} {CURRENCY_SYMBOLS[customer.currency || 'TRY']}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium whitespace-nowrap ${
-                          customer.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                          customer.is_active ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-500'
                         }`}>
                           {customer.is_active ? 'Aktif' : 'Pasif'}
                         </span>
@@ -345,14 +345,14 @@ export default function CustomersPage() {
                         <div className="flex justify-end gap-2">
                           <button
                             onClick={(e) => handleEdit(e, customer)}
-                            className="p-2 text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
+                            className="p-2 text-primary-600 hover:bg-primary-50/50 rounded-lg transition-colors"
                             title="Düzenle"
                           >
                             <Edit2 className="h-4 w-4" />
                           </button>
                           <button
                             onClick={(e) => handleDelete(e, customer.id)}
-                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                            className="p-2 text-red-500 hover:bg-red-50/50 rounded-lg transition-colors"
                             title="Sil"
                           >
                             <Trash2 className="h-4 w-4" />
@@ -363,7 +363,7 @@ export default function CustomersPage() {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={6} className="px-6 py-12 text-center text-gray-500 italic">
+                    <td colSpan={6} className="px-6 py-12 text-center text-gray-400 italic">
                       {searchTerm ? 'Arama kriterlerine uygun müşteri bulunamadı.' : 'Henüz bir müşteri kaydı bulunmuyor.'}
                     </td>
                   </tr>
@@ -375,13 +375,13 @@ export default function CustomersPage() {
       </Card>
 
       {showModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center p-6 border-b sticky top-0 bg-white z-10">
-              <h2 className="text-xl font-bold text-gray-900">
+        <div className="fixed inset-0 bg-black/30  flex items-center justify-center z-50 p-4">
+          <div className="bg-white  rounded-2xl shadow-xl shadow-gray-200/50 w-full max-w-2xl max-h-[90vh] overflow-y-auto border border-gray-200">
+            <div className="flex justify-between items-center p-6 border-b border-gray-200 sticky top-0 bg-white  z-10">
+              <h2 className="text-xl font-bold text-gray-800">
                 {editingCustomer ? 'Müşteriyi Düzenle' : 'Yeni Müşteri Ekle'}
               </h2>
-              <button onClick={() => setShowModal(false)} className="p-2 hover:bg-gray-100 rounded-full">
+              <button onClick={() => setShowModal(false)} className="p-2 hover:bg-gray-50 rounded-full transition-colors">
                 <X className="h-6 w-6 text-gray-500" />
               </button>
             </div>
@@ -391,7 +391,7 @@ export default function CustomersPage() {
                 {/* Sol Kolon */}
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-600 mb-1">
                       Firma Ünvanı *
                     </label>
                     <input
@@ -399,58 +399,58 @@ export default function CustomersPage() {
                       required
                       value={formData.company_name}
                       onChange={(e) => setFormData({ ...formData, company_name: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-700 focus:ring-2 focus:ring-primary-500/30 focus:border-transparent transition-all"
                       placeholder="Örn: ABC A.Ş."
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-600 mb-1">
                       Firma Logosu
                     </label>
                     <div className="flex items-center gap-4">
                       <input
                         type="file"
                         onChange={handleLogoUpload}
-                        className="text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100"
+                        className="text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-600 hover:file:bg-primary-100"
                       />
-                      {uploadingLogo && <span className="text-xs text-gray-500">Yükleniyor...</span>}
+                      {uploadingLogo && <span className="text-xs text-gray-400">Yükleniyor...</span>}
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-sm font-medium text-gray-600 mb-1">
                         Vergi Dairesi
                       </label>
                       <input
                         type="text"
                         value={formData.tax_office || ''}
                         onChange={(e) => setFormData({ ...formData, tax_office: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                        className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-700 focus:ring-2 focus:ring-primary-500/30 focus:border-transparent transition-all"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-sm font-medium text-gray-600 mb-1">
                         Vergi No
                       </label>
                       <input
                         type="text"
                         value={formData.tax_number || ''}
                         onChange={(e) => setFormData({ ...formData, tax_number: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                        className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-700 focus:ring-2 focus:ring-primary-500/30 focus:border-transparent transition-all"
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-600 mb-1">
                       Para Birimi
                     </label>
                     <select 
                       value={formData.currency} 
                       onChange={e => setFormData({...formData, currency: e.target.value})} 
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-700 focus:ring-2 focus:ring-primary-500/30 focus:border-transparent transition-all"
                     >
                       {Object.keys(CURRENCY_SYMBOLS).map(code => (
                         <option key={code} value={code}>{code} ({CURRENCY_SYMBOLS[code]})</option>
@@ -462,51 +462,51 @@ export default function CustomersPage() {
                 {/* Sağ Kolon */}
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-600 mb-1">
                       İletişim Kişisi
                     </label>
                     <input
                       type="text"
                       value={formData.contact_person || ''}
                       onChange={(e) => setFormData({ ...formData, contact_person: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-700 focus:ring-2 focus:ring-primary-500/30 focus:border-transparent transition-all"
                     />
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-sm font-medium text-gray-600 mb-1">
                         Telefon
                       </label>
                       <input
                         type="tel"
                         value={formData.phone || ''}
                         onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                        className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-700 focus:ring-2 focus:ring-primary-500/30 focus:border-transparent transition-all"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-sm font-medium text-gray-600 mb-1">
                         E-Posta
                       </label>
                       <input
                         type="email"
                         value={formData.email || ''}
                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                        className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-700 focus:ring-2 focus:ring-primary-500/30 focus:border-transparent transition-all"
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-600 mb-1">
                       Adres
                     </label>
                     <textarea
                       rows={2}
                       value={formData.address || ''}
                       onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-700 focus:ring-2 focus:ring-primary-500/30 focus:border-transparent transition-all"
                     />
                   </div>
                 </div>
@@ -514,7 +514,7 @@ export default function CustomersPage() {
 
               {/* Alt Kısım - Sınıflandırma, Notlar & Durum */}
               <div className="pt-2 space-y-4">
-                <h3 className="text-sm font-semibold text-gray-900 border-b pb-2">Sınıflandırma</h3>
+                <h3 className="text-sm font-semibold text-gray-700 border-b border-gray-200 pb-2">Sınıflandırma</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <TagSelector
                     label="Müşteri Grubu / Sınıfı"
@@ -535,14 +535,14 @@ export default function CustomersPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-600 mb-1">
                     Müşteri Notları
                   </label>
                   <textarea
                     rows={3}
                     value={formData.notes || ''}
                     onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-700 focus:ring-2 focus:ring-primary-500/30 focus:border-transparent transition-all"
                     placeholder="Müşteri hakkında özel notlar, çalışma şartları vb."
                   />
                 </div>
@@ -553,15 +553,15 @@ export default function CustomersPage() {
                     id="is_active"
                     checked={formData.is_active}
                     onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
-                    className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                    className="h-4 w-4 text-primary-500 focus:ring-primary-500/30 border-gray-200 rounded bg-gray-100"
                   />
-                  <label htmlFor="is_active" className="text-sm font-medium text-gray-700">
+                  <label htmlFor="is_active" className="text-sm font-medium text-gray-600">
                     Bu müşteri aktif olarak çalışmaya devam ediyor
                   </label>
                 </div>
               </div>
 
-              <div className="flex justify-end gap-3 pt-6 border-t">
+              <div className="flex justify-end gap-3 pt-6 border-t border-gray-200">
                 <Button type="button" variant="outline" onClick={() => setShowModal(false)}>
                   Vazgeç
                 </Button>

@@ -107,7 +107,7 @@ export default function ReminderModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-3" onClick={onClose}>
       <div
-        className="w-full max-w-md overflow-hidden rounded-lg border border-slate-200 bg-white shadow-xl"
+        className="w-full max-w-md overflow-hidden rounded-lg border border-gray-200 bg-white shadow-xl"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"

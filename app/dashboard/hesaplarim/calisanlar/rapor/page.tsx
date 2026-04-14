@@ -192,7 +192,7 @@ function ReportDataCell({ col, raw }: { col: ReportColumn; raw: string }) {
   if (isCellEmpty(raw)) {
     return (
       <span
-        className="inline-block min-w-[2ch] select-none text-center text-slate-300"
+        className="inline-block min-w-[2ch] select-none text-center text-gray-600"
         aria-hidden
       >
         —
@@ -205,8 +205,8 @@ function ReportDataCell({ col, raw }: { col: ReportColumn; raw: string }) {
 
   return (
     <span
-      className={`inline-block max-w-none whitespace-nowrap text-left text-slate-800 ${tabular} ${
-        isName ? 'font-semibold text-slate-900' : ''
+      className={`inline-block max-w-none whitespace-nowrap text-left text-gray-800 ${tabular} ${
+        isName ? 'font-semibold text-gray-900' : ''
       }`}
       title={raw}
     >
@@ -299,9 +299,9 @@ export default function CalisanRaporPage() {
   if (loading) {
     return (
       <div className="flex min-h-[40vh] items-center justify-center">
-        <div className="flex flex-col items-center gap-3 rounded-2xl border border-slate-200 bg-white px-10 py-12 shadow-sm">
+        <div className="flex flex-col items-center gap-3 rounded-2xl border border-gray-200 bg-white px-10 py-12 shadow-sm">
           <div className="h-10 w-10 animate-spin rounded-full border-2 border-emerald-500 border-t-transparent" />
-          <p className="text-sm font-medium text-slate-500">Rapor yükleniyor…</p>
+          <p className="text-sm font-medium text-gray-400">Rapor yükleniyor…</p>
         </div>
       </div>
     )
@@ -310,24 +310,24 @@ export default function CalisanRaporPage() {
   return (
     <div className="mx-auto w-full min-w-0 max-w-full space-y-6 overflow-x-hidden pb-2">
       {/* Üst başlık */}
-      <div className="rounded-2xl border border-slate-200/90 bg-gradient-to-br from-white via-white to-slate-50/90 p-6 shadow-sm sm:p-8">
+      <div className="rounded-2xl border border-gray-200/90 bg-gradient-to-br from-white via-white to-slate-50/90 p-6 shadow-sm sm:p-8">
         <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex gap-4">
             <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-emerald-600 shadow-md shadow-emerald-600/25">
               <FileBarChart className="h-6 w-6 text-white" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+              <h1 className="text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl">
                 Çalışan raporu
               </h1>
-              <p className="mt-1.5 max-w-xl text-sm leading-relaxed text-slate-600">
+              <p className="mt-1.5 max-w-xl text-sm leading-relaxed text-gray-500">
                 Duruma göre filtreleyin; tabloyu sıralayın veya Excel / PDF olarak dışa aktarın.
               </p>
             </div>
           </div>
           <Link
             href="/dashboard/hesaplarim/calisanlar"
-            className="inline-flex shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-emerald-300 hover:bg-emerald-50/80 hover:text-emerald-800"
+            className="inline-flex shrink-0 items-center justify-center rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-600 shadow-sm transition hover:border-emerald-300 hover:bg-emerald-50/80 hover:text-emerald-800"
           >
             ← Çalışanlar
           </Link>
@@ -335,7 +335,7 @@ export default function CalisanRaporPage() {
       </div>
 
       {/* Rapor kriterleri */}
-      <div className="overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-md shadow-slate-200/40">
+      <div className="overflow-hidden rounded-2xl border border-gray-200/90 bg-white shadow-md shadow-slate-200/40">
         <button
           type="button"
           onClick={() => setCriteriaOpen((v) => !v)}
@@ -349,15 +349,15 @@ export default function CalisanRaporPage() {
           )}
         </button>
         {criteriaOpen && (
-          <div className="flex flex-col gap-5 border-t border-slate-100 bg-slate-50/50 p-5 sm:flex-row sm:flex-wrap sm:items-end">
+          <div className="flex flex-col gap-5 border-t border-gray-100 bg-gray-50/50 p-5 sm:flex-row sm:flex-wrap sm:items-end">
             <div className="min-w-[220px] flex-1 sm:max-w-xs">
-              <label className="mb-2 block text-xs font-semibold uppercase tracking-wide text-slate-500">
+              <label className="mb-2 block text-xs font-semibold uppercase tracking-wide text-gray-400">
                 Durumu
               </label>
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
-                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-800 shadow-sm outline-none ring-emerald-500/0 transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+                className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-medium text-gray-800 shadow-sm outline-none ring-emerald-500/0 transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
               >
                 {STATUS_OPTIONS.map((o) => (
                   <option key={o.value} value={o.value}>
@@ -380,7 +380,7 @@ export default function CalisanRaporPage() {
 
       {/* Rapor sonucu */}
       {reportReady && (
-        <div className="flex w-full min-w-0 max-w-full flex-col overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-md shadow-slate-200/40">
+        <div className="flex w-full min-w-0 max-w-full flex-col overflow-hidden rounded-2xl border border-gray-200/90 bg-white shadow-md shadow-slate-200/40">
           <button
             type="button"
             onClick={() => setResultOpen((v) => !v)}
@@ -394,10 +394,10 @@ export default function CalisanRaporPage() {
             )}
           </button>
           {resultOpen && (
-            <div className="flex w-full min-w-0 flex-col gap-3 border-t border-slate-100 bg-gradient-to-b from-slate-50/80 to-white p-5 sm:gap-4 sm:p-6">
+            <div className="flex w-full min-w-0 flex-col gap-3 border-t border-gray-100 bg-gradient-to-b from-slate-50/80 to-white p-5 sm:gap-4 sm:p-6">
               <div className="flex shrink-0 flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
-                <p className="text-sm font-medium text-slate-600">
-                  <span className="font-bold tabular-nums text-slate-900">{displayRows.length}</span>{' '}
+                <p className="text-sm font-medium text-gray-500">
+                  <span className="font-bold tabular-nums text-gray-900">{displayRows.length}</span>{' '}
                   kayıt listeleniyor
                 </p>
                 <div className="flex flex-wrap gap-2">
@@ -420,13 +420,13 @@ export default function CalisanRaporPage() {
                 </div>
               </div>
 
-              <p className="shrink-0 text-xs text-slate-500">
-                Her alan <strong className="font-medium text-slate-600">tek satırdadır</strong>. Tüm sütunları{' '}
-                <strong className="font-medium text-slate-600">yatay kaydırarak</strong>, çok sayıda kaydı{' '}
-                <strong className="font-medium text-slate-600">dikey kaydırarak</strong> inceleyebilirsiniz.
+              <p className="shrink-0 text-xs text-gray-400">
+                Her alan <strong className="font-medium text-gray-500">tek satırdadır</strong>. Tüm sütunları{' '}
+                <strong className="font-medium text-gray-500">yatay kaydırarak</strong>, çok sayıda kaydı{' '}
+                <strong className="font-medium text-gray-500">dikey kaydırarak</strong> inceleyebilirsiniz.
               </p>
 
-              <p className="shrink-0 border-b border-slate-100 pb-3 text-center text-xs text-slate-400">
+              <p className="shrink-0 border-b border-gray-100 pb-3 text-center text-xs text-gray-500">
                 Çalışan raporu ·{' '}
                 {new Date().toLocaleDateString('tr-TR', {
                   day: 'numeric',
@@ -436,11 +436,11 @@ export default function CalisanRaporPage() {
               </p>
 
               <div
-                className="relative isolate w-full min-w-0 max-w-full max-h-[min(70vh,calc(100dvh-20rem))] overflow-x-auto overflow-y-auto scroll-smooth rounded-xl border border-slate-200 bg-white shadow-inner ring-1 ring-slate-100 [-webkit-overflow-scrolling:touch] overscroll-x-contain overscroll-y-contain"
+                className="relative isolate w-full min-w-0 max-w-full max-h-[min(70vh,calc(100dvh-20rem))] overflow-x-auto overflow-y-auto scroll-smooth rounded-xl border border-gray-200 bg-white shadow-inner ring-1 ring-slate-100 [-webkit-overflow-scrolling:touch] overscroll-x-contain overscroll-y-contain"
               >
                 <table
                   lang="tr"
-                  className="w-max table-auto border-collapse text-sm leading-none text-slate-800"
+                  className="w-max table-auto border-collapse text-sm leading-none text-gray-800"
                 >
                   <thead className="[&_tr]:shadow-sm">
                     <tr>
@@ -449,15 +449,15 @@ export default function CalisanRaporPage() {
                           key={col.key}
                           scope="col"
                           title={col.headerTitle ?? col.label}
-                          className="sticky top-0 z-20 whitespace-nowrap border-b border-slate-200 bg-slate-100 px-3 py-3 text-left align-middle shadow-[0_1px_0_0_rgb(226,232,240)] backdrop-blur-sm"
+                          className="sticky top-0 z-20 whitespace-nowrap border-b border-gray-200 bg-gray-100 px-3 py-3 text-left align-middle shadow-[0_1px_0_0_rgb(226,232,240)] backdrop-blur-sm"
                         >
                           <button
                             type="button"
                             onClick={() => toggleSort(col.key)}
-                            className="group inline-flex max-w-none items-center gap-1.5 whitespace-nowrap text-left text-xs font-semibold normal-case tracking-normal text-slate-700 transition hover:text-emerald-800"
+                            className="group inline-flex max-w-none items-center gap-1.5 whitespace-nowrap text-left text-xs font-semibold normal-case tracking-normal text-gray-600 transition hover:text-emerald-800"
                           >
                             <span className="leading-none">{col.label}</span>
-                            <span className="shrink-0 text-slate-400 group-hover:text-emerald-600">
+                            <span className="shrink-0 text-gray-500 group-hover:text-emerald-600">
                               {sortKey === col.key ? (
                                 sortDir === 'asc' ? (
                                   <ArrowUp className="h-3 w-3" />
@@ -473,12 +473,12 @@ export default function CalisanRaporPage() {
                       ))}
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100">
+                  <tbody className="divide-y divide-gray-100">
                     {displayRows.length === 0 ? (
                       <tr>
                         <td
                           colSpan={REPORT_COLUMNS.length}
-                          className="px-6 py-16 text-center text-sm text-slate-500"
+                          className="px-6 py-16 text-center text-sm text-gray-400"
                         >
                           Bu kritere uygun kayıt yok.
                         </td>
@@ -488,7 +488,7 @@ export default function CalisanRaporPage() {
                         <tr
                           key={row.id}
                           className={`transition-colors hover:bg-emerald-50/50 ${
-                            idx % 2 === 1 ? 'bg-slate-50/70' : 'bg-white'
+                            idx % 2 === 1 ? 'bg-gray-50/70' : 'bg-white'
                           }`}
                         >
                           {REPORT_COLUMNS.map((col) => {
@@ -497,7 +497,7 @@ export default function CalisanRaporPage() {
                             return (
                               <td
                                 key={col.key}
-                                className={`whitespace-nowrap border-b border-slate-100 px-3 align-middle text-slate-800 ${
+                                className={`whitespace-nowrap border-b border-gray-100 px-3 align-middle text-gray-800 ${
                                   empty ? 'py-2' : 'py-2.5'
                                 }`}
                               >

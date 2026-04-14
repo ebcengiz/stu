@@ -84,22 +84,22 @@ export function TagSelector({ label, type, entityType = 'customer', value, place
 
   return (
     <div className="space-y-1 relative" ref={dropdownRef}>
-      <label className="block text-sm font-medium text-gray-700">
+      <label className="block text-sm font-medium text-gray-600">
         {label}
       </label>
       
       <div 
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white flex items-center justify-between cursor-pointer hover:border-primary-500 transition-colors"
+        className="w-full px-3 py-2.5 border border-gray-200 rounded-xl bg-gray-50 flex items-center justify-between cursor-pointer hover:border-primary-400 transition-colors"
       >
-        <span className={value ? 'text-gray-900' : 'text-gray-400'}>
+        <span className={value ? 'text-gray-700' : 'text-gray-400'}>
           {value || placeholder}
         </span>
         <div className="flex items-center gap-1">
           {value && (
             <button 
               onClick={(e) => { e.stopPropagation(); onChange(''); }}
-              className="p-0.5 hover:bg-gray-100 rounded-full text-gray-400"
+              className="p-0.5 hover:bg-gray-200 rounded-full text-gray-500"
             >
               <X className="h-3 w-3" />
             </button>
@@ -109,14 +109,14 @@ export function TagSelector({ label, type, entityType = 'customer', value, place
       </div>
 
       {isOpen && (
-        <div className="absolute z-[60] w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-xl overflow-hidden animate-in fade-in slide-in-from-top-1 duration-150">
-          <div className="p-2 border-b border-gray-50">
+        <div className="absolute z-[60] w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-xl shadow-gray-200/50 overflow-hidden animate-in fade-in slide-in-from-top-1 duration-150">
+          <div className="p-2 border-b border-gray-100">
             <div className="relative">
               <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
               <input
                 autoFocus
                 type="text"
-                className="w-full pl-8 pr-3 py-1.5 text-sm border-0 focus:ring-0 outline-none bg-gray-50 rounded-md"
+                className="w-full pl-8 pr-3 py-1.5 text-sm border-0 focus:ring-0 outline-none bg-gray-50 rounded-lg text-gray-700"
                 placeholder="Ara veya yeni ekle..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -136,16 +136,16 @@ export function TagSelector({ label, type, entityType = 'customer', value, place
                     setIsOpen(false)
                     setSearchTerm('')
                   }}
-                  className="w-full text-left px-3 py-2 text-sm hover:bg-primary-50 flex items-center justify-between group"
+                  className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 flex items-center justify-between group"
                 >
-                  <span className={value === tag.name ? 'font-bold text-primary-700' : 'text-gray-700'}>
+                  <span className={value === tag.name ? 'font-bold text-primary-700' : 'text-gray-600'}>
                     {tag.name}
                   </span>
                   {value === tag.name && <Check className="h-4 w-4 text-primary-600" />}
                 </button>
               ))
             ) : !showCreateOption && (
-              <div className="px-3 py-4 text-center text-xs text-gray-500 italic">
+              <div className="px-3 py-4 text-center text-xs text-gray-400 italic">
                 Sonuç bulunamadı
               </div>
             )}
@@ -155,7 +155,7 @@ export function TagSelector({ label, type, entityType = 'customer', value, place
                 type="button"
                 disabled={loading}
                 onClick={handleCreateTag}
-                className="w-full text-left px-3 py-2 text-sm bg-primary-50 hover:bg-primary-100 text-primary-700 flex items-center gap-2 border-t border-primary-100"
+                className="w-full text-left px-3 py-2 text-sm bg-primary-50/50 hover:bg-primary-100/50 text-primary-700 flex items-center gap-2 border-t border-gray-100"
               >
                 <Plus className="h-4 w-4" />
                 <span>&quot;{searchTerm}&quot; ekle</span>

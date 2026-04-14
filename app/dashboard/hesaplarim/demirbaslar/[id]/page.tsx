@@ -123,13 +123,13 @@ export default function DemirbasDetayPage() {
     if (!asset) return
     toast.custom(
       (t) => (
-        <div className="pointer-events-auto max-w-sm rounded-xl border border-slate-200/80 bg-white px-4 py-3 shadow-lg ring-1 ring-black/5">
-          <p className="text-sm font-semibold text-slate-900">Bu demirbaşı silmek istiyor musunuz?</p>
-          <p className="mt-1 text-xs text-slate-600">{asset.name}</p>
+        <div className="pointer-events-auto max-w-sm rounded-xl border border-gray-200/80 bg-white px-4 py-3 shadow-lg ring-1 ring-black/5">
+          <p className="text-sm font-semibold text-gray-900">Bu demirbaşı silmek istiyor musunuz?</p>
+          <p className="mt-1 text-xs text-gray-500">{asset.name}</p>
           <div className="mt-3 flex justify-end gap-2">
             <button
               type="button"
-              className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+              className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-600 hover:bg-gray-50"
               onClick={() => toast.dismiss(t.id)}
             >
               İptal
@@ -187,7 +187,7 @@ export default function DemirbasDetayPage() {
   }
 
   if (loading) {
-    return <p className="text-sm text-slate-500">Yükleniyor…</p>
+    return <p className="text-sm text-gray-400">Yükleniyor…</p>
   }
 
   if (loadError || !asset) {
@@ -207,7 +207,7 @@ export default function DemirbasDetayPage() {
     <div className="mx-auto w-full min-w-0 max-w-full space-y-4 overflow-x-hidden pb-4">
       <Link
         href="/dashboard/hesaplarim/demirbaslar"
-        className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-600 hover:text-emerald-700"
+        className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-emerald-700"
       >
         <ArrowLeft className="h-4 w-4" />
         Demirbaşlara dön
@@ -219,30 +219,30 @@ export default function DemirbasDetayPage() {
         </div>
         <div className="space-y-0 divide-y divide-gray-100 p-4">
           <div className="flex flex-wrap items-baseline justify-between gap-2 pb-3 text-sm">
-            <span className="font-medium text-slate-600">Alış Tarihi</span>
-            <span className="font-semibold text-slate-900">{formatDate(asset.purchase_date)}</span>
+            <span className="font-medium text-gray-500">Alış Tarihi</span>
+            <span className="font-semibold text-gray-900">{formatDate(asset.purchase_date)}</span>
           </div>
           <div className="flex flex-wrap items-baseline justify-between gap-2 py-3 text-sm">
-            <span className="font-medium text-slate-600">Fiyatı</span>
-            <span className="font-semibold text-slate-900">{formatMoney(asset.price, cur)}</span>
+            <span className="font-medium text-gray-500">Fiyatı</span>
+            <span className="font-semibold text-gray-900">{formatMoney(asset.price, cur)}</span>
           </div>
           <div className="flex flex-wrap items-start justify-between gap-2 pt-3 text-sm">
-            <span className="font-medium text-slate-600">Not</span>
-            <span className="max-w-[min(100%,28rem)] whitespace-pre-wrap text-right font-semibold text-slate-900">
+            <span className="font-medium text-gray-500">Not</span>
+            <span className="max-w-[min(100%,28rem)] whitespace-pre-wrap text-right font-semibold text-gray-900">
               {asset.notes?.trim() || '—'}
             </span>
           </div>
           {(asset.serial_no?.trim() || asset.description?.trim()) && (
-            <div className="space-y-2 border-t border-dashed border-gray-200 pt-3 text-xs text-slate-600">
+            <div className="space-y-2 border-t border-dashed border-gray-200 pt-3 text-xs text-gray-500">
               {asset.serial_no?.trim() ? (
                 <p>
-                  <span className="font-medium text-slate-500">Seri / plaka: </span>
+                  <span className="font-medium text-gray-400">Seri / plaka: </span>
                   {asset.serial_no.trim()}
                 </p>
               ) : null}
               {asset.description?.trim() ? (
                 <p className="whitespace-pre-wrap">
-                  <span className="font-medium text-slate-500">Açıklama: </span>
+                  <span className="font-medium text-gray-400">Açıklama: </span>
                   {asset.description.trim()}
                 </p>
               ) : null}
@@ -286,7 +286,7 @@ export default function DemirbasDetayPage() {
       </div>
 
       <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-md">
-        <div className="border-b border-gray-100 bg-slate-800 px-3 py-2">
+        <div className="border-b border-gray-100 bg-white px-3 py-2">
           <h2 className="text-xs font-bold uppercase tracking-wide text-white">Hatırlatma tarihleri</h2>
         </div>
         <div className="p-4">
@@ -316,9 +316,9 @@ export default function DemirbasDetayPage() {
               {reminders.map((r) => (
                 <li key={r.id} className="flex flex-wrap items-start justify-between gap-2 py-3 first:pt-0">
                   <div>
-                    <p className="font-semibold text-slate-900">{formatDate(r.reminder_date)}</p>
-                    <p className="mt-0.5 text-sm text-slate-600">{r.description?.trim() || '—'}</p>
-                    <p className="mt-1 text-xs text-slate-500">
+                    <p className="font-semibold text-gray-900">{formatDate(r.reminder_date)}</p>
+                    <p className="mt-0.5 text-sm text-gray-500">{r.description?.trim() || '—'}</p>
+                    <p className="mt-1 text-xs text-gray-400">
                       SMS:{' '}
                       {r.sms_send_hour != null
                         ? `${String(r.sms_send_hour).padStart(2, '0')}:00`
@@ -348,7 +348,7 @@ export default function DemirbasDetayPage() {
         </div>
       </div>
 
-      <p className="text-xs text-slate-400">{new Date().getFullYear()} © Mikro Muhasebe</p>
+      <p className="text-xs text-gray-500">{new Date().getFullYear()} © Mikro Muhasebe</p>
 
       <FixedAssetModal
         open={assetModalOpen}

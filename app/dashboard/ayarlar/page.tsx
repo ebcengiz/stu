@@ -59,8 +59,8 @@ export default async function AdminPage() {
         <Card>
           <CardBody>
             <div className="flex items-start gap-4">
-              <div className="p-3 bg-blue-100 rounded-lg">
-                <Users className="h-6 w-6 text-blue-600" />
+              <div className="p-3 bg-primary-100 rounded-lg">
+                <Users className="h-6 w-6 text-primary-600" />
               </div>
               <div className="flex-1">
                 <h3 className="font-semibold text-gray-900">Kullanıcılar</h3>
@@ -120,8 +120,8 @@ export default async function AdminPage() {
         <CardBody>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-100 rounded">
-                <Package className="h-5 w-5 text-blue-600" />
+              <div className="p-2 bg-primary-100 rounded">
+                <Package className="h-5 w-5 text-primary-600" />
               </div>
               <div>
                 <p className="text-sm text-gray-500">Toplam Ürün</p>

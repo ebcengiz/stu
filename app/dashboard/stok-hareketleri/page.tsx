@@ -143,7 +143,7 @@ export default function StockMovementsPage() {
       case 'out':
         return <ArrowUpCircle className="h-5 w-5 text-red-600" />
       case 'transfer':
-        return <ArrowRightLeft className="h-5 w-5 text-blue-600" />
+        return <ArrowRightLeft className="h-5 w-5 text-primary-600" />
       case 'adjustment':
         return <Settings className="h-5 w-5 text-orange-600" />
       default:

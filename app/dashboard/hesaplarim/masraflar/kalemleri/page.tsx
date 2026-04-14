@@ -11,8 +11,8 @@ import { parseTrNumberInput } from '@/lib/tr-number-input'
 /** Tek tip rozet: hafif alternans (renk gürültüsü yok) */
 const chipClass = (i: number) =>
   i % 2 === 0
-    ? 'border-slate-200/90 bg-white text-slate-800 hover:border-emerald-300/50 hover:bg-emerald-50/60'
-    : 'border-slate-200/90 bg-slate-50 text-slate-800 hover:border-emerald-300/50 hover:bg-emerald-50/60'
+    ? 'border-gray-200/90 bg-white text-gray-800 hover:border-emerald-300/50 hover:bg-emerald-50/60'
+    : 'border-gray-200/90 bg-gray-50 text-gray-800 hover:border-emerald-300/50 hover:bg-emerald-50/60'
 
 function groupByCategory(items: ExpenseItemDefinitionRow[]) {
   const sorted = [...items].sort((a, b) => {
@@ -100,20 +100,20 @@ export default function MasrafKalemleriPage() {
     toast.custom(
       (t) => (
         <div
-          className="pointer-events-auto max-w-sm rounded-lg border border-slate-200 bg-white px-3 py-2.5 shadow-lg"
+          className="pointer-events-auto max-w-sm rounded-lg border border-gray-200 bg-white px-3 py-2.5 shadow-lg"
           role="dialog"
           aria-labelledby={`kalem-del-${t.id}`}
         >
-          <p id={`kalem-del-${t.id}`} className="text-sm font-medium text-slate-900">
+          <p id={`kalem-del-${t.id}`} className="text-sm font-medium text-gray-900">
             Bu alt hesabı silmek istiyor musunuz?
           </p>
-          <p className="mt-1 text-xs text-slate-500">
-            <span className="font-medium text-slate-700">{row.label}</span> — kayıtlarda kullanılıyorsa silinemez.
+          <p className="mt-1 text-xs text-gray-400">
+            <span className="font-medium text-gray-600">{row.label}</span> — kayıtlarda kullanılıyorsa silinemez.
           </p>
           <div className="mt-3 flex justify-end gap-2">
             <button
               type="button"
-              className="rounded-md border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50"
+              className="rounded-md border border-gray-200 bg-white px-2.5 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50"
               onClick={() => toast.dismiss(t.id)}
             >
               İptal
@@ -230,7 +230,7 @@ export default function MasrafKalemleriPage() {
   }
 
   const inputClass =
-    'w-full rounded-md border border-slate-200 bg-white px-2.5 py-2 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/30'
+    'w-full rounded-md border border-gray-200 bg-white px-2.5 py-2 text-sm text-gray-900 outline-none placeholder:text-gray-500 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/30'
 
   return (
     <div className="mx-auto w-full min-w-0 max-w-full space-y-4 overflow-x-hidden pb-4">
@@ -238,13 +238,13 @@ export default function MasrafKalemleriPage() {
         <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
           <Link
             href="/dashboard/hesaplarim/masraflar"
-            className="inline-flex shrink-0 items-center gap-1.5 text-sm font-medium text-slate-600 hover:text-emerald-700"
+            className="inline-flex shrink-0 items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-emerald-700"
           >
             <ArrowLeft className="h-4 w-4" />
             Masraflar
           </Link>
-          <span className="hidden text-slate-300 sm:inline">|</span>
-          <h1 className="text-xl font-bold tracking-tight text-slate-900">Masraf kalemleri</h1>
+          <span className="hidden text-gray-600 sm:inline">|</span>
+          <h1 className="text-xl font-bold tracking-tight text-gray-900">Masraf kalemleri</h1>
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <button
@@ -269,7 +269,7 @@ export default function MasrafKalemleriPage() {
         </div>
       </div>
 
-      <p className="text-xs text-slate-500">
+      <p className="text-xs text-gray-400">
         Ana kategoriler kartlarda; etikete tıklayınca düzenlenir. Silmede onay istenir.
       </p>
 
@@ -278,7 +278,7 @@ export default function MasrafKalemleriPage() {
       )}
 
       {loading ? (
-        <p className="text-xs text-slate-500">Yükleniyor…</p>
+        <p className="text-xs text-gray-400">Yükleniyor…</p>
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {[...grouped.entries()].map(([groupName, rows]) => (
@@ -286,8 +286,8 @@ export default function MasrafKalemleriPage() {
               key={groupName}
               className="flex flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-md"
             >
-              <div className="flex items-center justify-between gap-2 border-b border-gray-100 bg-slate-50/90 px-3 py-2">
-                <h2 className="min-w-0 truncate text-xs font-semibold uppercase tracking-wide text-slate-800">
+              <div className="flex items-center justify-between gap-2 border-b border-gray-100 bg-gray-50/90 px-3 py-2">
+                <h2 className="min-w-0 truncate text-xs font-semibold uppercase tracking-wide text-gray-800">
                   {groupName}
                 </h2>
                 <button
@@ -320,8 +320,8 @@ export default function MasrafKalemleriPage() {
       )}
 
       {!loading && items.length === 0 && !loadError && (
-        <p className="rounded-lg border border-dashed border-slate-200 bg-slate-50 px-3 py-3 text-center text-xs text-slate-600">
-          Henüz kalem yok. <span className="font-medium text-slate-800">Yeni ana kalem</span> ile başlayın.
+        <p className="rounded-lg border border-dashed border-gray-200 bg-gray-50 px-3 py-3 text-center text-xs text-gray-500">
+          Henüz kalem yok. <span className="font-medium text-gray-800">Yeni ana kalem</span> ile başlayın.
         </p>
       )}
 
@@ -333,21 +333,21 @@ export default function MasrafKalemleriPage() {
 
       {dialog?.kind === 'addMain' && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/30 p-3"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-[#f0f5f2]/30 p-3"
           role="presentation"
           onClick={closeDialog}
         >
           <div
             role="dialog"
             aria-modal="true"
-            className="w-full max-w-sm rounded-lg border border-slate-200 bg-white p-4 shadow-lg"
+            className="w-full max-w-sm rounded-lg border border-gray-200 bg-white p-4 shadow-lg"
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 className="text-sm font-semibold text-slate-900">Yeni ana kategori</h3>
-            <p className="mt-0.5 text-xs text-slate-500">Grup adı ve ilk alt hesap.</p>
+            <h3 className="text-sm font-semibold text-gray-900">Yeni ana kategori</h3>
+            <p className="mt-0.5 text-xs text-gray-400">Grup adı ve ilk alt hesap.</p>
             <form onSubmit={submitAddMain} className="mt-3 space-y-2">
               <div>
-                <label className="mb-0.5 block text-[11px] font-medium text-slate-600">Ana kategori</label>
+                <label className="mb-0.5 block text-[11px] font-medium text-gray-500">Ana kategori</label>
                 <input
                   autoFocus
                   value={mainGroup}
@@ -357,7 +357,7 @@ export default function MasrafKalemleriPage() {
                 />
               </div>
               <div>
-                <label className="mb-0.5 block text-[11px] font-medium text-slate-600">İlk alt hesap</label>
+                <label className="mb-0.5 block text-[11px] font-medium text-gray-500">İlk alt hesap</label>
                 <input
                   value={mainFirstLabel}
                   onChange={(e) => setMainFirstLabel(e.target.value)}
@@ -369,7 +369,7 @@ export default function MasrafKalemleriPage() {
                 <button
                   type="button"
                   onClick={closeDialog}
-                  className="rounded-md border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50"
+                  className="rounded-md border border-gray-200 px-2.5 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50"
                 >
                   İptal
                 </button>
@@ -388,20 +388,20 @@ export default function MasrafKalemleriPage() {
 
       {dialog?.kind === 'addSub' && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/30 p-3"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-[#f0f5f2]/30 p-3"
           onClick={closeDialog}
         >
           <div
-            className="w-full max-w-sm rounded-lg border border-slate-200 bg-white p-4 shadow-lg"
+            className="w-full max-w-sm rounded-lg border border-gray-200 bg-white p-4 shadow-lg"
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 className="text-sm font-semibold text-slate-900">Alt hesap ekle</h3>
-            <p className="mt-0.5 text-xs text-slate-500">
-              <span className="font-medium text-slate-700">{dialog.groupName}</span>
+            <h3 className="text-sm font-semibold text-gray-900">Alt hesap ekle</h3>
+            <p className="mt-0.5 text-xs text-gray-400">
+              <span className="font-medium text-gray-600">{dialog.groupName}</span>
             </p>
             <form onSubmit={submitAddSub} className="mt-3 space-y-2">
               <div>
-                <label className="mb-0.5 block text-[11px] font-medium text-slate-600">Ad</label>
+                <label className="mb-0.5 block text-[11px] font-medium text-gray-500">Ad</label>
                 <input
                   autoFocus
                   value={subLabel}
@@ -414,7 +414,7 @@ export default function MasrafKalemleriPage() {
                 <button
                   type="button"
                   onClick={closeDialog}
-                  className="rounded-md border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50"
+                  className="rounded-md border border-gray-200 px-2.5 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50"
                 >
                   İptal
                 </button>
@@ -433,18 +433,18 @@ export default function MasrafKalemleriPage() {
 
       {dialog?.kind === 'edit' && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/30 p-3"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-[#f0f5f2]/30 p-3"
           onClick={closeDialog}
         >
           <div
-            className="w-full max-w-sm rounded-lg border border-slate-200 bg-white p-4 shadow-lg"
+            className="w-full max-w-sm rounded-lg border border-gray-200 bg-white p-4 shadow-lg"
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 className="text-sm font-semibold text-slate-900">Alt hesap</h3>
-            <p className="mt-0.5 font-mono text-[10px] text-slate-400">{dialog.row.item_key}</p>
+            <h3 className="text-sm font-semibold text-gray-900">Alt hesap</h3>
+            <p className="mt-0.5 font-mono text-[10px] text-gray-500">{dialog.row.item_key}</p>
             <form onSubmit={submitEdit} className="mt-3 space-y-2">
               <div>
-                <label className="mb-0.5 block text-[11px] font-medium text-slate-600">Grup</label>
+                <label className="mb-0.5 block text-[11px] font-medium text-gray-500">Grup</label>
                 <input
                   value={editGroup}
                   onChange={(e) => setEditGroup(e.target.value)}
@@ -453,11 +453,11 @@ export default function MasrafKalemleriPage() {
                 />
               </div>
               <div>
-                <label className="mb-0.5 block text-[11px] font-medium text-slate-600">Görünen ad</label>
+                <label className="mb-0.5 block text-[11px] font-medium text-gray-500">Görünen ad</label>
                 <input value={editLabel} onChange={(e) => setEditLabel(e.target.value)} className={inputClass} />
               </div>
               <div>
-                <label className="mb-0.5 block text-[11px] font-medium text-slate-600">Sıra</label>
+                <label className="mb-0.5 block text-[11px] font-medium text-gray-500">Sıra</label>
                 <TrNumberInput
                   value={editSort}
                   onChange={setEditSort}
@@ -476,7 +476,7 @@ export default function MasrafKalemleriPage() {
                   <button
                     type="button"
                     onClick={closeDialog}
-                    className="rounded-md border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50"
+                    className="rounded-md border border-gray-200 px-2.5 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50"
                   >
                     İptal
                   </button>

@@ -101,7 +101,7 @@ export default function CalisanlarPage() {
           <Link href="/dashboard/hesaplarim/calisanlar/rapor">
             <Button
               variant="outline"
-              className="gap-2 rounded-xl border-blue-200 bg-white text-blue-700 hover:bg-blue-50"
+              className="gap-2 rounded-xl border-primary-200 bg-white text-primary-700 hover:bg-primary-50"
             >
               <FileBarChart2 className="h-4 w-4" />
               Rapor
@@ -144,7 +144,7 @@ export default function CalisanlarPage() {
                   <tr>
                     <td colSpan={5} className="px-6 py-16 text-center text-gray-500">
                       <div className="flex flex-col items-center gap-2">
-                        <User className="h-10 w-10 text-gray-300" />
+                        <User className="h-10 w-10 text-gray-500" />
                         <span>Henüz çalışan kaydı yok. Yeni çalışan ekleyin.</span>
                       </div>
                     </td>

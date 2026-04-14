@@ -165,20 +165,20 @@ export default function PurchaseDetailPage() {
           </CardBody>
         </Card>
 
-        <Card className="h-full bg-blue-900 text-white">
+        <Card className="h-full bg-primary-800 text-white">
           <CardHeader>
-            <CardTitle className="text-blue-200 flex items-center gap-2">
+            <CardTitle className="text-primary-200 flex items-center gap-2">
               <ShoppingCart className="h-5 w-5" /> İşlem Özeti
             </CardTitle>
           </CardHeader>
           <CardBody className="space-y-6 pt-2">
             <div>
-              <label className="text-xs font-bold text-blue-300 uppercase">Genel Toplam</label>
+              <label className="text-xs font-bold text-primary-300 uppercase">Genel Toplam</label>
               <p className="text-3xl font-black">{purchase.total_amount.toLocaleString('tr-TR')} ₺</p>
             </div>
-            <div className="h-px bg-blue-800" />
-            <div className="p-4 bg-blue-800/50 rounded-xl border border-blue-700">
-              <p className="text-xs text-blue-200 leading-relaxed italic">
+            <div className="h-px bg-primary-800" />
+            <div className="p-4 bg-primary-800/50 rounded-xl border border-primary-600">
+              <p className="text-xs text-primary-200 leading-relaxed italic">
                 Bu alış işlemi sonucunda ilgili ürünlerin stokları artırılmış ve tedarikçi bakiyesi güncellenmiştir.
               </p>
             </div>

@@ -172,7 +172,7 @@ export default function EmployeeDetailView({ employeeId }: { employeeId: string 
     toast.custom(
       (t) => (
         <div
-          className="pointer-events-auto max-w-sm rounded-xl border border-slate-200/80 bg-white px-4 py-3 shadow-lg ring-1 ring-black/5"
+          className="pointer-events-auto max-w-sm rounded-xl border border-gray-200/80 bg-white px-4 py-3 shadow-lg ring-1 ring-black/5"
           role="dialog"
           aria-labelledby={`cari-del-title-${t.id}`}
         >
@@ -185,7 +185,7 @@ export default function EmployeeDetailView({ employeeId }: { employeeId: string 
           <div className="mt-4 flex justify-end gap-2">
             <button
               type="button"
-              className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
+              className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-gray-50"
               onClick={() => toast.dismiss(t.id)}
             >
               İptal
@@ -673,13 +673,13 @@ export default function EmployeeDetailView({ employeeId }: { employeeId: string 
                 </button>
                 <button
                   type="button"
-                  className="w-full text-left px-4 py-3 text-sm font-semibold text-gray-800 hover:bg-blue-50 flex items-center gap-2"
+                  className="w-full text-left px-4 py-3 text-sm font-semibold text-gray-800 hover:bg-primary-50 flex items-center gap-2"
                   onClick={() => {
                     setPaymentMenuOpen(false)
                     setModal({ kind: 'slip' })
                   }}
                 >
-                  <ArrowLeftRight className="h-4 w-4 text-blue-600" />
+                  <ArrowLeftRight className="h-4 w-4 text-primary-600" />
                   Borç-Alacak Fişleri
                 </button>
               </div>
@@ -699,7 +699,7 @@ export default function EmployeeDetailView({ employeeId }: { employeeId: string 
         <Button
           type="button"
           variant="outline"
-          className="rounded-lg bg-slate-800 text-white border-slate-900 hover:bg-slate-900 gap-2"
+          className="rounded-lg bg-slate-800 text-white border-gray-900 hover:bg-gray-900 gap-2"
           onClick={() => router.push(`/dashboard/hesaplarim/calisanlar/${employeeId}/ekstre`)}
         >
           <FileText className="h-4 w-4" />

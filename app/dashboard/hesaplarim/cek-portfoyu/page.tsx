@@ -104,7 +104,7 @@ function showPortfolioConfirm(opts: {
     opts.headerTone === 'rose'
       ? 'from-rose-600 to-red-600'
       : opts.headerTone === 'slate'
-        ? 'from-slate-700 to-slate-900'
+        ? 'from-gray-600 to-gray-700'
         : 'from-teal-600 to-emerald-600'
   const btnGrad =
     opts.confirmTone === 'rose'
@@ -113,17 +113,17 @@ function showPortfolioConfirm(opts: {
 
   toast.custom(
     (t) => (
-      <div className="pointer-events-auto w-[min(100vw-1.5rem,26rem)] max-h-[min(90vh,36rem)] overflow-y-auto rounded-2xl border border-slate-200/90 bg-white shadow-2xl ring-1 ring-black/5">
+      <div className="pointer-events-auto w-[min(100vw-1.5rem,26rem)] max-h-[min(90vh,36rem)] overflow-y-auto rounded-2xl border border-gray-200/90 bg-white shadow-2xl ring-1 ring-black/5">
         <div className={`bg-gradient-to-r ${headerGrad} px-4 py-3`}>
           <p className="text-sm font-semibold text-white">{opts.title}</p>
           {opts.subtitle ? <p className="mt-0.5 text-xs leading-snug text-white/90">{opts.subtitle}</p> : null}
         </div>
         <div className="px-4 py-3">
-          <div className="text-sm leading-relaxed text-slate-700">{opts.body}</div>
-          <div className="mt-4 flex flex-wrap justify-end gap-2 border-t border-slate-100 pt-3">
+          <div className="text-sm leading-relaxed text-gray-600">{opts.body}</div>
+          <div className="mt-4 flex flex-wrap justify-end gap-2 border-t border-gray-100 pt-3">
             <button
               type="button"
-              className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+              className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-600 shadow-sm transition hover:bg-gray-50"
               onClick={() => toast.dismiss(t.id)}
             >
               Vazgeç
@@ -435,10 +435,10 @@ export default function CekPortfoyuPage() {
       body: (
         <div className="space-y-2">
           <p>
-            <span className="font-semibold text-slate-900">{c.debtor_name}</span>
-            <span className="text-slate-600"> — {formatMoney(Number(c.amount), c.currency)}</span>
+            <span className="font-semibold text-gray-900">{c.debtor_name}</span>
+            <span className="text-gray-500"> — {formatMoney(Number(c.amount), c.currency)}</span>
           </p>
-          <p className="text-xs text-slate-600">Bu çeki iptal etmek istediğinize emin misiniz?</p>
+          <p className="text-xs text-gray-500">Bu çeki iptal etmek istediğinize emin misiniz?</p>
         </div>
       ),
       confirmLabel: 'Evet, iptal et',
@@ -475,10 +475,10 @@ export default function CekPortfoyuPage() {
       body: (
         <div className="space-y-2">
           <p>
-            <span className="font-semibold text-slate-900">{c.debtor_name}</span>
-            <span className="text-slate-600"> — {formatMoney(Number(c.amount), c.currency)}</span>
+            <span className="font-semibold text-gray-900">{c.debtor_name}</span>
+            <span className="text-gray-500"> — {formatMoney(Number(c.amount), c.currency)}</span>
           </p>
-          <p className="text-xs text-slate-600">Devam edilsin mi?</p>
+          <p className="text-xs text-gray-500">Devam edilsin mi?</p>
         </div>
       ),
       confirmLabel: 'Evet, işaretle',
@@ -514,7 +514,7 @@ export default function CekPortfoyuPage() {
       subtitle: 'Bankaya verildi kaydı kaldırılacak',
       body: (
         <p>
-          Çek bankadan geri alınır ve yalnızca <strong className="text-slate-900">portföyde</strong> görünür. Devam
+          Çek bankadan geri alınır ve yalnızca <strong className="text-gray-900">portföyde</strong> görünür. Devam
           edilsin mi?
         </p>
       ),
@@ -537,12 +537,12 @@ export default function CekPortfoyuPage() {
             Yatırılan tutar, tahsilatta seçilen kasa veya banka hesabından düşülecek; çek durumu yeniden{' '}
             <strong>portföyde</strong> (veya önceden bankadaysa <strong>bankada</strong>) görünecek.
           </div>
-          <div className="rounded-xl border border-slate-200 bg-slate-50/80 px-3 py-2">
-            <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">Çek</p>
-            <p className="mt-0.5 font-semibold text-slate-900">{c.debtor_name}</p>
+          <div className="rounded-xl border border-gray-200 bg-gray-50 px-3 py-2">
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">Çek</p>
+            <p className="mt-0.5 font-semibold text-gray-900">{c.debtor_name}</p>
             <p className="mt-1 text-sm font-bold text-emerald-800">{formatMoney(Number(c.amount), c.currency)}</p>
           </div>
-          <p className="text-center text-xs font-medium text-slate-700">Tahsilatı iptal etmek istediğinize emin misiniz?</p>
+          <p className="text-center text-xs font-medium text-gray-600">Tahsilatı iptal etmek istediğinize emin misiniz?</p>
         </div>
       ),
       confirmLabel: 'Evet, tahsilatı iptal et',
@@ -576,13 +576,13 @@ export default function CekPortfoyuPage() {
 
   return (
     <div className="mx-auto w-full min-w-0 max-w-full space-y-4 overflow-x-hidden pb-6">
-      <h1 className="text-xl font-bold tracking-tight text-slate-900">Çek Portföyü</h1>
-      <p className="text-sm text-slate-600">
+      <h1 className="text-xl font-bold tracking-tight text-gray-900">Çek Portföyü</h1>
+      <p className="text-sm text-gray-500">
         Müşteriden alınan çekler cari «Çek Girişi» ile kayda geçer; buradan tahsilat, bankaya gönderme ve faktoring işlemlerini
         yapabilirsiniz. Tedarikçiye ödeme sırasında portföydeki çeki ciro edebilir veya kendi çekinizi yazabilirsiniz.
       </p>
 
-      <div className="flex flex-wrap gap-1 border-b border-slate-200 pb-0.5">
+      <div className="flex flex-wrap gap-1 border-b border-gray-200 pb-0.5">
         {TABS.map((t) => (
           <button
             key={t.key}
@@ -591,7 +591,7 @@ export default function CekPortfoyuPage() {
             className={`rounded-t-md px-3 py-2 text-xs font-semibold transition sm:text-sm ${
               tab === t.key
                 ? 'bg-primary-600 text-white shadow-sm'
-                : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
             }`}
           >
             {t.label}
@@ -632,10 +632,10 @@ export default function CekPortfoyuPage() {
       </div>
 
       <div className="flex flex-wrap items-center justify-end gap-2">
-        <label className="flex items-center gap-2 text-xs font-medium text-slate-700">
+        <label className="flex items-center gap-2 text-xs font-medium text-gray-600">
           <span>Bul:</span>
           <div className="relative">
-            <Search className="pointer-events-none absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
+            <Search className="pointer-events-none absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-500" />
             <input
               type="search"
               value={q}
@@ -644,16 +644,16 @@ export default function CekPortfoyuPage() {
                 setPage(1)
               }}
               placeholder="isim, vade…"
-              className="w-48 rounded border border-slate-200 bg-white py-1.5 pl-8 pr-2 text-xs text-slate-900 sm:w-64"
+              className="w-48 rounded border border-gray-200 bg-white py-1.5 pl-8 pr-2 text-xs text-gray-900 sm:w-64"
             />
           </div>
         </label>
       </div>
 
-      <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-md">
+      <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-md">
         <div className="overflow-x-auto">
-          <table className="min-w-[1000px] w-full divide-y divide-slate-100 text-sm">
-            <thead className="bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-600">
+          <table className="min-w-[1000px] w-full divide-y divide-gray-100 text-sm">
+            <thead className="bg-gray-50 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
               <tr>
                 <th className="px-3 py-2.5">Borçlu</th>
                 <th className="px-3 py-2.5">Alındığı tarih</th>
@@ -666,16 +666,16 @@ export default function CekPortfoyuPage() {
                 <th className="px-3 py-2.5 w-[120px] text-right">İşlemler</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-gray-100">
               {loading ? (
                 <tr>
-                  <td colSpan={9} className="px-3 py-8 text-center text-slate-500">
+                  <td colSpan={9} className="px-3 py-8 text-center text-gray-400">
                     Yükleniyor…
                   </td>
                 </tr>
               ) : pageSlice.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="px-3 py-8 text-center text-slate-500">
+                  <td colSpan={9} className="px-3 py-8 text-center text-gray-400">
                     Kayıt yok.
                   </td>
                 </tr>
@@ -685,25 +685,25 @@ export default function CekPortfoyuPage() {
                   const overdue = due && due < new Date(new Date().toISOString().slice(0, 10) + 'T12:00:00')
                   const days = daysUntilDue(r.due_date)
                   return (
-                    <tr key={r.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/60'}>
-                      <td className="px-3 py-2 font-medium text-slate-900">{r.debtor_name}</td>
-                      <td className="px-3 py-2 text-slate-700">
+                    <tr key={r.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/60'}>
+                      <td className="px-3 py-2 font-medium text-gray-900">{r.debtor_name}</td>
+                      <td className="px-3 py-2 text-gray-600">
                         {parseLocalDate(r.received_date)?.toLocaleDateString('tr-TR') ?? '—'}
                       </td>
-                      <td className={`px-3 py-2 font-medium ${overdue ? 'text-red-600' : 'text-slate-800'}`}>
+                      <td className={`px-3 py-2 font-medium ${overdue ? 'text-red-600' : 'text-gray-800'}`}>
                         {parseLocalDate(r.due_date)?.toLocaleDateString('tr-TR') ?? '—'}
                         {days != null && (
-                          <span className="ml-1 text-xs font-normal text-slate-500">
+                          <span className="ml-1 text-xs font-normal text-gray-400">
                             ({days >= 0 ? '+' : ''}
                             {days} gün)
                           </span>
                         )}
                       </td>
-                      <td className="px-3 py-2 text-slate-600">{r.bank_name || '—'}</td>
-                      <td className="px-3 py-2 text-slate-600">{r.check_number || '—'}</td>
-                      <td className="max-w-[200px] truncate px-3 py-2 text-slate-600">{r.description || '—'}</td>
-                      <td className="px-3 py-2 text-right font-semibold text-slate-900">{formatMoney(Number(r.amount), r.currency)}</td>
-                      <td className="max-w-[220px] px-3 py-2 text-xs font-semibold leading-snug text-slate-700">
+                      <td className="px-3 py-2 text-gray-500">{r.bank_name || '—'}</td>
+                      <td className="px-3 py-2 text-gray-500">{r.check_number || '—'}</td>
+                      <td className="max-w-[200px] truncate px-3 py-2 text-gray-500">{r.description || '—'}</td>
+                      <td className="px-3 py-2 text-right font-semibold text-gray-900">{formatMoney(Number(r.amount), r.currency)}</td>
+                      <td className="max-w-[220px] px-3 py-2 text-xs font-semibold leading-snug text-gray-600">
                         {statusCellText(r)}
                       </td>
                       <td className="px-3 py-2 text-right">
@@ -713,15 +713,15 @@ export default function CekPortfoyuPage() {
                             onClick={(e) => toggleActionMenu(e, r)}
                             className={`inline-flex items-center gap-1 rounded border px-2.5 py-1.5 text-xs font-semibold shadow-sm transition ${
                               actionMenu?.row.id === r.id
-                                ? 'border-sky-400 bg-[#E1F5FE] text-slate-900'
-                                : 'border-slate-300 bg-white text-slate-800 hover:bg-slate-50'
+                                ? 'border-sky-400 bg-[#E1F5FE] text-gray-900'
+                                : 'border-gray-200 bg-white text-gray-800 hover:bg-gray-50'
                             }`}
                           >
                             İşlemler
                             <ChevronDown className="h-3.5 w-3.5 opacity-80" />
                           </button>
                         ) : (
-                          <span className="text-xs text-slate-400">—</span>
+                          <span className="text-xs text-gray-500">—</span>
                         )}
                       </td>
                     </tr>
@@ -732,7 +732,7 @@ export default function CekPortfoyuPage() {
           </table>
         </div>
         {!loading && filtered.length > 0 && (
-          <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 px-3 py-2 text-xs text-slate-600">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-t border-gray-100 px-3 py-2 text-xs text-gray-500">
             <span>
               {filtered.length} kayıttan {Math.min((page - 1) * pageSize + 1, filtered.length)} –{' '}
               {Math.min(page * pageSize, filtered.length)} arası
@@ -742,7 +742,7 @@ export default function CekPortfoyuPage() {
                 type="button"
                 disabled={page <= 1}
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
-                className="rounded border border-slate-200 px-2 py-1 font-medium disabled:opacity-40"
+                className="rounded border border-gray-200 px-2 py-1 font-medium disabled:opacity-40"
               >
                 Önceki
               </button>
@@ -751,7 +751,7 @@ export default function CekPortfoyuPage() {
                 type="button"
                 disabled={page >= totalPages}
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                className="rounded border border-slate-200 px-2 py-1 font-medium disabled:opacity-40"
+                className="rounded border border-gray-200 px-2 py-1 font-medium disabled:opacity-40"
               >
                 Sonraki
               </button>
@@ -772,7 +772,7 @@ export default function CekPortfoyuPage() {
               <button
                 type="button"
                 role="menuitem"
-                className="block w-full px-3 py-2.5 text-left text-sm font-normal text-slate-900 hover:bg-sky-200/80"
+                className="block w-full px-3 py-2.5 text-left text-sm font-normal text-gray-900 hover:bg-sky-200/80"
                 onClick={() => openCancelCollectionToast(actionMenu.row)}
               >
                 Çekin tahsilatını iptal et
@@ -782,7 +782,7 @@ export default function CekPortfoyuPage() {
                 <button
                   type="button"
                   role="menuitem"
-                  className="block w-full px-3 py-2.5 text-left text-sm font-normal text-slate-900 hover:bg-sky-200/80"
+                  className="block w-full px-3 py-2.5 text-left text-sm font-normal text-gray-900 hover:bg-sky-200/80"
                   onClick={() => openCollect(actionMenu.row)}
                 >
                   Çeki tahsil et
@@ -790,7 +790,7 @@ export default function CekPortfoyuPage() {
                 <button
                   type="button"
                   role="menuitem"
-                  className="block w-full px-3 py-2.5 text-left text-sm font-normal text-slate-900 hover:bg-sky-200/80"
+                  className="block w-full px-3 py-2.5 text-left text-sm font-normal text-gray-900 hover:bg-sky-200/80"
                   onClick={() => openBank(actionMenu.row)}
                 >
                   Çeki bankaya gönder
@@ -798,7 +798,7 @@ export default function CekPortfoyuPage() {
                 <button
                   type="button"
                   role="menuitem"
-                  className="block w-full px-3 py-2.5 text-left text-sm font-normal text-slate-900 hover:bg-sky-200/80"
+                  className="block w-full px-3 py-2.5 text-left text-sm font-normal text-gray-900 hover:bg-sky-200/80"
                   onClick={() => openFactoring(actionMenu.row)}
                 >
                   Faktoring ile tahsil et
@@ -806,7 +806,7 @@ export default function CekPortfoyuPage() {
                 <button
                   type="button"
                   role="menuitem"
-                  className="block w-full px-3 py-2.5 text-left text-sm font-normal text-slate-900 hover:bg-sky-200/80"
+                  className="block w-full px-3 py-2.5 text-left text-sm font-normal text-gray-900 hover:bg-sky-200/80"
                   onClick={() => promptCancelCheck(actionMenu.row)}
                 >
                   Çeki iptal et
@@ -814,7 +814,7 @@ export default function CekPortfoyuPage() {
                 <button
                   type="button"
                   role="menuitem"
-                  className="block w-full px-3 py-2.5 text-left text-sm font-normal text-slate-900 hover:bg-sky-200/80"
+                  className="block w-full px-3 py-2.5 text-left text-sm font-normal text-gray-900 hover:bg-sky-200/80"
                   onClick={() => promptBounceCheck(actionMenu.row)}
                 >
                   «Karşılıksız» olarak işaretle
@@ -825,7 +825,7 @@ export default function CekPortfoyuPage() {
                 <button
                   type="button"
                   role="menuitem"
-                  className="block w-full px-3 py-2.5 text-left text-sm font-normal text-slate-900 hover:bg-sky-200/80"
+                  className="block w-full px-3 py-2.5 text-left text-sm font-normal text-gray-900 hover:bg-sky-200/80"
                   onClick={() => openCollect(actionMenu.row)}
                 >
                   Çeki tahsil et
@@ -833,7 +833,7 @@ export default function CekPortfoyuPage() {
                 <button
                   type="button"
                   role="menuitem"
-                  className="block w-full px-3 py-2.5 text-left text-sm font-normal text-slate-900 hover:bg-sky-200/80"
+                  className="block w-full px-3 py-2.5 text-left text-sm font-normal text-gray-900 hover:bg-sky-200/80"
                   onClick={() => recallCheckFromBank(actionMenu.row)}
                 >
                   Çeki geri al
@@ -841,7 +841,7 @@ export default function CekPortfoyuPage() {
                 <button
                   type="button"
                   role="menuitem"
-                  className="block w-full px-3 py-2.5 text-left text-sm font-normal text-slate-900 hover:bg-sky-200/80"
+                  className="block w-full px-3 py-2.5 text-left text-sm font-normal text-gray-900 hover:bg-sky-200/80"
                   onClick={() => promptCancelCheck(actionMenu.row)}
                 >
                   Çeki iptal et
@@ -849,7 +849,7 @@ export default function CekPortfoyuPage() {
                 <button
                   type="button"
                   role="menuitem"
-                  className="block w-full px-3 py-2.5 text-left text-sm font-normal text-slate-900 hover:bg-sky-200/80"
+                  className="block w-full px-3 py-2.5 text-left text-sm font-normal text-gray-900 hover:bg-sky-200/80"
                   onClick={() => promptBounceCheck(actionMenu.row)}
                 >
                   «Karşılıksız» olarak işaretle
@@ -860,7 +860,7 @@ export default function CekPortfoyuPage() {
         </>
       )}
 
-      <p className="text-xs text-slate-400">{new Date().getFullYear()} © Mikro Muhasebe</p>
+      <p className="text-xs text-gray-500">{new Date().getFullYear()} © Mikro Muhasebe</p>
 
       {/* Tahsilat */}
       {collectOpen && activeCheck && (
@@ -873,29 +873,29 @@ export default function CekPortfoyuPage() {
           >
             <div className="flex items-center justify-between bg-teal-600 px-4 py-3">
               <h2 className="text-base font-semibold text-white">Tahsilat</h2>
-              <button type="button" className="text-white hover:bg-white/10 rounded p-1" onClick={() => setCollectOpen(false)}>
+              <button type="button" className="text-white hover:bg-gray-50 rounded p-1" onClick={() => setCollectOpen(false)}>
                 <X className="h-5 w-5" />
               </button>
             </div>
             <div className="space-y-3 p-4">
-              <p className="text-sm text-slate-600">
-                <span className="font-semibold text-slate-900">{activeCheck.debtor_name}</span> — {formatMoney(Number(activeCheck.amount), activeCheck.currency)}
+              <p className="text-sm text-gray-500">
+                <span className="font-semibold text-gray-900">{activeCheck.debtor_name}</span> — {formatMoney(Number(activeCheck.amount), activeCheck.currency)}
               </p>
               <div>
-                <label className="text-xs font-semibold text-slate-700">Tahsilat tarihi</label>
+                <label className="text-xs font-semibold text-gray-600">Tahsilat tarihi</label>
                 <input
                   type="date"
                   value={collectDate}
                   onChange={(e) => setCollectDate(e.target.value)}
-                  className="mt-1 w-full rounded border border-slate-200 px-3 py-2 text-sm"
+                  className="mt-1 w-full rounded border border-gray-200 px-3 py-2 text-sm"
                 />
               </div>
               <div>
-                <label className="text-xs font-semibold text-slate-700">Kasa / hesap *</label>
+                <label className="text-xs font-semibold text-gray-600">Kasa / hesap *</label>
                 <select
                   value={collectAccountId}
                   onChange={(e) => setCollectAccountId(e.target.value)}
-                  className="mt-1 w-full rounded border border-slate-200 px-3 py-2 text-sm"
+                  className="mt-1 w-full rounded border border-gray-200 px-3 py-2 text-sm"
                 >
                   <option value="">Hesap seçin</option>
                   {groupedTryAccounts.map((group) => (
@@ -910,19 +910,19 @@ export default function CekPortfoyuPage() {
                 </select>
               </div>
               <div>
-                <label className="text-xs font-semibold text-slate-700">Açıklama</label>
+                <label className="text-xs font-semibold text-gray-600">Açıklama</label>
                 <textarea
                   value={collectNotes}
                   onChange={(e) => setCollectNotes(e.target.value)}
                   rows={2}
-                  className="mt-1 w-full rounded border border-slate-200 px-3 py-2 text-sm"
+                  className="mt-1 w-full rounded border border-gray-200 px-3 py-2 text-sm"
                 />
               </div>
               <div className="flex justify-end gap-2 pt-2">
                 <button
                   type="button"
                   onClick={() => setCollectOpen(false)}
-                  className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700"
+                  className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-600"
                 >
                   Vazgeç
                 </button>
@@ -946,41 +946,41 @@ export default function CekPortfoyuPage() {
           <div className="w-full max-w-md overflow-hidden rounded-xl bg-white shadow-2xl" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between bg-teal-600 px-4 py-3">
               <h2 className="text-base font-semibold text-white">Banka seçin</h2>
-              <button type="button" className="text-white hover:bg-white/10 rounded p-1" onClick={() => setBankOpen(false)}>
+              <button type="button" className="text-white hover:bg-gray-50 rounded p-1" onClick={() => setBankOpen(false)}>
                 <X className="h-5 w-5" />
               </button>
             </div>
             <div className="space-y-3 p-4">
               <div>
-                <label className="text-xs font-semibold text-slate-700">Tahsile verilen banka *</label>
+                <label className="text-xs font-semibold text-gray-600">Tahsile verilen banka *</label>
                 <input
                   type="text"
                   value={bankName}
                   onChange={(e) => setBankName(e.target.value)}
                   placeholder="Örn: Akbank"
-                  className="mt-1 w-full rounded border border-slate-200 px-3 py-2 text-sm"
+                  className="mt-1 w-full rounded border border-gray-200 px-3 py-2 text-sm"
                 />
               </div>
               <div>
-                <label className="text-xs font-semibold text-slate-700">Tarih</label>
+                <label className="text-xs font-semibold text-gray-600">Tarih</label>
                 <input
                   type="date"
                   value={bankDate}
                   onChange={(e) => setBankDate(e.target.value)}
-                  className="mt-1 w-full rounded border border-slate-200 px-3 py-2 text-sm"
+                  className="mt-1 w-full rounded border border-gray-200 px-3 py-2 text-sm"
                 />
               </div>
               <div>
-                <label className="text-xs font-semibold text-slate-700">Açıklama</label>
+                <label className="text-xs font-semibold text-gray-600">Açıklama</label>
                 <textarea
                   value={bankNotes}
                   onChange={(e) => setBankNotes(e.target.value)}
                   rows={3}
-                  className="mt-1 w-full rounded border border-slate-200 px-3 py-2 text-sm"
+                  className="mt-1 w-full rounded border border-gray-200 px-3 py-2 text-sm"
                 />
               </div>
               <div className="flex justify-end gap-2 pt-2">
-                <button type="button" onClick={() => setBankOpen(false)} className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold">
+                <button type="button" onClick={() => setBankOpen(false)} className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-semibold">
                   Vazgeç
                 </button>
                 <button
@@ -1003,37 +1003,37 @@ export default function CekPortfoyuPage() {
           <div className="w-full max-w-lg overflow-hidden rounded-xl bg-white shadow-2xl" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between bg-teal-500 px-4 py-3">
               <h2 className="text-base font-semibold text-white">Faktoring yoluyla tahsilat</h2>
-              <button type="button" className="text-white hover:bg-white/10 rounded p-1" onClick={() => setFactoringOpen(false)}>
+              <button type="button" className="text-white hover:bg-gray-50 rounded p-1" onClick={() => setFactoringOpen(false)}>
                 <X className="h-5 w-5" />
               </button>
             </div>
             <div className="max-h-[80vh] space-y-3 overflow-y-auto p-4">
-              <p className="text-sm text-slate-600">
+              <p className="text-sm text-gray-500">
                 Çek tutarı: <strong>{formatMoney(Number(activeCheck.amount), activeCheck.currency)}</strong>
               </p>
               <div>
-                <label className="text-xs font-semibold text-slate-700">Tahsilat tarihi</label>
+                <label className="text-xs font-semibold text-gray-600">Tahsilat tarihi</label>
                 <input
                   type="date"
                   value={facDate}
                   onChange={(e) => setFacDate(e.target.value)}
-                  className="mt-1 w-full rounded border border-slate-200 px-3 py-2 text-sm"
+                  className="mt-1 w-full rounded border border-gray-200 px-3 py-2 text-sm"
                 />
               </div>
               <div>
-                <label className="text-xs font-semibold text-slate-700">TL karşılığı (hesaba geçecek net) *</label>
-                <TrNumberInput value={facTl} onChange={setFacTl} className="mt-1 w-full rounded border border-slate-200 px-3 py-2 text-sm" />
+                <label className="text-xs font-semibold text-gray-600">TL karşılığı (hesaba geçecek net) *</label>
+                <TrNumberInput value={facTl} onChange={setFacTl} className="mt-1 w-full rounded border border-gray-200 px-3 py-2 text-sm" />
               </div>
               <div>
-                <label className="text-xs font-semibold text-slate-700">Masraf kesintisi</label>
-                <TrNumberInput value={facExpense} onChange={setFacExpense} className="mt-1 w-full rounded border border-slate-200 px-3 py-2 text-sm" />
+                <label className="text-xs font-semibold text-gray-600">Masraf kesintisi</label>
+                <TrNumberInput value={facExpense} onChange={setFacExpense} className="mt-1 w-full rounded border border-gray-200 px-3 py-2 text-sm" />
               </div>
               <div>
-                <label className="text-xs font-semibold text-slate-700">Masraf kalemi (kesinti varsa)</label>
+                <label className="text-xs font-semibold text-gray-600">Masraf kalemi (kesinti varsa)</label>
                 <select
                   value={facExpenseItemKey}
                   onChange={(e) => setFacExpenseItemKey(e.target.value)}
-                  className="mt-1 w-full rounded border border-slate-200 px-3 py-2 text-sm"
+                  className="mt-1 w-full rounded border border-gray-200 px-3 py-2 text-sm"
                 >
                   <option value="">—</option>
                   {masrafGroups.map((g) => (
@@ -1052,17 +1052,17 @@ export default function CekPortfoyuPage() {
                 >
                   Masraf kalemlerini düzenle
                 </Link>
-                <p className="mt-1 text-[11px] leading-snug text-slate-500">
+                <p className="mt-1 text-[11px] leading-snug text-gray-400">
                   Kesinti tutarı girildiğinde kalem seçmeniz gerekir; kayıt Genel Masraflar listesine düşer (tutar zaten net
                   tahsilata yansır).
                 </p>
               </div>
               <div>
-                <label className="text-xs font-semibold text-slate-700">Paranın yatacağı kasa / banka *</label>
+                <label className="text-xs font-semibold text-gray-600">Paranın yatacağı kasa / banka *</label>
                 <select
                   value={collectAccountId}
                   onChange={(e) => setCollectAccountId(e.target.value)}
-                  className="mt-1 w-full rounded border border-slate-200 px-3 py-2 text-sm"
+                  className="mt-1 w-full rounded border border-gray-200 px-3 py-2 text-sm"
                 >
                   <option value="">Hesap seçin</option>
                   {groupedTryAccounts.map((group) => (
@@ -1077,16 +1077,16 @@ export default function CekPortfoyuPage() {
                 </select>
               </div>
               <div>
-                <label className="text-xs font-semibold text-slate-700">Açıklama</label>
+                <label className="text-xs font-semibold text-gray-600">Açıklama</label>
                 <textarea
                   value={facNotes}
                   onChange={(e) => setFacNotes(e.target.value)}
                   rows={2}
-                  className="mt-1 w-full rounded border border-slate-200 px-3 py-2 text-sm"
+                  className="mt-1 w-full rounded border border-gray-200 px-3 py-2 text-sm"
                 />
               </div>
               <div className="flex justify-end gap-2 pt-2">
-                <button type="button" onClick={() => setFactoringOpen(false)} className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold">
+                <button type="button" onClick={() => setFactoringOpen(false)} className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-semibold">
                   Vazgeç
                 </button>
                 <button

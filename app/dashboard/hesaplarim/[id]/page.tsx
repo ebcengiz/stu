@@ -321,15 +321,15 @@ export default function AccountDetailPage() {
     toast.custom(
       (t) => (
         <div
-          className="pointer-events-auto max-w-sm rounded-xl border border-slate-200/80 bg-white px-4 py-3 shadow-lg ring-1 ring-black/5"
+          className="pointer-events-auto max-w-sm rounded-xl border border-gray-200/80 bg-white px-4 py-3 shadow-lg ring-1 ring-black/5"
           role="dialog"
         >
-          <p className="text-sm font-semibold text-slate-900">Bu hareketi silmek istiyor musunuz?</p>
-          <p className="mt-1.5 text-xs text-slate-600">Hesap bakiyesi buna göre düzeltilir.</p>
+          <p className="text-sm font-semibold text-gray-900">Bu hareketi silmek istiyor musunuz?</p>
+          <p className="mt-1.5 text-xs text-gray-500">Hesap bakiyesi buna göre düzeltilir.</p>
           <div className="mt-4 flex justify-end gap-2">
             <button
               type="button"
-              className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+              className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-600 hover:bg-gray-50"
               onClick={() => toast.dismiss(t.id)}
             >
               İptal
@@ -404,7 +404,7 @@ export default function AccountDetailPage() {
   if (loading) {
     return (
       <div className="mx-auto flex w-full min-w-0 max-w-full justify-center overflow-x-hidden py-24">
-        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-blue-600" />
+        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-primary-600" />
       </div>
     )
   }
@@ -420,14 +420,14 @@ export default function AccountDetailPage() {
     if (type === 'cash' || type === 'kasa') return <Banknote className="h-8 w-8 text-emerald-600" />
     if (type === 'pos') return <Calculator className="h-8 w-8 text-amber-600" />
     if (type === 'other' || type === 'kredi_karti') return <CreditCard className="h-8 w-8 text-purple-600" />
-    return <Building className="h-8 w-8 text-blue-600" />
+    return <Building className="h-8 w-8 text-primary-600" />
   }
 
   const getAccountBg = (type: string) => {
     if (type === 'cash' || type === 'kasa') return 'bg-emerald-100 border-emerald-200'
     if (type === 'pos') return 'bg-amber-100 border-amber-200'
     if (type === 'other' || type === 'kredi_karti') return 'bg-purple-100 border-purple-200'
-    return 'bg-blue-100 border-blue-200'
+    return 'bg-primary-100 border-primary-200'
   }
 
   const toplamGiris = transactions.filter(t => t.type === 'inflow' || t.type === 'transfer_in').reduce((sum, t) => sum + Number(t.amount), 0)
@@ -486,15 +486,15 @@ export default function AccountDetailPage() {
 
       {/* 2. Three Metric Boxes */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-        <Card className="bg-gradient-to-br from-blue-600 to-blue-800 text-white shadow-lg border-0 transform transition-all hover:scale-[1.02]">
+        <Card className="bg-gradient-to-br from-primary-600 to-primary-700 text-white shadow-lg border-0 transform transition-all hover:scale-[1.02]">
           <CardBody className="p-5">
             <div className="flex justify-between items-start">
-              <h3 className="text-blue-100 font-bold text-xs uppercase tracking-wider">Güncel Bakiye</h3>
-              <div className="p-1.5 bg-white/20 rounded-xl backdrop-blur-sm"><Scale className="h-4 w-4 text-white" /></div>
+              <h3 className="text-primary-100 font-bold text-xs uppercase tracking-wider">Güncel Bakiye</h3>
+              <div className="p-1.5 bg-gray-100 rounded-xl backdrop-blur-sm"><Scale className="h-4 w-4 text-white" /></div>
             </div>
             <div className="mt-3">
               <div className="text-3xl font-black tracking-tight">{account.balance.toLocaleString('tr-TR', { minimumFractionDigits: 2 })}</div>
-              <div className="text-blue-200 font-bold text-sm mt-1">{getCurrencySymbol(account.currency)}</div>
+              <div className="text-primary-200 font-bold text-sm mt-1">{getCurrencySymbol(account.currency)}</div>
             </div>
           </CardBody>
         </Card>
@@ -542,9 +542,9 @@ export default function AccountDetailPage() {
         </button>
 
         {/* Virman / Transfer */}
-        <button onClick={() => { setTxForm({...txForm, type: 'outflow', target_account_id: targetAccounts[0]?.id || ''}); setShowTransferModal(true); }} className="flex flex-col items-center justify-center p-4 bg-white rounded-xl border-2 border-gray-100 hover:border-blue-300 hover:bg-blue-50 transition-all group shadow-sm">
-          <div className="p-3 bg-blue-100/50 rounded-full group-hover:bg-blue-200/50 transition-colors mb-2"><ArrowRightLeft className="h-6 w-6 text-blue-600" /></div>
-          <span className="font-bold text-sm text-gray-900 group-hover:text-blue-700">Transfer / Virman</span>
+        <button onClick={() => { setTxForm({...txForm, type: 'outflow', target_account_id: targetAccounts[0]?.id || ''}); setShowTransferModal(true); }} className="flex flex-col items-center justify-center p-4 bg-white rounded-xl border-2 border-gray-100 hover:border-primary-300 hover:bg-primary-50 transition-all group shadow-sm">
+          <div className="p-3 bg-primary-100/50 rounded-full group-hover:bg-primary-100/50 transition-colors mb-2"><ArrowRightLeft className="h-6 w-6 text-primary-600" /></div>
+          <span className="font-bold text-sm text-gray-900 group-hover:text-primary-700">Transfer / Virman</span>
         </button>
 
         {/* Diğer İşlemler (Accordion/Dropdown) */}
@@ -569,7 +569,7 @@ export default function AccountDetailPage() {
       {/* 4. List: Hesap Hareketleri */}
       <Card className="shadow-sm border-gray-200 mt-4">
         <CardHeader className="bg-gray-50/50 border-b py-4">
-          <CardTitle className="text-lg font-bold text-gray-900 flex items-center gap-2"><History className="h-5 w-5 text-blue-500" /> Hesap Hareketleri</CardTitle>
+          <CardTitle className="text-lg font-bold text-gray-900 flex items-center gap-2"><History className="h-5 w-5 text-primary-500" /> Hesap Hareketleri</CardTitle>
         </CardHeader>
         <CardBody className="p-0">
           <div className="overflow-x-auto">
@@ -727,7 +727,7 @@ export default function AccountDetailPage() {
               <button
                 type="button"
                 disabled={editLineSaving}
-                className="rounded-lg p-1.5 text-white/90 hover:bg-white/15 disabled:opacity-40"
+                className="rounded-lg p-1.5 text-white/90 hover:bg-gray-100 disabled:opacity-40"
                 onClick={() => setEditLineModal(null)}
                 aria-label="Kapat"
               >
@@ -822,7 +822,7 @@ export default function AccountDetailPage() {
           <Card className="w-full max-w-lg shadow-2xl rounded-3xl border-0">
             <CardHeader className="bg-emerald-600 text-white rounded-t-3xl py-5 px-6 flex flex-row items-center justify-between">
               <CardTitle className="text-lg font-bold flex items-center gap-2"><ArrowDownRight className="h-5 w-5" /> Para Girişi (Tahsilat)</CardTitle>
-              <button onClick={() => setShowInflowModal(false)} className="p-1.5 hover:bg-white/20 rounded-full transition-all"><X className="h-5 w-5 text-white" /></button>
+              <button onClick={() => setShowInflowModal(false)} className="p-1.5 hover:bg-gray-100 rounded-full transition-all"><X className="h-5 w-5 text-white" /></button>
             </CardHeader>
             <CardBody className="p-6">
               <form onSubmit={e => handleTransactionSubmit(e)} className="space-y-5">
@@ -853,7 +853,7 @@ export default function AccountDetailPage() {
           <Card className="w-full max-w-lg shadow-2xl rounded-3xl border-0">
             <CardHeader className="bg-red-600 text-white rounded-t-3xl py-5 px-6 flex flex-row items-center justify-between">
               <CardTitle className="text-lg font-bold flex items-center gap-2"><ArrowUpRight className="h-5 w-5" /> Para Çıkışı (Ödeme)</CardTitle>
-              <button onClick={() => setShowOutflowModal(false)} className="p-1.5 hover:bg-white/20 rounded-full transition-all"><X className="h-5 w-5 text-white" /></button>
+              <button onClick={() => setShowOutflowModal(false)} className="p-1.5 hover:bg-gray-100 rounded-full transition-all"><X className="h-5 w-5 text-white" /></button>
             </CardHeader>
             <CardBody className="p-6">
               <form onSubmit={e => handleTransactionSubmit(e)} className="space-y-5">
@@ -882,15 +882,15 @@ export default function AccountDetailPage() {
       {showTransferModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in">
           <Card className="w-full max-w-lg shadow-2xl rounded-3xl border-0">
-            <CardHeader className="bg-blue-600 text-white rounded-t-3xl py-5 px-6 flex flex-row items-center justify-between">
+            <CardHeader className="bg-primary-600 text-white rounded-t-3xl py-5 px-6 flex flex-row items-center justify-between">
               <CardTitle className="text-lg font-bold flex items-center gap-2"><ArrowRightLeft className="h-5 w-5" /> Para Transferi (Virman)</CardTitle>
-              <button onClick={() => setShowTransferModal(false)} className="p-1.5 hover:bg-white/20 rounded-full transition-all"><X className="h-5 w-5 text-white" /></button>
+              <button onClick={() => setShowTransferModal(false)} className="p-1.5 hover:bg-gray-100 rounded-full transition-all"><X className="h-5 w-5 text-white" /></button>
             </CardHeader>
             <CardBody className="p-6">
               <form onSubmit={e => handleTransactionSubmit(e, true)} className="space-y-5">
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-gray-500 uppercase px-1">Hedef Hesap *</label>
-                  <select required value={txForm.target_account_id} onChange={e => setTxForm({...txForm, target_account_id: e.target.value})} className="w-full px-3 py-2.5 border-2 border-gray-100 rounded-xl focus:border-blue-500 outline-none font-bold bg-white">
+                  <select required value={txForm.target_account_id} onChange={e => setTxForm({...txForm, target_account_id: e.target.value})} className="w-full px-3 py-2.5 border-2 border-gray-100 rounded-xl focus:border-primary-500 outline-none font-bold bg-white">
                     {groupedTargetAccounts.map((group) => (
                       <optgroup key={group.title} label={group.title}>
                         {group.items.map((a) => (
@@ -906,18 +906,18 @@ export default function AccountDetailPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1.5">
                     <label className="text-xs font-bold text-gray-500 uppercase px-1">Tarih</label>
-                    <input type="date" required value={txForm.transaction_date} onChange={e => setTxForm({...txForm, transaction_date: e.target.value})} className="w-full px-3 py-2.5 border-2 border-gray-100 rounded-xl focus:border-blue-500 outline-none font-bold" />
+                    <input type="date" required value={txForm.transaction_date} onChange={e => setTxForm({...txForm, transaction_date: e.target.value})} className="w-full px-3 py-2.5 border-2 border-gray-100 rounded-xl focus:border-primary-500 outline-none font-bold" />
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-xs font-bold text-gray-500 uppercase px-1">Tutar ({getCurrencySymbol(account.currency)}) *</label>
-                    <TrNumberInput required value={txForm.amount} onChange={(v) => setTxForm({ ...txForm, amount: v })} className="w-full px-3 py-2.5 border-2 border-blue-200 rounded-xl bg-blue-50/50 text-lg font-black text-blue-900 focus:border-blue-500 outline-none" placeholder="0,00" />
+                    <TrNumberInput required value={txForm.amount} onChange={(v) => setTxForm({ ...txForm, amount: v })} className="w-full px-3 py-2.5 border-2 border-primary-200 rounded-xl bg-primary-50/50 text-lg font-black text-primary-800 focus:border-primary-500 outline-none" placeholder="0,00" />
                   </div>
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-gray-500 uppercase px-1">Açıklama</label>
                   <textarea required placeholder="İşlem açıklaması girin..." value={txForm.description} onChange={e => setTxForm({...txForm, description: e.target.value})} className="w-full px-3 py-2.5 border-2 border-gray-100 rounded-xl outline-none h-20 resize-none font-medium" />
                 </div>
-                <div className="flex justify-end gap-3 pt-4 border-t"><Button type="button" variant="outline" onClick={() => setShowTransferModal(false)} className="rounded-xl">İptal</Button><Button type="submit" disabled={saving || !txForm.amount || !txForm.target_account_id} className="rounded-xl bg-blue-600 hover:bg-blue-700 text-white">{saving ? 'İşleniyor...' : 'Transferi Gerçekleştir'}</Button></div>
+                <div className="flex justify-end gap-3 pt-4 border-t"><Button type="button" variant="outline" onClick={() => setShowTransferModal(false)} className="rounded-xl">İptal</Button><Button type="submit" disabled={saving || !txForm.amount || !txForm.target_account_id} className="rounded-xl bg-primary-600 hover:bg-primary-700 text-white">{saving ? 'İşleniyor...' : 'Transferi Gerçekleştir'}</Button></div>
               </form>
             </CardBody>
           </Card>
@@ -936,7 +936,7 @@ export default function AccountDetailPage() {
               <form onSubmit={handleUpdateAccount} className="space-y-4">
                 <div>
                   <label className="block text-xs font-semibold text-gray-600 mb-1">Hesap Adı *</label>
-                  <input type="text" required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm" />
+                  <input type="text" required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none text-sm" />
                 </div>
                 {(formData.type === 'bank' || formData.type === 'banka' || formData.type === 'pos') && (
                   <>
@@ -967,7 +967,7 @@ export default function AccountDetailPage() {
                 )}
                 <div className="flex justify-end gap-3 pt-4">
                   <Button type="button" variant="outline" onClick={() => setShowEditAccountModal(false)} className="px-4 rounded-xl">İptal</Button>
-                  <Button type="submit" disabled={saving} className="bg-blue-600 hover:bg-blue-700 text-white px-6 rounded-xl">{saving ? 'Kaydediliyor...' : 'Kaydet'}</Button>
+                  <Button type="submit" disabled={saving} className="bg-primary-600 hover:bg-primary-700 text-white px-6 rounded-xl">{saving ? 'Kaydediliyor...' : 'Kaydet'}</Button>
                 </div>
               </form>
             </CardBody>

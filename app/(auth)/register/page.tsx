@@ -57,17 +57,22 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-primary-100">
-      <div className="w-full max-w-md">
-        <div className="bg-white rounded-lg shadow-lg p-8">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 via-green-50 to-emerald-50">
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-primary-200/30 rounded-full blur-3xl" />
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-emerald-200/30 rounded-full blur-3xl" />
+      </div>
+
+      <div className="w-full max-w-md relative z-10">
+        <div className="bg-white rounded-2xl shadow-xl shadow-gray-200/50 p-8 border border-gray-200/60">
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-primary-700">Mikro Muhasebe</h1>
-            <p className="text-gray-600 mt-2">Yeni hesap oluşturun</p>
+            <p className="text-gray-500 mt-2">Yeni hesap oluşturun</p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-5">
             {error && (
-              <div className="bg-red-50 text-red-600 p-3 rounded-md text-sm">
+              <div className="bg-red-50 border border-red-200 text-red-600 p-3 rounded-xl text-sm">
                 {error}
               </div>
             )}
@@ -82,7 +87,7 @@ export default function RegisterPage() {
                 required
                 value={formData.tenantName}
                 onChange={(e) => setFormData({ ...formData, tenantName: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-800 placeholder-gray-400 focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500 transition-all"
                 placeholder="ABC Şirketi"
               />
             </div>
@@ -97,7 +102,7 @@ export default function RegisterPage() {
                 required
                 value={formData.fullName}
                 onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-800 placeholder-gray-400 focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500 transition-all"
                 placeholder="Ahmet Yılmaz"
               />
             </div>
@@ -112,7 +117,7 @@ export default function RegisterPage() {
                 required
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-800 placeholder-gray-400 focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500 transition-all"
                 placeholder="ornek@email.com"
               />
             </div>
@@ -127,7 +132,7 @@ export default function RegisterPage() {
                 required
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-800 placeholder-gray-400 focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500 transition-all"
                 placeholder="••••••••"
               />
             </div>
@@ -135,16 +140,16 @@ export default function RegisterPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-primary-600 text-white py-2 px-4 rounded-md hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="w-full bg-primary-600 text-white py-3 px-4 rounded-xl hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm hover:shadow-md font-semibold"
             >
               {loading ? 'Kayıt yapılıyor...' : 'Kayıt Ol'}
             </button>
           </form>
 
           <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-gray-500">
               Zaten hesabınız var mı?{' '}
-              <Link href="/login" className="text-primary-600 hover:text-primary-700 font-medium">
+              <Link href="/login" className="text-primary-600 hover:text-primary-700 font-medium transition-colors">
                 Giriş Yap
               </Link>
             </p>

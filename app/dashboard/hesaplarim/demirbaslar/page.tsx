@@ -67,7 +67,7 @@ export default function DemirbaslarPage() {
   return (
     <div className="mx-auto w-full min-w-0 max-w-full space-y-4 overflow-x-hidden pb-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
-        <h1 className="text-xl font-bold tracking-tight text-slate-900">Demirbaşlar</h1>
+        <h1 className="text-xl font-bold tracking-tight text-gray-900">Demirbaşlar</h1>
         <div className="flex flex-wrap gap-2">
           <button
             type="button"
@@ -79,7 +79,7 @@ export default function DemirbaslarPage() {
           </button>
           <Link
             href="/dashboard/hesaplarim/demirbaslar/rapor"
-            className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-800 shadow-sm transition hover:border-slate-300 hover:bg-slate-50"
+            className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-800 shadow-sm transition hover:border-gray-200 hover:bg-gray-50"
           >
             <BarChart3 className="h-4 w-4 text-emerald-600" />
             Rapor
@@ -119,7 +119,7 @@ export default function DemirbaslarPage() {
 
       {!loading && rows.length > 0 && (
         <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-md">
-          <p className="border-b border-gray-100 bg-slate-50 px-3 py-2.5 text-xs leading-relaxed text-slate-600">
+          <p className="border-b border-gray-100 bg-gray-50 px-3 py-2.5 text-xs leading-relaxed text-gray-500">
             Satıra tıklayarak detay, hatırlatma ve dökümanlara gidebilirsiniz.
           </p>
           <div className="w-full overflow-x-auto">
@@ -145,14 +145,14 @@ export default function DemirbaslarPage() {
                         router.push(`/dashboard/hesaplarim/demirbaslar/${r.id}`)
                       }
                     }}
-                    className={`cursor-pointer border-b border-gray-100 transition hover:bg-slate-100 ${
-                      idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/80'
+                    className={`cursor-pointer border-b border-gray-100 transition hover:bg-gray-100 ${
+                      idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'
                     }`}
                   >
-                    <td className="px-3 py-2.5 font-semibold text-slate-900">{r.name}</td>
-                    <td className="px-3 py-2.5 text-slate-700">{r.serial_no?.trim() || '—'}</td>
-                    <td className="px-3 py-2.5 text-slate-700">{formatDate(r.purchase_date)}</td>
-                    <td className="px-3 py-2.5 font-medium text-slate-900">{formatMoney(r.price, r.currency || 'TRY')}</td>
+                    <td className="px-3 py-2.5 font-semibold text-gray-900">{r.name}</td>
+                    <td className="px-3 py-2.5 text-gray-600">{r.serial_no?.trim() || '—'}</td>
+                    <td className="px-3 py-2.5 text-gray-600">{formatDate(r.purchase_date)}</td>
+                    <td className="px-3 py-2.5 font-medium text-gray-900">{formatMoney(r.price, r.currency || 'TRY')}</td>
                   </tr>
                 ))}
               </tbody>
@@ -161,9 +161,9 @@ export default function DemirbaslarPage() {
         </div>
       )}
 
-      {loading && <p className="text-sm text-slate-500">Yükleniyor…</p>}
+      {loading && <p className="text-sm text-gray-400">Yükleniyor…</p>}
 
-      <p className="text-xs text-slate-400">{new Date().getFullYear()} © Mikro Muhasebe</p>
+      <p className="text-xs text-gray-500">{new Date().getFullYear()} © Mikro Muhasebe</p>
 
       <FixedAssetModal
         open={modalOpen}

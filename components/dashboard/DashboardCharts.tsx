@@ -29,13 +29,13 @@ export default function DashboardCharts({ topProducts, warehouseStats }: Dashboa
   const totalMetric = warehouseStats.reduce((sum, w) => sum + (pieMetric === 'value' ? w.totalValueTRY : w.totalQty), 0) || 1
   
   const colors = [
-    '#3b82f6',
-    '#10b981',
-    '#f59e0b',
-    '#ef4444',
-    '#8b5cf6',
-    '#ec4899',
-    '#06b6d4',
+    '#818cf8',
+    '#34d399',
+    '#fbbf24',
+    '#f87171',
+    '#a78bfa',
+    '#f472b6',
+    '#22d3ee',
   ] as const
 
   const pieSlices = warehouseStats.reduce<
@@ -76,7 +76,7 @@ export default function DashboardCharts({ topProducts, warehouseStats }: Dashboa
       <Card>
         <CardHeader>
           <div className="flex items-center gap-2">
-            <BarChart3 className="h-5 w-5 text-gray-500" />
+            <BarChart3 className="h-5 w-5 text-gray-400" />
             <CardTitle>En Yüksek Stoklu Ürünler</CardTitle>
           </div>
         </CardHeader>
@@ -85,16 +85,16 @@ export default function DashboardCharts({ topProducts, warehouseStats }: Dashboa
             {topProducts.map((product, index) => (
               <div key={index} className="space-y-1">
                 <div className="flex justify-between text-sm">
-                  <span className="font-medium text-gray-700 truncate max-w-[200px]" title={product.name}>
+                  <span className="font-medium text-gray-600 truncate max-w-[200px]" title={product.name}>
                     {product.name}
                   </span>
-                  <span className="text-gray-500">
+                  <span className="text-gray-400">
                     {product.stock.toLocaleString('tr-TR')} {product.unit}
                   </span>
                 </div>
-                <div className="h-2.5 w-full bg-gray-100 rounded-full overflow-hidden">
+                <div className="h-2.5 w-full bg-gray-100/60 rounded-full overflow-hidden">
                   <div 
-                    className="h-full bg-blue-500 rounded-full transition-all duration-1000 ease-out"
+                    className="h-full bg-indigo-500 rounded-full transition-all duration-1000 ease-out"
                     style={{ width: `${(product.stock / maxStock) * 100}%` }}
                   />
                 </div>
@@ -112,14 +112,14 @@ export default function DashboardCharts({ topProducts, warehouseStats }: Dashboa
         <CardHeader>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <PieChart className="h-5 w-5 text-gray-500" />
+              <PieChart className="h-5 w-5 text-gray-400" />
               <CardTitle>Depo Dağılımı</CardTitle>
             </div>
-            <div className="flex bg-gray-100 rounded-lg p-1">
+            <div className="flex bg-gray-100/60 rounded-lg p-1">
               <button
                 onClick={() => setPieMetric('value')}
                 className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${
-                  pieMetric === 'value' ? 'bg-white shadow text-gray-900' : 'text-gray-500 hover:text-gray-700'
+                  pieMetric === 'value' ? 'bg-slate-600 shadow text-gray-800' : 'text-gray-500 hover:text-gray-600'
                 }`}
               >
                 Değer (₺)
@@ -127,7 +127,7 @@ export default function DashboardCharts({ topProducts, warehouseStats }: Dashboa
               <button
                 onClick={() => setPieMetric('qty')}
                 className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${
-                  pieMetric === 'qty' ? 'bg-white shadow text-gray-900' : 'text-gray-500 hover:text-gray-700'
+                  pieMetric === 'qty' ? 'bg-slate-600 shadow text-gray-800' : 'text-gray-500 hover:text-gray-600'
                 }`}
               >
                 Miktar
@@ -143,11 +143,11 @@ export default function DashboardCharts({ topProducts, warehouseStats }: Dashboa
                 className="relative w-40 h-40 xl:w-48 xl:h-48 rounded-full flex-shrink-0 shadow-inner"
                 style={{ background: `conic-gradient(${gradientString})` }}
               >
-                {/* Inner white circle for donut effect */}
-                <div className="absolute inset-6 xl:inset-8 bg-white rounded-full flex items-center justify-center shadow-sm">
+                {/* Inner dark circle for donut effect */}
+                <div className="absolute inset-6 xl:inset-8 bg-white rounded-full flex items-center justify-center shadow-sm border border-gray-100">
                   <div className="text-center">
                     <span className="block text-[10px] xl:text-xs text-gray-400 font-medium uppercase tracking-wider">TOPLAM</span>
-                    <span className="block text-xs xl:text-sm font-bold text-gray-900">
+                    <span className="block text-xs xl:text-sm font-bold text-gray-700">
                       {pieMetric === 'value' 
                         ? `₺${totalMetric.toLocaleString('tr-TR', { maximumFractionDigits: 0, notation: "compact" })}`
                         : totalMetric.toLocaleString('tr-TR', { maximumFractionDigits: 0, notation: "compact" })
@@ -166,10 +166,10 @@ export default function DashboardCharts({ topProducts, warehouseStats }: Dashboa
                         className="w-2.5 h-2.5 xl:w-3 xl:h-3 rounded-full flex-shrink-0" 
                         style={{ backgroundColor: slice.color }}
                       />
-                      <span className="text-gray-600 truncate max-w-[100px] xl:max-w-[120px]">{slice.name}</span>
+                      <span className="text-gray-500 truncate max-w-[100px] xl:max-w-[120px]">{slice.name}</span>
                     </div>
                     <div className="flex items-center gap-2 xl:gap-3">
-                      <span className="font-semibold text-gray-900">
+                      <span className="font-semibold text-gray-700">
                         {pieMetric === 'value' 
                           ? `₺${slice.value.toLocaleString('tr-TR', { maximumFractionDigits: 0 })}`
                           : slice.value.toLocaleString('tr-TR')

@@ -339,7 +339,7 @@ export default function SuppliersPage() {
                             <div className="font-medium text-gray-900">{supplier.company_name}</div>
                             <div className="flex flex-wrap gap-1 mt-1">
                               {supplier.category1 && (
-                                <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-blue-100 text-blue-800">
+                                <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-primary-100 text-primary-800">
                                   {supplier.category1}
                                 </span>
                               )}

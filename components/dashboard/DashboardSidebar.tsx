@@ -75,17 +75,17 @@ function SidebarContent({
   const collapsed = !isMobile && isCollapsed
 
   return (
-    <div className="flex flex-col h-full bg-white border-r border-gray-200">
-      <div className={`h-16 flex items-center border-b border-gray-200 transition-all duration-300 ${collapsed ? 'justify-center px-0' : 'px-6 justify-between'}`}>
+    <div className="flex flex-col h-full bg-white border-r border-gray-200/80">
+      <div className={`h-16 flex items-center border-b border-gray-200/80 transition-all duration-300 ${collapsed ? 'justify-center px-0' : 'px-6 justify-between'}`}>
         <Link href="/dashboard" className="flex items-center">
-          <span className={`font-bold text-primary-600 transition-all duration-300 ${collapsed ? 'text-xl' : 'text-2xl'}`}>
+          <span className={`font-bold text-primary-700 transition-all duration-300 ${collapsed ? 'text-xl' : 'text-2xl'}`}>
             {collapsed ? 'MM' : 'Mikro Muhasebe'}
           </span>
         </Link>
         {!isMobile && (
           <button
             onClick={() => setIsCollapsed(!isCollapsed)}
-            className={`p-1.5 rounded-md text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors ${collapsed ? 'hidden' : 'block'}`}
+            className={`p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors ${collapsed ? 'hidden' : 'block'}`}
           >
             <ChevronLeft className="h-5 w-5" />
           </button>
@@ -96,7 +96,7 @@ function SidebarContent({
         <div className="flex justify-center pt-4">
           <button
             onClick={() => setIsCollapsed(!isCollapsed)}
-            className="p-1.5 rounded-md text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors"
+            className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
             title="Genişlet"
           >
             <ChevronRight className="h-5 w-5" />
@@ -113,10 +113,10 @@ function SidebarContent({
               key={item.name}
               href={item.href}
               title={collapsed ? item.name : undefined}
-              className={`flex items-center py-2.5 text-sm font-medium rounded-md transition-all duration-300 ${
+              className={`flex items-center py-2.5 text-sm font-medium rounded-xl transition-all duration-200 ${
                 isActive
-                  ? 'bg-primary-50 text-primary-700'
-                  : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
+                  ? 'bg-primary-50 text-primary-700 shadow-sm'
+                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
               } ${collapsed ? 'justify-center px-0' : 'px-3'}`}
               onClick={() => isMobile && setIsMobileMenuOpen(false)}
             >
@@ -136,13 +136,13 @@ function SidebarContent({
                 setIsCashManagementOpen(!isCashManagementOpen)
               }
             }}
-            className={`w-full flex items-center py-2.5 text-sm font-medium rounded-md transition-all duration-300 text-gray-700 hover:bg-gray-50 hover:text-gray-900 ${collapsed ? 'justify-center px-0' : 'px-3'}`}
+            className={`w-full flex items-center py-2.5 text-sm font-medium rounded-xl transition-all duration-200 text-gray-600 hover:bg-gray-50 hover:text-gray-900 ${collapsed ? 'justify-center px-0' : 'px-3'}`}
             title={collapsed ? 'Nakit Yönetimi' : undefined}
           >
             <DollarSign className={`h-5 w-5 flex-shrink-0 ${collapsed ? '' : 'mr-3'}`} />
             {!collapsed && (
               <>
-                <span className="flex-1 text-left text-gray-700">Nakit Yönetimi</span>
+                <span className="flex-1 text-left">Nakit Yönetimi</span>
                 <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isCashManagementOpen ? 'rotate-180' : ''}`} />
               </>
             )}
@@ -152,7 +152,7 @@ function SidebarContent({
             <div className="ml-9 space-y-1 animate-in fade-in slide-in-from-top-1 duration-200">
               <Link
                 href="/dashboard/hesaplarim"
-                className={`flex items-center py-2 text-sm font-medium rounded-md transition-colors ${
+                className={`flex items-center py-2 text-sm font-medium rounded-lg transition-colors ${
                   pathname.startsWith('/dashboard/hesaplarim') &&
                   !pathname.startsWith('/dashboard/hesaplarim/calisanlar') &&
                   !pathname.startsWith('/dashboard/hesaplarim/masraflar') &&
@@ -161,7 +161,7 @@ function SidebarContent({
                   !pathname.startsWith('/dashboard/hesaplarim/projeler') &&
                   !pathname.startsWith('/dashboard/hesaplarim/cek-portfoyu')
                     ? 'text-primary-700 bg-primary-50'
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                    : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
                 } px-3`}
                 onClick={() => isMobile && setIsMobileMenuOpen(false)}
               >
@@ -170,10 +170,10 @@ function SidebarContent({
               </Link>
               <Link
                 href="/dashboard/hesaplarim/calisanlar"
-                className={`flex items-center py-2 text-sm font-medium rounded-md transition-colors ${
+                className={`flex items-center py-2 text-sm font-medium rounded-lg transition-colors ${
                   pathname === '/dashboard/hesaplarim/calisanlar' || pathname.startsWith('/dashboard/hesaplarim/calisanlar/')
                     ? 'text-primary-700 bg-primary-50'
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                    : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
                 } px-3`}
                 onClick={() => isMobile && setIsMobileMenuOpen(false)}
               >
@@ -182,11 +182,11 @@ function SidebarContent({
               </Link>
               <Link
                 href="/dashboard/hesaplarim/masraflar"
-                className={`flex items-center py-2 text-sm font-medium rounded-md transition-colors ${
+                className={`flex items-center py-2 text-sm font-medium rounded-lg transition-colors ${
                   pathname === '/dashboard/hesaplarim/masraflar' ||
                   pathname.startsWith('/dashboard/hesaplarim/masraflar/')
                     ? 'text-primary-700 bg-primary-50'
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                    : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
                 } px-3`}
                 onClick={() => isMobile && setIsMobileMenuOpen(false)}
               >
@@ -195,11 +195,11 @@ function SidebarContent({
               </Link>
               <Link
                 href="/dashboard/hesaplarim/krediler"
-                className={`flex items-center py-2 text-sm font-medium rounded-md transition-colors ${
+                className={`flex items-center py-2 text-sm font-medium rounded-lg transition-colors ${
                   pathname === '/dashboard/hesaplarim/krediler' ||
                   pathname.startsWith('/dashboard/hesaplarim/krediler/')
                     ? 'text-primary-700 bg-primary-50'
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                    : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
                 } px-3`}
                 onClick={() => isMobile && setIsMobileMenuOpen(false)}
               >
@@ -208,11 +208,11 @@ function SidebarContent({
               </Link>
               <Link
                 href="/dashboard/hesaplarim/demirbaslar"
-                className={`flex items-center py-2 text-sm font-medium rounded-md transition-colors ${
+                className={`flex items-center py-2 text-sm font-medium rounded-lg transition-colors ${
                   pathname === '/dashboard/hesaplarim/demirbaslar' ||
                   pathname.startsWith('/dashboard/hesaplarim/demirbaslar/')
                     ? 'text-primary-700 bg-primary-50'
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                    : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
                 } px-3`}
                 onClick={() => isMobile && setIsMobileMenuOpen(false)}
               >
@@ -221,11 +221,11 @@ function SidebarContent({
               </Link>
               <Link
                 href="/dashboard/hesaplarim/projeler"
-                className={`flex items-center py-2 text-sm font-medium rounded-md transition-colors ${
+                className={`flex items-center py-2 text-sm font-medium rounded-lg transition-colors ${
                   pathname === '/dashboard/hesaplarim/projeler' ||
                   pathname.startsWith('/dashboard/hesaplarim/projeler/')
                     ? 'text-primary-700 bg-primary-50'
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                    : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
                 } px-3`}
                 onClick={() => isMobile && setIsMobileMenuOpen(false)}
               >
@@ -234,10 +234,10 @@ function SidebarContent({
               </Link>
               <Link
                 href="/dashboard/hesaplarim/cek-portfoyu"
-                className={`ml-3 flex items-center border-l-2 border-primary-200 pl-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                className={`ml-3 flex items-center border-l-2 border-primary-200 pl-3 py-2 text-sm font-medium rounded-lg transition-colors ${
                   pathname === '/dashboard/hesaplarim/cek-portfoyu'
                     ? 'text-primary-700 bg-primary-50'
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                    : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
                 }`}
                 onClick={() => isMobile && setIsMobileMenuOpen(false)}
               >
@@ -256,10 +256,10 @@ function SidebarContent({
               key={item.name}
               href={item.href}
               title={collapsed ? item.name : undefined}
-              className={`flex items-center py-2.5 text-sm font-medium rounded-md transition-all duration-300 ${
+              className={`flex items-center py-2.5 text-sm font-medium rounded-xl transition-all duration-200 ${
                 isActive
-                  ? 'bg-primary-50 text-primary-700'
-                  : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
+                  ? 'bg-primary-50 text-primary-700 shadow-sm'
+                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
               } ${collapsed ? 'justify-center px-0' : 'px-3'}`}
               onClick={() => isMobile && setIsMobileMenuOpen(false)}
             >
@@ -280,13 +280,13 @@ function SidebarContent({
                   setIsSettingsOpen(!isSettingsOpen)
                 }
               }}
-              className={`w-full flex items-center py-2.5 text-sm font-medium rounded-md transition-all duration-300 text-gray-700 hover:bg-gray-50 hover:text-gray-900 ${collapsed ? 'justify-center px-0' : 'px-3'}`}
+              className={`w-full flex items-center py-2.5 text-sm font-medium rounded-xl transition-all duration-200 text-gray-600 hover:bg-gray-50 hover:text-gray-900 ${collapsed ? 'justify-center px-0' : 'px-3'}`}
               title={collapsed ? 'Ayarlar' : undefined}
             >
               <Settings className={`h-5 w-5 flex-shrink-0 ${collapsed ? '' : 'mr-3'}`} />
               {!collapsed && (
                 <>
-                  <span className="flex-1 text-left text-gray-700">Ayarlar</span>
+                  <span className="flex-1 text-left">Ayarlar</span>
                   <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isSettingsOpen ? 'rotate-180' : ''}`} />
                 </>
               )}
@@ -296,8 +296,8 @@ function SidebarContent({
               <div className="ml-9 space-y-1 animate-in fade-in slide-in-from-top-1 duration-200">
                 <Link
                   href="/dashboard/ayarlar"
-                  className={`flex items-center py-2 text-sm font-medium rounded-md transition-colors ${
-                    pathname === '/dashboard/ayarlar' ? 'text-primary-700 bg-primary-50' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                  className={`flex items-center py-2 text-sm font-medium rounded-lg transition-colors ${
+                    pathname === '/dashboard/ayarlar' ? 'text-primary-700 bg-primary-50' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
                   } px-3`}
                 >
                   <Settings className="h-4 w-4 mr-2" />
@@ -305,8 +305,8 @@ function SidebarContent({
                 </Link>
                 <Link
                   href="/dashboard/tanimlar"
-                  className={`flex items-center py-2 text-sm font-medium rounded-md transition-colors ${
-                    pathname === '/dashboard/tanimlar' ? 'text-primary-700 bg-primary-50' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                  className={`flex items-center py-2 text-sm font-medium rounded-lg transition-colors ${
+                    pathname === '/dashboard/tanimlar' ? 'text-primary-700 bg-primary-50' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
                   } px-3`}
                 >
                   <Tags className="h-4 w-4 mr-2" />
@@ -318,12 +318,12 @@ function SidebarContent({
         )}
       </div>
 
-      <div className="p-4 border-t border-gray-200">
+      <div className="p-4 border-t border-gray-200/80">
         <div className={`flex items-center ${collapsed ? 'justify-center flex-col gap-3' : 'justify-between'}`}>
           {!collapsed && (
             <div className="text-sm truncate mr-2">
-              <div className="font-medium text-gray-900 truncate" title={profile?.full_name}>{profile?.full_name}</div>
-              <div className="text-gray-500 text-xs truncate" title={profile?.tenants?.name}>{profile?.tenants?.name}</div>
+              <div className="font-medium text-gray-800 truncate" title={profile?.full_name}>{profile?.full_name}</div>
+              <div className="text-gray-400 text-xs truncate" title={profile?.tenants?.name}>{profile?.tenants?.name}</div>
             </div>
           )}
           {collapsed && (
@@ -333,7 +333,7 @@ function SidebarContent({
           )}
           <button
             onClick={handleSignOut}
-            className={`p-2 text-gray-500 hover:text-gray-900 hover:bg-gray-50 rounded-md transition-colors flex-shrink-0 ${collapsed ? 'mt-2' : ''}`}
+            className={`p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors flex-shrink-0 ${collapsed ? 'mt-2' : ''}`}
             title="Çıkış Yap"
           >
             <LogOut className="h-5 w-5" />
@@ -416,13 +416,13 @@ export default function DashboardSidebar({ profile }: { profile: Profile | null 
 
   return (
     <>
-      <div className="lg:hidden flex items-center justify-between h-16 px-4 bg-white border-b border-gray-200 sticky top-0 z-20">
-        <Link href="/dashboard" className="text-xl font-bold text-primary-600">
+      <div className="lg:hidden flex items-center justify-between h-16 px-4 bg-white border-b border-gray-200/80 sticky top-0 z-20 shadow-sm">
+        <Link href="/dashboard" className="text-xl font-bold text-primary-700">
           Mikro Muhasebe
         </Link>
         <button
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          className="p-2 text-gray-500 hover:text-gray-900 rounded-md"
+          className="p-2 text-gray-500 hover:text-gray-700 rounded-lg"
         >
           {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
         </button>
@@ -430,13 +430,13 @@ export default function DashboardSidebar({ profile }: { profile: Profile | null 
 
       {isMobileMenuOpen && (
         <div
-          className="lg:hidden fixed inset-0 bg-gray-600 bg-opacity-75 z-30"
+          className="lg:hidden fixed inset-0 bg-black/30 z-30"
           onClick={() => setIsMobileMenuOpen(false)}
         />
       )}
 
       <div className={`
-        lg:hidden fixed inset-y-0 left-0 flex flex-col w-64 bg-white transform transition-transform duration-300 ease-in-out z-40
+        lg:hidden fixed inset-y-0 left-0 flex flex-col w-64 bg-white transform transition-transform duration-300 ease-in-out z-40 shadow-xl
         ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
       `}>
         <SidebarContent {...sidebarProps} isMobile />

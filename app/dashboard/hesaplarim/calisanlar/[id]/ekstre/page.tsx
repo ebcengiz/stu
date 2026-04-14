@@ -193,7 +193,7 @@ export default function CalisanEkstrePage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <div className="h-10 w-10 border-2 border-slate-700 border-t-transparent rounded-full animate-spin" />
+        <div className="h-10 w-10 border-2 border-gray-200 border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
@@ -211,8 +211,8 @@ export default function CalisanEkstrePage() {
           Geri Dön
         </Link>
 
-        <div className="rounded-lg overflow-hidden shadow-md border border-slate-700/20">
-          <div className="bg-slate-800 px-5 py-4">
+        <div className="rounded-lg overflow-hidden shadow-md border border-gray-200/20">
+          <div className="bg-white px-5 py-4">
             <h1 className="text-lg md:text-xl font-black text-white tracking-tight text-center">
               {title}
             </h1>
@@ -268,7 +268,7 @@ export default function CalisanEkstrePage() {
               <button
                 type="button"
                 onClick={handleSend}
-                className="inline-flex items-center gap-2 rounded-lg bg-slate-800 hover:bg-slate-900 text-white px-4 py-2 text-sm font-bold shadow-sm"
+                className="inline-flex items-center gap-2 rounded-lg bg-white hover:bg-[#f0f5f2] text-white px-4 py-2 text-sm font-bold shadow-sm"
               >
                 <Mail className="h-4 w-4" />
                 Gönder

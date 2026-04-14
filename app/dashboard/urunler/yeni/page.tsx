@@ -149,7 +149,7 @@ export default function NewProductPage() {
                       required
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className="w-full px-5 py-4 border-2 border-gray-100 rounded-2xl focus:border-primary-500 focus:ring-4 focus:ring-primary-50 outline-none font-bold text-gray-900 transition-all placeholder:text-gray-300"
+                      className="w-full px-5 py-4 border-2 border-gray-100 rounded-2xl focus:border-primary-500 focus:ring-4 focus:ring-primary-50 outline-none font-bold text-gray-900 transition-all placeholder:text-gray-500"
                       placeholder="Ürün adını giriniz"
                     />
                   </div>
@@ -160,7 +160,7 @@ export default function NewProductPage() {
                       type="text"
                       value={formData.sku}
                       onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
-                      className="w-full px-5 py-4 border-2 border-gray-100 rounded-2xl focus:border-primary-500 focus:ring-4 focus:ring-primary-50 outline-none font-bold text-gray-900 transition-all placeholder:text-gray-300 uppercase"
+                      className="w-full px-5 py-4 border-2 border-gray-100 rounded-2xl focus:border-primary-500 focus:ring-4 focus:ring-primary-50 outline-none font-bold text-gray-900 transition-all placeholder:text-gray-500 uppercase"
                       placeholder="Örn: ABC-123"
                     />
                   </div>
@@ -171,7 +171,7 @@ export default function NewProductPage() {
                       type="text"
                       value={formData.barcode}
                       onChange={(e) => setFormData({ ...formData, barcode: e.target.value })}
-                      className="w-full px-5 py-4 border-2 border-gray-100 rounded-2xl focus:border-primary-500 focus:ring-4 focus:ring-primary-50 outline-none font-bold text-gray-900 transition-all placeholder:text-gray-300"
+                      className="w-full px-5 py-4 border-2 border-gray-100 rounded-2xl focus:border-primary-500 focus:ring-4 focus:ring-primary-50 outline-none font-bold text-gray-900 transition-all placeholder:text-gray-500"
                       placeholder="Barkod numarasını giriniz"
                     />
                   </div>
@@ -228,7 +228,7 @@ export default function NewProductPage() {
                     rows={4}
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    className="w-full px-5 py-4 border-2 border-gray-100 rounded-2xl focus:border-primary-500 focus:ring-4 focus:ring-primary-50 outline-none font-bold text-gray-900 transition-all placeholder:text-gray-300"
+                    className="w-full px-5 py-4 border-2 border-gray-100 rounded-2xl focus:border-primary-500 focus:ring-4 focus:ring-primary-50 outline-none font-bold text-gray-900 transition-all placeholder:text-gray-500"
                     placeholder="Ürün hakkında detaylı bilgi giriniz..."
                   />
                 </div>
@@ -277,7 +277,7 @@ export default function NewProductPage() {
                       <button 
                         type="button" 
                         onClick={removeImage}
-                        className="bg-white/20 backdrop-blur-md text-white p-4 rounded-full hover:bg-white/40 transition-all active:scale-90"
+                        className="bg-gray-100 backdrop-blur-md text-white p-4 rounded-full hover:bg-white/40 transition-all active:scale-90"
                       >
                         <X className="h-8 w-8" />
                       </button>

@@ -108,11 +108,11 @@ export default function SalesPage() {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'Bekliyor': return 'bg-yellow-100 text-yellow-800'
-      case 'İrsaliyeleşmiş': return 'bg-blue-100 text-blue-800'
-      case 'Faturalaşmış': return 'bg-green-100 text-green-800'
-      case 'Faturalaşmış (E-Fatura)': return 'bg-purple-100 text-purple-800'
-      default: return 'bg-gray-100 text-gray-800'
+      case 'Bekliyor': return 'bg-amber-50 text-amber-600'
+      case 'İrsaliyeleşmiş': return 'bg-sky-50 text-sky-600'
+      case 'Faturalaşmış': return 'bg-emerald-50 text-emerald-600'
+      case 'Faturalaşmış (E-Fatura)': return 'bg-violet-500/15 text-violet-400'
+      default: return 'bg-gray-50 text-gray-500'
     }
   }
 
@@ -140,12 +140,12 @@ export default function SalesPage() {
     toast(
       (t) => (
         <div className="flex flex-col gap-3">
-          <div className="font-medium text-gray-900">Bu satışı silmek istediğinizden emin misiniz?</div>
+          <div className="font-medium text-gray-700">Bu satışı silmek istediğinizden emin misiniz?</div>
           <div className="text-xs text-gray-500">Not: Stok ve bakiye hareketleri geri alınmaz.</div>
           <div className="flex justify-end gap-2 mt-2">
             <button 
               onClick={() => toast.dismiss(t.id)} 
-              className="px-3 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-md transition-colors"
+              className="px-3 py-1.5 text-sm font-medium text-gray-500 hover:bg-gray-100 rounded-md transition-colors"
             >
               Vazgeç
             </button>
@@ -154,14 +154,14 @@ export default function SalesPage() {
                 toast.dismiss(t.id)
                 executeDelete(id)
               }} 
-              className="px-3 py-1.5 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md transition-colors"
+              className="px-3 py-1.5 text-sm font-medium text-white bg-rose-600 hover:bg-rose-500 rounded-md transition-colors"
             >
               Evet, Sil
             </button>
           </div>
         </div>
       ),
-      { duration: 8000, position: 'top-center', style: { minWidth: '300px' } }
+      { duration: 8000, position: 'top-center', style: { minWidth: '300px', background: '#1e293b', color: '#e2e8f0', border: '1px solid rgba(100,116,139,0.3)' } }
     )
   }
 
@@ -207,42 +207,42 @@ export default function SalesPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Satışlar</h1>
-        <p className="mt-2 text-gray-600">Satış işlemlerinizi ve siparişlerinizi yönetin</p>
+        <h1 className="text-3xl font-bold text-gray-800">Satışlar</h1>
+        <p className="mt-2 text-gray-500">Satış işlemlerinizi ve siparişlerinizi yönetin</p>
       </div>
 
       {/* Action Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <button
           onClick={() => router.push('/dashboard/satislar/yeni')}
-          className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-md hover:border-primary-300 transition-all text-left group"
+          className="bg-white  p-6 rounded-2xl border border-gray-200 shadow-lg shadow-black/10 hover:shadow-xl hover:border-primary-300 transition-all text-left group"
         >
-          <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+          <div className="w-12 h-12 bg-sky-50 text-sky-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
             <Store className="h-6 w-6" />
           </div>
-          <h3 className="text-lg font-bold text-gray-900 mb-1">Perakende Satış Gir</h3>
+          <h3 className="text-lg font-bold text-gray-800 mb-1">Perakende Satış Gir</h3>
           <p className="text-sm text-gray-500">Müşteri kaydı olmadan hızlıca perakende satış işlemi gerçekleştirin.</p>
         </button>
 
         <button
           onClick={() => setShowNewCustomerModal(true)}
-          className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-md hover:border-primary-300 transition-all text-left group"
+          className="bg-white  p-6 rounded-2xl border border-gray-200 shadow-lg shadow-black/10 hover:shadow-xl hover:border-primary-300 transition-all text-left group"
         >
-          <div className="w-12 h-12 bg-green-50 text-green-600 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+          <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
             <UserPlus className="h-6 w-6" />
           </div>
-          <h3 className="text-lg font-bold text-gray-900 mb-1">Yeni Müşteriye Satış Gir</h3>
+          <h3 className="text-lg font-bold text-gray-800 mb-1">Yeni Müşteriye Satış Gir</h3>
           <p className="text-sm text-gray-500">Sistemde olmayan bir müşteriyi hızlıca kaydedin ve satış ekranına geçin.</p>
         </button>
 
         <button
           onClick={handleOpenCustomerSearch}
-          className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-md hover:border-primary-300 transition-all text-left group"
+          className="bg-white  p-6 rounded-2xl border border-gray-200 shadow-lg shadow-black/10 hover:shadow-xl hover:border-primary-300 transition-all text-left group"
         >
-          <div className="w-12 h-12 bg-purple-50 text-purple-600 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+          <div className="w-12 h-12 bg-violet-500/15 text-violet-400 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
             <Users className="h-6 w-6" />
           </div>
-          <h3 className="text-lg font-bold text-gray-900 mb-1">Kayıtlı Müşteriye Satış Gir</h3>
+          <h3 className="text-lg font-bold text-gray-800 mb-1">Kayıtlı Müşteriye Satış Gir</h3>
           <p className="text-sm text-gray-500">Mevcut müşterilerinizden birini seçerek ona özel satış oluşturun.</p>
         </button>
       </div>
@@ -259,7 +259,7 @@ export default function SalesPage() {
                 placeholder="Firma, Belge, Sipariş ara..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 text-sm outline-none"
+                className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-700 focus:ring-2 focus:ring-primary-500/30 outline-none transition-all"
               />
             </div>
           </div>
@@ -267,10 +267,10 @@ export default function SalesPage() {
         <CardBody className="p-0">
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+              <thead className="bg-gray-50/50">
                 <tr>
                   <th 
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase cursor-pointer hover:bg-gray-100 select-none group transition-colors"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase cursor-pointer hover:bg-gray-50 select-none group transition-colors"
                     onClick={() => handleSort('sale_date')}
                   >
                     <div className="flex items-center">
@@ -279,7 +279,7 @@ export default function SalesPage() {
                     </div>
                   </th>
                   <th 
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase cursor-pointer hover:bg-gray-100 select-none group transition-colors"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase cursor-pointer hover:bg-gray-50 select-none group transition-colors"
                     onClick={() => handleSort('company_name')}
                   >
                     <div className="flex items-center">
@@ -288,7 +288,7 @@ export default function SalesPage() {
                     </div>
                   </th>
                   <th 
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase cursor-pointer hover:bg-gray-100 select-none group transition-colors"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase cursor-pointer hover:bg-gray-50 select-none group transition-colors"
                     onClick={() => handleSort('document_no')}
                   >
                     <div className="flex items-center">
@@ -297,7 +297,7 @@ export default function SalesPage() {
                     </div>
                   </th>
                   <th 
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase cursor-pointer hover:bg-gray-100 select-none group transition-colors"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase cursor-pointer hover:bg-gray-50 select-none group transition-colors"
                     onClick={() => handleSort('status')}
                   >
                     <div className="flex items-center">
@@ -306,7 +306,7 @@ export default function SalesPage() {
                     </div>
                   </th>
                   <th 
-                    className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase cursor-pointer hover:bg-gray-100 select-none group transition-colors"
+                    className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase cursor-pointer hover:bg-gray-50 select-none group transition-colors"
                     onClick={() => handleSort('total_amount')}
                   >
                     <div className="flex items-center justify-end">
@@ -317,36 +317,36 @@ export default function SalesPage() {
                   <th className="px-6 py-3 w-10"></th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="divide-y divide-gray-100">
                 {loading ? (
-                  <tr><td colSpan={6} className="px-6 py-8 text-center text-gray-500">Yükleniyor...</td></tr>
+                  <tr><td colSpan={6} className="px-6 py-8 text-center text-gray-400">Yükleniyor...</td></tr>
                 ) : filteredSales.length > 0 ? (
                   filteredSales.map((sale) => (
                     <tr key={sale.id} className="hover:bg-gray-50 transition-colors cursor-pointer group" onClick={() => router.push(`/dashboard/satislar/${sale.id}`)}>
-                      <td className="px-6 py-4 text-sm text-gray-900">
+                      <td className="px-6 py-4 text-sm text-gray-600">
                         {new Date(sale.sale_date).toLocaleDateString('tr-TR')}
                       </td>
                       <td className="px-6 py-4">
-                        <span className="font-medium text-gray-900">
-                          {sale.customers?.company_name || <span className="text-gray-500 italic">Perakende Müşteri</span>}
+                        <span className="font-medium text-gray-700">
+                          {sale.customers?.company_name || <span className="text-gray-400 italic">Perakende Müşteri</span>}
                         </span>
                       </td>
                       <td className="px-6 py-4">
-                        <div className="text-sm text-gray-900">{sale.document_no || '-'}</div>
+                        <div className="text-sm text-gray-600">{sale.document_no || '-'}</div>
                       </td>
                       <td className="px-6 py-4">
                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadge(sale.status)}`}>
                           {sale.status}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-right text-sm font-bold text-gray-900">
+                      <td className="px-6 py-4 text-right text-sm font-bold text-gray-700">
                         {sale.total_amount.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} {CURRENCY_SYMBOLS[sale.currency || 'TRY']}
                       </td>
                       <td className="px-6 py-4 text-center">
                         <button
                           type="button"
                           onClick={(e) => handleDelete(e, sale.id)}
-                          className="text-red-500 hover:text-red-700 hover:bg-red-50 p-2 rounded-full transition-all opacity-0 group-hover:opacity-100"
+                          className="text-red-500/50 hover:text-red-500 hover:bg-red-50/50 p-2 rounded-full transition-all opacity-0 group-hover:opacity-100"
                           title="Satışı Sil"
                         >
                           <Trash2 className="h-4 w-4" />
@@ -356,7 +356,7 @@ export default function SalesPage() {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={6} className="px-6 py-8 text-center text-gray-500 italic">
+                    <td colSpan={6} className="px-6 py-8 text-center text-gray-400 italic">
                       Satış bulunamadı.
                     </td>
                   </tr>
@@ -369,15 +369,15 @@ export default function SalesPage() {
 
       {/* Customer Search Modal */}
       {showCustomerSearchModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[80vh] flex flex-col">
-            <div className="p-6 border-b flex justify-between items-center">
-              <h2 className="text-xl font-bold text-gray-900">Kayıtlı Müşteri Seçin</h2>
-              <button onClick={() => setShowCustomerSearchModal(false)} className="text-gray-400 hover:bg-gray-100 p-2 rounded-full">
+        <div className="fixed inset-0 bg-black/30  flex items-center justify-center z-50 p-4">
+          <div className="bg-white  rounded-2xl shadow-xl shadow-gray-200/50 w-full max-w-lg max-h-[80vh] flex flex-col border border-gray-200">
+            <div className="p-6 border-b border-gray-200 flex justify-between items-center">
+              <h2 className="text-xl font-bold text-gray-800">Kayıtlı Müşteri Seçin</h2>
+              <button onClick={() => setShowCustomerSearchModal(false)} className="text-gray-500 hover:bg-gray-50 p-2 rounded-full transition-colors">
                 <X className="h-5 w-5" />
               </button>
             </div>
-            <div className="p-4 border-b">
+            <div className="p-4 border-b border-gray-200">
                <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <input
@@ -386,7 +386,7 @@ export default function SalesPage() {
                   autoFocus
                   value={customerSearchTerm}
                   onChange={(e) => setCustomerSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 outline-none"
+                  className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-700 focus:ring-2 focus:ring-primary-500/30 outline-none transition-all"
                 />
               </div>
             </div>
@@ -396,17 +396,17 @@ export default function SalesPage() {
                   <div 
                     key={customer.id}
                     onClick={() => router.push(`/dashboard/musteriler/${customer.id}?tab=transaction`)}
-                    className="flex justify-between items-center p-4 border border-gray-100 rounded-xl hover:border-primary-300 hover:bg-primary-50 cursor-pointer transition-all"
+                    className="flex justify-between items-center p-4 border border-gray-100 rounded-xl hover:border-primary-300 hover:bg-primary-50/30 cursor-pointer transition-all"
                   >
                     <div>
-                      <div className="font-bold text-gray-900">{customer.company_name}</div>
-                      <div className="text-sm text-gray-500 mt-1">{customer.phone || 'Telefon yok'}</div>
+                      <div className="font-bold text-gray-700">{customer.company_name}</div>
+                      <div className="text-sm text-gray-400 mt-1">{customer.phone || 'Telefon yok'}</div>
                     </div>
                     <div className="text-primary-600 font-medium text-sm">Seç</div>
                   </div>
                 ))
               ) : (
-                <div className="text-center py-8 text-gray-500">Müşteri bulunamadı.</div>
+                <div className="text-center py-8 text-gray-400">Müşteri bulunamadı.</div>
               )}
             </div>
           </div>
@@ -415,81 +415,81 @@ export default function SalesPage() {
 
       {/* New Customer Modal */}
       {showNewCustomerModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md">
-            <div className="p-6 border-b flex justify-between items-center">
-              <h2 className="text-xl font-bold text-gray-900">Hızlı Müşteri Ekle</h2>
-              <button onClick={() => setShowNewCustomerModal(false)} className="text-gray-400 hover:bg-gray-100 p-2 rounded-full">
+        <div className="fixed inset-0 bg-black/30  flex items-center justify-center z-50 p-4">
+          <div className="bg-white  rounded-2xl shadow-xl shadow-gray-200/50 w-full max-w-md border border-gray-200">
+            <div className="p-6 border-b border-gray-200 flex justify-between items-center">
+              <h2 className="text-xl font-bold text-gray-800">Hızlı Müşteri Ekle</h2>
+              <button onClick={() => setShowNewCustomerModal(false)} className="text-gray-500 hover:bg-gray-50 p-2 rounded-full transition-colors">
                 <X className="h-5 w-5" />
               </button>
             </div>
             <form onSubmit={handleCreateCustomer} className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Firma Ünvanı / Ad Soyad *</label>
+                <label className="block text-sm font-medium text-gray-600 mb-1">Firma Ünvanı / Ad Soyad *</label>
                 <input
                   type="text"
                   required
                   autoFocus
                   value={newCustomer.company_name}
                   onChange={(e) => setNewCustomer({...newCustomer, company_name: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"
+                  className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-700 focus:ring-2 focus:ring-primary-500/30 outline-none transition-all"
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Telefon</label>
+                  <label className="block text-sm font-medium text-gray-600 mb-1">Telefon</label>
                   <input
                     type="tel"
                     value={newCustomer.phone}
                     onChange={(e) => setNewCustomer({...newCustomer, phone: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"
+                    className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-700 focus:ring-2 focus:ring-primary-500/30 outline-none transition-all"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">E-posta</label>
+                  <label className="block text-sm font-medium text-gray-600 mb-1">E-posta</label>
                   <input
                     type="email"
                     value={newCustomer.email}
                     onChange={(e) => setNewCustomer({...newCustomer, email: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"
+                    className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-700 focus:ring-2 focus:ring-primary-500/30 outline-none transition-all"
                   />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Vergi Dairesi</label>
+                  <label className="block text-sm font-medium text-gray-600 mb-1">Vergi Dairesi</label>
                   <input
                     type="text"
                     value={newCustomer.tax_office}
                     onChange={(e) => setNewCustomer({...newCustomer, tax_office: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"
+                    className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-700 focus:ring-2 focus:ring-primary-500/30 outline-none transition-all"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Vergi Numarası</label>
+                  <label className="block text-sm font-medium text-gray-600 mb-1">Vergi Numarası</label>
                   <input
                     type="text"
                     value={newCustomer.tax_number}
                     onChange={(e) => setNewCustomer({...newCustomer, tax_number: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"
+                    className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-700 focus:ring-2 focus:ring-primary-500/30 outline-none transition-all"
                   />
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Adres</label>
+                <label className="block text-sm font-medium text-gray-600 mb-1">Adres</label>
                 <textarea
                   rows={2}
                   value={newCustomer.address}
                   onChange={(e) => setNewCustomer({...newCustomer, address: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none resize-none"
+                  className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-700 focus:ring-2 focus:ring-primary-500/30 outline-none resize-none transition-all"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Para Birimi</label>
+                <label className="block text-sm font-medium text-gray-600 mb-1">Para Birimi</label>
                 <select
                   value={newCustomer.currency}
                   onChange={(e) => setNewCustomer({...newCustomer, currency: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"
+                  className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-700 focus:ring-2 focus:ring-primary-500/30 outline-none transition-all"
                 >
                   <option value="TRY">Türk Lirası (TRY)</option>
                   <option value="USD">Amerikan Doları (USD)</option>

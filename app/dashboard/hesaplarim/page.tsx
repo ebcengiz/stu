@@ -35,7 +35,7 @@ interface Account {
 /** DB `account_type` enum: cash | bank | pos | other */
 const ADD_MENU_TYPES: { type: string; label: string; icon: React.ReactNode }[] = [
   { type: 'cash', label: 'Kasa Ekle', icon: <Banknote className="h-4 w-4 text-emerald-600" /> },
-  { type: 'bank', label: 'Banka Hesabı Ekle', icon: <Building className="h-4 w-4 text-blue-600" /> },
+  { type: 'bank', label: 'Banka Hesabı Ekle', icon: <Building className="h-4 w-4 text-primary-600" /> },
   { type: 'pos', label: 'POS Hesabı Ekle', icon: <Calculator className="h-4 w-4 text-amber-600" /> },
   { type: 'other', label: 'Kredi kartı / diğer hesap', icon: <CreditCard className="h-4 w-4 text-purple-600" /> },
 ]
@@ -154,7 +154,7 @@ export default function HesaplarimPage() {
   if (loading) {
     return (
       <div className="mx-auto flex w-full min-w-0 max-w-full justify-center overflow-x-hidden py-24">
-        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-blue-600" />
+        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-primary-600" />
       </div>
     )
   }
@@ -176,7 +176,7 @@ export default function HesaplarimPage() {
             placeholder="Hesap ara..."
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
-            className="px-3 py-2 border border-gray-200 rounded-xl text-sm w-full sm:w-48 outline-none focus:ring-2 focus:ring-blue-500/30"
+            className="px-3 py-2 border border-gray-200 rounded-xl text-sm w-full sm:w-48 outline-none focus:ring-2 focus:ring-primary-500/30"
           />
           <div className="relative">
             <Button
@@ -210,14 +210,14 @@ export default function HesaplarimPage() {
         </div>
       </div>
 
-      <Card className="bg-gradient-to-br from-blue-600 to-blue-800 text-white shadow-lg border-0">
+      <Card className="bg-gradient-to-br from-primary-600 to-primary-700 text-white shadow-lg border-0">
         <CardBody className="p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-4">
-            <div className="p-3 bg-white/15 rounded-xl">
-              <TrendingUp className="h-8 w-8 text-blue-100" />
+            <div className="p-3 bg-gray-100 rounded-xl">
+              <TrendingUp className="h-8 w-8 text-primary-100" />
             </div>
             <div>
-              <p className="text-blue-100 font-medium text-xs uppercase tracking-wider mb-1">
+              <p className="text-primary-100 font-medium text-xs uppercase tracking-wider mb-1">
                 Toplam Bakiye (TRY)
               </p>
               <h2 className="text-3xl md:text-4xl font-bold">
@@ -237,13 +237,13 @@ export default function HesaplarimPage() {
 
           return (
             <Card key={section.key} className="border-0 shadow-md overflow-hidden flex flex-col">
-              <CardHeader className="bg-blue-600 text-white py-3 px-4 flex flex-row items-center justify-between gap-2 shrink-0">
+              <CardHeader className="bg-primary-600 text-white py-3 px-4 flex flex-row items-center justify-between gap-2 shrink-0">
                 <div className="flex items-center gap-2 min-w-0">
                   <span className="font-bold text-sm uppercase tracking-wide truncate">{section.title}</span>
                   {(section.key === 'pos' || section.key === 'other') && (
                     <button
                       type="button"
-                      className="p-0.5 rounded hover:bg-white/20 text-blue-200"
+                      className="p-0.5 rounded hover:bg-gray-100 text-primary-200"
                       title="Bu bölümdeki hesaplar tahsilat ve ödeme ekranlarında seçilebilir."
                     >
                       <HelpCircle className="h-4 w-4" />
@@ -251,12 +251,12 @@ export default function HesaplarimPage() {
                   )}
                 </div>
                 {section.headerTotalTryOnly && list.length > 0 && (
-                  <span className="text-xs font-bold text-blue-100 whitespace-nowrap">
+                  <span className="text-xs font-bold text-primary-100 whitespace-nowrap">
                     {totalTry.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} TL
                   </span>
                 )}
               </CardHeader>
-              <CardBody className="p-3 bg-slate-50/80 flex-1">
+              <CardBody className="p-3 bg-gray-50 flex-1">
                 {list.length === 0 ? (
                   <p className="text-sm text-gray-500 text-center py-8 px-2">
                     Bu grupta hesap yok. &quot;Yeni Hesap Ekle&quot; ile ekleyebilirsiniz.
@@ -268,7 +268,7 @@ export default function HesaplarimPage() {
                         key={hesap.id}
                         type="button"
                         onClick={() => router.push(`/dashboard/hesaplarim/${hesap.id}`)}
-                        className="text-left rounded-xl border border-gray-200 bg-white p-3 hover:border-blue-400 hover:shadow-sm transition-all"
+                        className="text-left rounded-xl border border-gray-200 bg-white p-3 hover:border-primary-400 hover:shadow-sm transition-all"
                       >
                         <div className="font-semibold text-gray-900 text-sm leading-tight line-clamp-2">
                           {hesap.name}
@@ -316,7 +316,7 @@ export default function HesaplarimPage() {
                     required
                     value={formData.name}
                     onChange={e => setFormData({ ...formData, name: e.target.value })}
-                    className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm"
+                    className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none text-sm"
                   />
                 </div>
 
@@ -384,7 +384,7 @@ export default function HesaplarimPage() {
                   <Button type="button" variant="outline" onClick={() => setShowModal(false)} className="px-4">
                     İptal
                   </Button>
-                  <Button type="submit" disabled={saving} className="bg-blue-600 hover:bg-blue-700 text-white px-6">
+                  <Button type="submit" disabled={saving} className="bg-primary-600 hover:bg-primary-700 text-white px-6">
                     {saving ? 'Kaydediliyor...' : 'Kaydet'}
                   </Button>
                 </div>

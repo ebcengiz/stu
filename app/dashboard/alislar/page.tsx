@@ -110,7 +110,7 @@ export default function PurchasesPage() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'Bekliyor': return 'bg-yellow-100 text-yellow-800'
-      case 'İrsaliyeleşmiş': return 'bg-blue-100 text-blue-800'
+      case 'İrsaliyeleşmiş': return 'bg-primary-100 text-primary-800'
       case 'Faturalaşmış': return 'bg-green-100 text-green-800'
       case 'Faturalaşmış (E-Fatura)': return 'bg-purple-100 text-purple-800'
       default: return 'bg-gray-100 text-gray-800'
@@ -218,7 +218,7 @@ export default function PurchasesPage() {
           onClick={() => router.push('/dashboard/alislar/yeni')}
           className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-md hover:border-primary-300 transition-all text-left group"
         >
-          <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+          <div className="w-12 h-12 bg-primary-50 text-primary-600 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
             <ShoppingCart className="h-6 w-6" />
           </div>
           <h3 className="text-lg font-bold text-gray-900 mb-1">Hızlı Alış Gir (Fişsiz)</h3>

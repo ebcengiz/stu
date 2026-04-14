@@ -421,20 +421,20 @@ export default function MasraflarPage() {
     toast.custom(
       (t) => (
         <div
-          className="pointer-events-auto max-w-sm rounded-xl border border-slate-200/80 bg-white px-4 py-3 shadow-lg ring-1 ring-black/5"
+          className="pointer-events-auto max-w-sm rounded-xl border border-gray-200/80 bg-white px-4 py-3 shadow-lg ring-1 ring-black/5"
           role="dialog"
           aria-labelledby={`exp-del-title-${t.id}`}
         >
-          <p id={`exp-del-title-${t.id}`} className="text-sm font-semibold text-slate-900">
+          <p id={`exp-del-title-${t.id}`} className="text-sm font-semibold text-gray-900">
             Bu masraf kaydını silmek istiyor musunuz?
           </p>
-          <p className="mt-1.5 text-xs leading-relaxed text-slate-600">
+          <p className="mt-1.5 text-xs leading-relaxed text-gray-500">
             Ödeme veya cari bağlantısı varsa kasa, banka ve çalışan bakiyeleri güncellenir.
           </p>
           <div className="mt-4 flex justify-end gap-2">
             <button
               type="button"
-              className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
+              className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-600 transition hover:bg-gray-50"
               onClick={() => toast.dismiss(t.id)}
             >
               İptal
@@ -459,7 +459,7 @@ export default function MasraflarPage() {
   return (
     <div className="mx-auto w-full min-w-0 max-w-full space-y-4 overflow-x-hidden pb-4">
       <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
-        <h1 className="text-xl font-bold tracking-tight text-slate-900">Genel Masraf Listesi</h1>
+        <h1 className="text-xl font-bold tracking-tight text-gray-900">Genel Masraf Listesi</h1>
         <div className="flex flex-wrap items-center gap-3">
           <Link
             href="/dashboard/hesaplarim/masraflar/yeni"
@@ -490,10 +490,10 @@ export default function MasraflarPage() {
                   onClick={() => setStatusTab(t.id)}
                   className={`rounded-md px-3 py-2 text-sm font-medium transition ${
                     active
-                      ? 'bg-white text-slate-900 shadow-sm'
+                      ? 'bg-white text-gray-900 shadow-sm'
                       : t.danger
                         ? 'text-red-600 hover:bg-white/80 hover:text-red-700'
-                        : 'text-slate-600 hover:bg-white/80 hover:text-slate-900'
+                        : 'text-gray-500 hover:bg-white/80 hover:text-gray-900'
                   }`}
                 >
                   {t.label}
@@ -507,7 +507,7 @@ export default function MasraflarPage() {
               <button
                 type="button"
                 onClick={() => setPeriodOpen((v) => !v)}
-                className="inline-flex items-center gap-2 rounded-lg border border-slate-600 bg-slate-800 px-4 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-slate-900"
+                className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-[#f0f5f2]"
               >
                 {periodLabel}
                 <ChevronDown className={`h-4 w-4 transition ${periodOpen ? 'rotate-180' : ''}`} />
@@ -522,8 +522,8 @@ export default function MasraflarPage() {
                         setPeriod(o.value)
                         setPeriodOpen(false)
                       }}
-                      className={`block w-full px-4 py-2.5 text-left text-sm hover:bg-slate-50 ${
-                        period === o.value ? 'bg-slate-100 font-semibold text-slate-900' : 'text-slate-700'
+                      className={`block w-full px-4 py-2.5 text-left text-sm hover:bg-gray-50 ${
+                        period === o.value ? 'bg-gray-100 font-semibold text-gray-900' : 'text-gray-600'
                       }`}
                     >
                       {o.label}
@@ -534,7 +534,7 @@ export default function MasraflarPage() {
             </div>
 
             <div className="flex w-full min-w-[200px] flex-1 items-center gap-2 sm:w-auto lg:max-w-md">
-              <span className="shrink-0 text-sm font-medium text-slate-600">Ara:</span>
+              <span className="shrink-0 text-sm font-medium text-gray-500">Ara:</span>
               <div className="relative flex-1">
                 <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
                 <input
@@ -542,7 +542,7 @@ export default function MasraflarPage() {
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder="arama... (en az 3 karakter)"
-                  className="w-full rounded-lg border border-gray-300 py-2 pl-9 pr-3 text-sm outline-none ring-blue-500/30 focus:border-blue-500 focus:ring-2"
+                  className="w-full rounded-lg border border-gray-300 py-2 pl-9 pr-3 text-sm outline-none ring-primary-500/30 focus:border-primary-500 focus:ring-2"
                 />
               </div>
             </div>
@@ -550,7 +550,7 @@ export default function MasraflarPage() {
         </div>
 
         {!loading && !loadError && rows.length > 0 && (
-          <p className="border-b border-gray-100 px-4 py-2 text-xs text-slate-500">
+          <p className="border-b border-gray-100 px-4 py-2 text-xs text-gray-400">
             {filtered.length} kayıt listeleniyor
           </p>
         )}
@@ -618,13 +618,13 @@ export default function MasraflarPage() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={12} className="px-4 py-16 text-center text-slate-500">
+                  <td colSpan={12} className="px-4 py-16 text-center text-gray-400">
                     Yükleniyor…
                   </td>
                 </tr>
               ) : emptyMessage ? (
                 <tr>
-                  <td colSpan={12} className="px-4 py-16 text-center text-slate-500">
+                  <td colSpan={12} className="px-4 py-16 text-center text-gray-400">
                     {emptyMessage}
                   </td>
                 </tr>
@@ -640,37 +640,37 @@ export default function MasraflarPage() {
                         {paymentStatusLabel(r.payment_status)}
                       </span>
                     ) : (
-                      <span className="inline-flex rounded-full bg-slate-200 px-2.5 py-0.5 text-xs font-semibold text-slate-800">
+                      <span className="inline-flex rounded-full bg-gray-200 px-2.5 py-0.5 text-xs font-semibold text-gray-800">
                         {paymentStatusLabel(r.payment_status)}
                       </span>
                     )
                   return (
-                    <tr key={r.id} className="border-b border-gray-100 hover:bg-slate-50/80">
-                      <td className="whitespace-nowrap px-2 py-2.5 text-slate-800">
+                    <tr key={r.id} className="border-b border-gray-100 hover:bg-gray-50">
+                      <td className="whitespace-nowrap px-2 py-2.5 text-gray-800">
                         {formatTrDate(r.transaction_date)}
                       </td>
-                      <td className="max-w-[100px] truncate px-2 py-2.5 text-slate-700" title={r.doc_no ?? ''}>
+                      <td className="max-w-[100px] truncate px-2 py-2.5 text-gray-600" title={r.doc_no ?? ''}>
                         {r.doc_no?.trim() || '—'}
                       </td>
-                      <td className="whitespace-nowrap px-2 py-2.5 text-slate-700">
+                      <td className="whitespace-nowrap px-2 py-2.5 text-gray-600">
                         {formatTrDate(r.payment_date)}
                       </td>
-                      <td className="px-2 py-2.5 text-slate-500">—</td>
-                      <td className="max-w-[200px] px-2 py-2.5 text-slate-800">
+                      <td className="px-2 py-2.5 text-gray-400">—</td>
+                      <td className="max-w-[200px] px-2 py-2.5 text-gray-800">
                         {findMasrafLabel(r.expense_item_key, masrafGroups)}
                       </td>
-                      <td className="max-w-[140px] truncate px-2 py-2.5 text-slate-800" title={hesapLabel(r)}>
+                      <td className="max-w-[140px] truncate px-2 py-2.5 text-gray-800" title={hesapLabel(r)}>
                         {hesapLabel(r)}
                       </td>
-                      <td className="whitespace-nowrap px-2 py-2.5 font-medium text-slate-900">
+                      <td className="whitespace-nowrap px-2 py-2.5 font-medium text-gray-900">
                         {formatMoney(r.amount_gross, r.currency || 'TRY')}
                       </td>
-                      <td className="whitespace-nowrap px-2 py-2.5 text-slate-700">
+                      <td className="whitespace-nowrap px-2 py-2.5 text-gray-600">
                         {r.vat_rate != null && r.vat_rate !== '' ? `${r.vat_rate}` : '—'}
                       </td>
-                      <td className="whitespace-nowrap px-2 py-2.5 text-slate-700">{odemeLabel(r)}</td>
+                      <td className="whitespace-nowrap px-2 py-2.5 text-gray-600">{odemeLabel(r)}</td>
                       <td className="px-2 py-2.5">{statusBadge}</td>
-                      <td className="max-w-[220px] px-2 py-2.5 text-slate-600">
+                      <td className="max-w-[220px] px-2 py-2.5 text-gray-500">
                         <div className="flex min-w-0 items-start gap-1.5">
                           {r.attachment_url ? (
                             <a
@@ -690,7 +690,7 @@ export default function MasraflarPage() {
                           >
                             {r.description?.trim() ||
                               (r.attachment_url ? (
-                                <span className="text-slate-400">(belge var)</span>
+                                <span className="text-gray-500">(belge var)</span>
                               ) : (
                                 '—'
                               ))}
@@ -715,7 +715,7 @@ export default function MasraflarPage() {
                                   }
                             )
                           }}
-                          className="inline-flex items-center gap-1 rounded-md border border-slate-300 bg-amber-50/90 px-2 py-1 text-xs font-semibold text-slate-800 hover:bg-amber-100"
+                          className="inline-flex items-center gap-1 rounded-md border border-gray-200 bg-amber-50/90 px-2 py-1 text-xs font-semibold text-gray-800 hover:bg-amber-100"
                         >
                           İşlem
                           <MoreHorizontal className="h-3.5 w-3.5" />
@@ -730,11 +730,11 @@ export default function MasraflarPage() {
         </div>
 
         {!loading && !loadError && filtered.length > 0 && (
-          <div className="flex flex-wrap items-center justify-between gap-2 border-t border-gray-100 bg-slate-50/80 px-4 py-3 text-sm text-slate-700">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-t border-gray-100 bg-gray-50 px-4 py-3 text-sm text-gray-600">
             <p>
-              <span className="font-semibold text-slate-900">Toplam:</span>{' '}
+              <span className="font-semibold text-gray-900">Toplam:</span>{' '}
               <span>{filtered.length} kayıt</span>
-              <span className="mx-2 text-slate-300">|</span>
+              <span className="mx-2 text-gray-600">|</span>
               <span className="font-semibold tabular-nums">
                 {totalAmount.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺
               </span>
@@ -780,7 +780,7 @@ export default function MasraflarPage() {
           >
             <button
               type="button"
-              className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-slate-800 hover:bg-black/5"
+              className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-gray-800 hover:bg-black/5"
               onClick={() => {
                 const id = actionMenu.id
                 const row = rows.find((x) => x.id === id)
@@ -809,7 +809,7 @@ export default function MasraflarPage() {
             </button>
             <button
               type="button"
-              className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-slate-800 hover:bg-black/5"
+              className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-gray-800 hover:bg-black/5"
               onClick={() => {
                 const id = actionMenu.id
                 setActionMenu(null)
@@ -833,7 +833,7 @@ export default function MasraflarPage() {
             </button>
             <button
               type="button"
-              className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-slate-800 hover:bg-black/5"
+              className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-gray-800 hover:bg-black/5"
               onClick={() => {
                 const eid = actionMenu.id
                 setActionMenu(null)
@@ -848,7 +848,7 @@ export default function MasraflarPage() {
           document.body
         )}
 
-      <p className="text-xs text-slate-400">{new Date().getFullYear()} © Mikro Muhasebe</p>
+      <p className="text-xs text-gray-500">{new Date().getFullYear()} © Mikro Muhasebe</p>
 
       {printPayload && (
         <>

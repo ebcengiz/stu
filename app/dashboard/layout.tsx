@@ -53,11 +53,10 @@ export default function DashboardLayout({
     return () => window.removeEventListener('sidebarToggle', handleSidebarToggle)
   }, [router])
 
-  // Use a fallback margin to prevent flicker before mounting, matching the default uncollapsed state
   const marginClass = isMounted && isSidebarCollapsed ? 'lg:pl-20' : 'lg:pl-64'
 
   return (
-    <div className="flex min-h-screen flex-col overflow-x-hidden bg-gray-50 lg:flex-row">
+    <div className="flex min-h-screen flex-col overflow-x-hidden bg-[#f0f5f2] lg:flex-row">
       <DashboardSidebar profile={profile} />
       <div
         className={`flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden transition-all duration-300 ${marginClass}`}

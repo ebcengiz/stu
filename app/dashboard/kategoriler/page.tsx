@@ -187,7 +187,7 @@ export default function CategoriesPage() {
                     </td>
                     <td className="px-8 py-5 whitespace-nowrap text-center">
                       <div className="flex flex-col items-center gap-1">
-                        <span className="inline-flex items-center px-3 py-1 rounded-xl text-[10px] font-black bg-blue-50 text-blue-600 border border-blue-100">
+                        <span className="inline-flex items-center px-3 py-1 rounded-xl text-[10px] font-black bg-primary-50 text-primary-600 border border-primary-100">
                           {category.product_count || 0} ÜRÜN
                         </span>
                         <span className="inline-flex items-center px-3 py-1 rounded-xl text-[10px] font-black bg-emerald-50 text-emerald-600 border border-emerald-100">
@@ -197,7 +197,7 @@ export default function CategoriesPage() {
                     </td>
                     <td className="px-8 py-5 whitespace-nowrap text-right">
                       <div className="flex justify-end gap-2">
-                        <button onClick={(e) => { e.stopPropagation(); handleEdit(category); }} className="p-2.5 text-blue-500 hover:bg-blue-50 rounded-xl transition-all active:scale-90" title="Düzenle">
+                        <button onClick={(e) => { e.stopPropagation(); handleEdit(category); }} className="p-2.5 text-primary-500 hover:bg-primary-50 rounded-xl transition-all active:scale-90" title="Düzenle">
                           <Edit2 className="h-4 w-4" />
                         </button>
                         <button onClick={(e) => { e.stopPropagation(); handleDelete(category.id); }} className="p-2.5 text-red-500 hover:bg-red-50 rounded-xl transition-all active:scale-90" title="Sil">
@@ -211,7 +211,7 @@ export default function CategoriesPage() {
                   <tr>
                     <td colSpan={4} className="px-8 py-20 text-center text-gray-400">
                       <div className="flex flex-col items-center gap-3">
-                        <Layers className="h-12 w-12 text-gray-200" />
+                        <Layers className="h-12 w-12 text-gray-600" />
                         <span className="text-sm font-bold uppercase tracking-widest">Henüz kategori bulunmuyor</span>
                       </div>
                     </td>
@@ -244,7 +244,7 @@ export default function CategoriesPage() {
                   required
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-5 py-4 border-2 border-gray-100 rounded-2xl focus:border-primary-500 focus:ring-4 focus:ring-primary-50 outline-none font-bold text-gray-900 transition-all placeholder:text-gray-300"
+                  className="w-full px-5 py-4 border-2 border-gray-100 rounded-2xl focus:border-primary-500 focus:ring-4 focus:ring-primary-50 outline-none font-bold text-gray-900 transition-all placeholder:text-gray-500"
                   placeholder="Örn: Elektronik Ürünler"
                 />
               </div>
@@ -254,7 +254,7 @@ export default function CategoriesPage() {
                   rows={3}
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className="w-full px-5 py-4 border-2 border-gray-100 rounded-2xl focus:border-primary-500 focus:ring-4 focus:ring-primary-50 outline-none font-bold text-gray-900 transition-all placeholder:text-gray-300"
+                  className="w-full px-5 py-4 border-2 border-gray-100 rounded-2xl focus:border-primary-500 focus:ring-4 focus:ring-primary-50 outline-none font-bold text-gray-900 transition-all placeholder:text-gray-500"
                   placeholder="Kategori hakkında kısa bir not..."
                 />
               </div>
@@ -362,7 +362,7 @@ export default function CategoriesPage() {
                   </table>
                 ) : (
                   <div className="flex flex-col items-center justify-center py-20 text-center px-10">
-                    <Package className="h-12 w-12 text-gray-200 mb-4" />
+                    <Package className="h-12 w-12 text-gray-600 mb-4" />
                     <h3 className="text-sm font-black text-gray-800 uppercase tracking-widest">Ürün Bulunamadı</h3>
                     <p className="text-xs font-bold text-gray-400 mt-1 uppercase tracking-tighter">Bu kategoride henüz tanımlanmış bir ürün bulunmuyor.</p>
                   </div>

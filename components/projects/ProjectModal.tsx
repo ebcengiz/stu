@@ -66,7 +66,7 @@ export default function ProjectModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-3 backdrop-blur-[2px]" onClick={onClose}>
       <div
-        className="w-full max-w-md overflow-hidden rounded-xl border border-slate-200 bg-white shadow-2xl"
+        className="w-full max-w-md overflow-hidden rounded-xl border border-gray-200 bg-white shadow-2xl"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
@@ -96,7 +96,7 @@ export default function ProjectModal({
               className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
             />
           </div>
-          <div className="flex flex-wrap justify-end gap-2 border-t border-slate-100 pt-4">
+          <div className="flex flex-wrap justify-end gap-2 border-t border-gray-100 pt-4">
             <button
               type="button"
               onClick={onClose}

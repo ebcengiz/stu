@@ -137,13 +137,13 @@ export default function KrediDetayPage() {
     if (!loan) return
     toast.custom(
       (t) => (
-        <div className="pointer-events-auto max-w-sm rounded-xl border border-slate-200/80 bg-white px-4 py-3 shadow-lg ring-1 ring-black/5">
-          <p className="text-sm font-semibold text-slate-900">Bu krediyi silmek istiyor musunuz?</p>
-          <p className="mt-1 text-xs text-slate-600">{loan.name}</p>
+        <div className="pointer-events-auto max-w-sm rounded-xl border border-gray-200/80 bg-white px-4 py-3 shadow-lg ring-1 ring-black/5">
+          <p className="text-sm font-semibold text-gray-900">Bu krediyi silmek istiyor musunuz?</p>
+          <p className="mt-1 text-xs text-gray-500">{loan.name}</p>
           <div className="mt-3 flex justify-end gap-2">
             <button
               type="button"
-              className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+              className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-600 hover:bg-gray-50"
               onClick={() => toast.dismiss(t.id)}
             >
               İptal
@@ -216,7 +216,7 @@ export default function KrediDetayPage() {
   }
 
   if (loading) {
-    return <p className="text-sm text-slate-500">Yükleniyor…</p>
+    return <p className="text-sm text-gray-400">Yükleniyor…</p>
   }
 
   if (loadError || !loan) {
@@ -237,7 +237,7 @@ export default function KrediDetayPage() {
       <div className="flex flex-wrap items-center gap-3">
         <Link
           href="/dashboard/hesaplarim/krediler"
-          className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-600 hover:text-emerald-700"
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-emerald-700"
         >
           <ArrowLeft className="h-4 w-4" />
           Kredilere dön
@@ -250,32 +250,32 @@ export default function KrediDetayPage() {
         </div>
         <div className="grid gap-2 p-4 sm:grid-cols-2">
           <div className="flex justify-between gap-3 text-sm sm:col-span-2">
-            <span className="shrink-0 text-right font-medium text-slate-500">Ödeme hesabı</span>
-            <span className="min-w-0 text-left font-semibold text-slate-900">
+            <span className="shrink-0 text-right font-medium text-gray-400">Ödeme hesabı</span>
+            <span className="min-w-0 text-left font-semibold text-gray-900">
               {loan.payment_account?.name ?? 'Taksit ödemelerinde seçilir'}
             </span>
           </div>
           <div className="flex justify-between gap-3 text-sm">
-            <span className="shrink-0 text-right font-medium text-slate-500">Çekilen tutar</span>
-            <span className="text-left font-semibold text-slate-900">
+            <span className="shrink-0 text-right font-medium text-gray-400">Çekilen tutar</span>
+            <span className="text-left font-semibold text-gray-900">
               {formatMoney(loan.total_loan_amount ?? 0, cur)}
             </span>
           </div>
           <div className="flex justify-between gap-3 text-sm">
-            <span className="shrink-0 text-right font-medium text-slate-500">Ödenecek toplam (plan)</span>
-            <span className="text-left font-semibold text-slate-900">
+            <span className="shrink-0 text-right font-medium text-gray-400">Ödenecek toplam (plan)</span>
+            <span className="text-left font-semibold text-gray-900">
               {loan.total_repayment_planned != null && String(loan.total_repayment_planned).trim() !== ''
                 ? formatMoney(loan.total_repayment_planned, cur)
                 : '—'}
             </span>
           </div>
           <div className="flex justify-between gap-3 text-sm">
-            <span className="shrink-0 text-right font-medium text-slate-500">Kalan borç</span>
-            <span className="text-left font-semibold text-slate-900">{formatMoney(loan.remaining_debt, cur)}</span>
+            <span className="shrink-0 text-right font-medium text-gray-400">Kalan borç</span>
+            <span className="text-left font-semibold text-gray-900">{formatMoney(loan.remaining_debt, cur)}</span>
           </div>
           <div className="flex justify-between gap-3 text-sm sm:col-span-2">
-            <span className="shrink-0 text-right font-medium text-slate-500">Notlar</span>
-            <span className="min-w-0 whitespace-pre-wrap text-left text-slate-800">{loan.notes?.trim() || '—'}</span>
+            <span className="shrink-0 text-right font-medium text-gray-400">Notlar</span>
+            <span className="min-w-0 whitespace-pre-wrap text-left text-gray-800">{loan.notes?.trim() || '—'}</span>
           </div>
         </div>
       </div>
@@ -319,7 +319,7 @@ export default function KrediDetayPage() {
       </div>
 
       <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-md">
-        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gray-100 bg-slate-800 px-3 py-2">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gray-100 bg-white px-3 py-2">
           <h2 className="text-xs font-bold uppercase tracking-wide text-white">Ödeme tarihleri</h2>
           <div className="flex gap-1.5">
             <button
@@ -343,7 +343,7 @@ export default function KrediDetayPage() {
         <div className="w-full overflow-x-auto">
           <table className="w-full min-w-[520px] table-auto border-collapse text-sm">
             <thead>
-              <tr className="border-b border-gray-200 bg-slate-100 text-left text-xs font-semibold text-slate-700">
+              <tr className="border-b border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600">
                 <th className="px-2 py-2">#</th>
                 <th className="px-2 py-2">Tarih</th>
                 <th className="px-2 py-2">Tutar</th>
@@ -354,7 +354,7 @@ export default function KrediDetayPage() {
             <tbody>
               {installments.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-4 py-8 text-center text-slate-500">
+                  <td colSpan={5} className="px-4 py-8 text-center text-gray-400">
                     Henüz taksit satırı yok.
                   </td>
                 </tr>
@@ -367,12 +367,12 @@ export default function KrediDetayPage() {
                   return (
                     <tr
                       key={row.id}
-                      className={`border-b border-gray-100 ${idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/80'}`}
+                      className={`border-b border-gray-100 ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}
                     >
-                      <td className="px-2 py-2 text-slate-700">{row.sort_order}</td>
+                      <td className="px-2 py-2 text-gray-600">{row.sort_order}</td>
                       <td className="px-2 py-2 font-medium text-emerald-700">{formatDateLong(row.due_date)}</td>
-                      <td className="px-2 py-2 text-slate-900">{formatMoney(row.amount, cur)}</td>
-                      <td className="px-2 py-2 text-slate-700">{formatMoney(row.paid_amount, cur)}</td>
+                      <td className="px-2 py-2 text-gray-900">{formatMoney(row.amount, cur)}</td>
+                      <td className="px-2 py-2 text-gray-600">{formatMoney(row.paid_amount, cur)}</td>
                       <td className="px-2 py-2 text-center">
                         {done ? (
                           <span className="text-xs text-emerald-600">Ödendi</span>
@@ -395,7 +395,7 @@ export default function KrediDetayPage() {
         </div>
       </div>
 
-      <p className="text-xs text-slate-400">{new Date().getFullYear()} © Mikro Muhasebe</p>
+      <p className="text-xs text-gray-500">{new Date().getFullYear()} © Mikro Muhasebe</p>
 
       <LoanModal
         open={modalOpen}
@@ -416,15 +416,15 @@ export default function KrediDetayPage() {
       />
 
       {addInstOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-3" onClick={() => setAddInstOpen(false)}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#f0f5f2]/40 p-3" onClick={() => setAddInstOpen(false)}>
           <div
-            className="w-full max-w-sm rounded-lg border border-slate-200 bg-white p-4 shadow-xl"
+            className="w-full max-w-sm rounded-lg border border-gray-200 bg-white p-4 shadow-xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 className="text-sm font-semibold text-slate-900">Taksit tarihi ekle</h3>
+            <h3 className="text-sm font-semibold text-gray-900">Taksit tarihi ekle</h3>
             <form onSubmit={submitNewInst} className="mt-3 space-y-2">
               <div>
-                <label className="mb-0.5 block text-xs font-medium text-slate-600">Tarih</label>
+                <label className="mb-0.5 block text-xs font-medium text-gray-500">Tarih</label>
                 <input
                   type="date"
                   value={instDate}
@@ -434,7 +434,7 @@ export default function KrediDetayPage() {
                 />
               </div>
               <div>
-                <label className="mb-0.5 block text-xs font-medium text-slate-600">Tutar</label>
+                <label className="mb-0.5 block text-xs font-medium text-gray-500">Tutar</label>
                 <TrNumberInput
                   value={instAmount}
                   onChange={setInstAmount}
@@ -447,7 +447,7 @@ export default function KrediDetayPage() {
                 <button
                   type="button"
                   onClick={() => setAddInstOpen(false)}
-                  className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium"
+                  className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium"
                 >
                   İptal
                 </button>

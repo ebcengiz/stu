@@ -131,12 +131,12 @@ export default function ProjeNotlarPage() {
   const confirmDelete = (n: NoteRow) => {
     toast.custom(
       (t) => (
-        <div className="pointer-events-auto max-w-sm rounded-xl border border-slate-200/80 bg-white px-4 py-3 shadow-lg ring-1 ring-black/5">
-          <p className="text-sm font-semibold text-slate-900">Bu notu silmek istiyor musunuz?</p>
+        <div className="pointer-events-auto max-w-sm rounded-xl border border-gray-200/80 bg-white px-4 py-3 shadow-lg ring-1 ring-black/5">
+          <p className="text-sm font-semibold text-gray-900">Bu notu silmek istiyor musunuz?</p>
           <div className="mt-3 flex justify-end gap-2">
             <button
               type="button"
-              className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+              className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-600 hover:bg-gray-50"
               onClick={() => toast.dismiss(t.id)}
             >
               İptal
@@ -175,14 +175,14 @@ export default function ProjeNotlarPage() {
 
   return (
     <div className="mx-auto w-full min-w-0 max-w-full space-y-6 overflow-x-hidden pb-8">
-      <div className="overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-sm ring-1 ring-slate-900/5">
-        <div className="border-b border-slate-100 bg-slate-50/80 px-4 py-3 sm:px-5">
+      <div className="overflow-hidden rounded-2xl border border-gray-200/90 bg-white shadow-sm ring-1 ring-slate-900/5">
+        <div className="border-b border-gray-100 bg-gray-50 px-4 py-3 sm:px-5">
           <div className="flex flex-wrap items-center gap-2">
             <Link
               href={`/dashboard/hesaplarim/projeler/${id}`}
-              className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50"
+              className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-600 shadow-sm transition hover:border-gray-200 hover:bg-gray-50"
             >
-              <ArrowLeft className="h-4 w-4 text-slate-500" />
+              <ArrowLeft className="h-4 w-4 text-gray-400" />
               Geri Dön
             </Link>
             <button
@@ -196,25 +196,25 @@ export default function ProjeNotlarPage() {
           </div>
         </div>
         <div className="px-4 py-4 sm:px-6 sm:py-5">
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Proje notları</p>
-          <h1 className="mt-1 break-words text-xl font-semibold tracking-tight text-slate-900 sm:text-2xl">{title}</h1>
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-500">Proje notları</p>
+          <h1 className="mt-1 break-words text-xl font-semibold tracking-tight text-gray-900 sm:text-2xl">{title}</h1>
           {subtitle ? (
-            <p className="mt-1 text-sm leading-snug text-slate-600 whitespace-pre-wrap">{subtitle}</p>
+            <p className="mt-1 text-sm leading-snug text-gray-500 whitespace-pre-wrap">{subtitle}</p>
           ) : null}
         </div>
       </div>
 
       {loading ? (
-        <p className="text-sm text-slate-500">Yükleniyor…</p>
+        <p className="text-sm text-gray-400">Yükleniyor…</p>
       ) : loadError ? (
         <p className="rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-800">{loadError}</p>
       ) : notes.length === 0 ? (
-        <div className="rounded-2xl border border-slate-200/90 bg-white p-5 shadow-sm ring-1 ring-slate-900/5 sm:p-6">
+        <div className="rounded-2xl border border-gray-200/90 bg-white p-5 shadow-sm ring-1 ring-slate-900/5 sm:p-6">
           <div className="flex gap-4">
             <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-amber-50 text-amber-700 ring-1 ring-amber-100">
               <StickyNote className="h-6 w-6" />
             </div>
-            <div className="min-w-0 space-y-2 text-sm leading-relaxed text-slate-600">
+            <div className="min-w-0 space-y-2 text-sm leading-relaxed text-gray-500">
               <p>
                 Bu proje için henüz not kaydı yok.{' '}
                 <button
@@ -231,7 +231,7 @@ export default function ProjeNotlarPage() {
                 <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-red-500 text-white">
                   <AlertCircle className="h-3.5 w-3.5" />
                 </div>
-                <p className="text-xs leading-relaxed text-slate-700">
+                <p className="text-xs leading-relaxed text-gray-600">
                   Önemli konuları (ör. fiyat pazarlığı) unutmamak için not düşebilirsiniz.
                 </p>
               </div>
@@ -241,7 +241,7 @@ export default function ProjeNotlarPage() {
       ) : (
         <div className="space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Aldığınız notlar</p>
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-500">Aldığınız notlar</p>
             <button
               type="button"
               onClick={openNew}
@@ -252,7 +252,7 @@ export default function ProjeNotlarPage() {
             </button>
           </div>
           <div className="relative pl-1 sm:pl-2">
-            <ul className="space-y-3 border-l-2 border-slate-200">
+            <ul className="space-y-3 border-l-2 border-gray-200">
               {notes.map((n) => (
                 <li key={n.id} className="relative -ml-px pl-4 sm:pl-5">
                   <span
@@ -261,14 +261,14 @@ export default function ProjeNotlarPage() {
                   >
                     <span className="h-1.5 w-1.5 rounded-full bg-emerald-600" />
                   </span>
-                  <div className="rounded-2xl border border-slate-200/90 bg-white p-3 shadow-sm ring-1 ring-slate-900/5 sm:p-4">
+                  <div className="rounded-2xl border border-gray-200/90 bg-white p-3 shadow-sm ring-1 ring-slate-900/5 sm:p-4">
                     <div className="mb-1.5 flex flex-wrap items-start justify-between gap-2">
                       <p className="text-xs font-semibold text-red-600 tabular-nums">{formatNoteDate(n.created_at)}</p>
                       <div className="flex gap-0.5">
                         <button
                           type="button"
                           onClick={() => openEdit(n)}
-                          className="rounded-lg p-1 text-slate-500 transition hover:bg-slate-100 hover:text-slate-800"
+                          className="rounded-lg p-1 text-gray-400 transition hover:bg-gray-100 hover:text-gray-800"
                           aria-label="Düzenle"
                         >
                           <Pencil className="h-3.5 w-3.5" />
@@ -276,14 +276,14 @@ export default function ProjeNotlarPage() {
                         <button
                           type="button"
                           onClick={() => confirmDelete(n)}
-                          className="rounded-lg p-1 text-slate-500 transition hover:bg-red-50 hover:text-red-700"
+                          className="rounded-lg p-1 text-gray-400 transition hover:bg-red-50 hover:text-red-700"
                           aria-label="Sil"
                         >
                           <Trash2 className="h-3.5 w-3.5" />
                         </button>
                       </div>
                     </div>
-                    <p className="whitespace-pre-wrap text-sm leading-relaxed text-slate-800">{n.body}</p>
+                    <p className="whitespace-pre-wrap text-sm leading-relaxed text-gray-800">{n.body}</p>
                   </div>
                 </li>
               ))}
@@ -292,15 +292,15 @@ export default function ProjeNotlarPage() {
         </div>
       )}
 
-      <p className="text-xs text-slate-400">{new Date().getFullYear()} © Mikro Muhasebe</p>
+      <p className="text-xs text-gray-500">{new Date().getFullYear()} © Mikro Muhasebe</p>
 
       {modalOpen && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-3 backdrop-blur-[2px]"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-[#f0f5f2]/50 p-3 backdrop-blur-[2px]"
           onClick={closeModal}
         >
           <div
-            className="flex max-h-[min(90vh,560px)] w-full max-w-lg flex-col overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-2xl ring-1 ring-slate-900/10"
+            className="flex max-h-[min(90vh,560px)] w-full max-w-lg flex-col overflow-hidden rounded-2xl border border-gray-200/90 bg-white shadow-2xl ring-1 ring-slate-900/10"
             onClick={(e) => e.stopPropagation()}
             role="dialog"
             aria-modal="true"
@@ -314,14 +314,14 @@ export default function ProjeNotlarPage() {
                 type="button"
                 onClick={closeModal}
                 disabled={saving}
-                className="rounded-lg p-1.5 text-white/90 transition hover:bg-white/10 disabled:opacity-50"
+                className="rounded-lg p-1.5 text-white/90 transition hover:bg-gray-50 disabled:opacity-50"
                 aria-label="Kapat"
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
             <form onSubmit={submitNote} className="flex flex-1 flex-col overflow-y-auto bg-white p-5">
-              <label className="mb-1.5 flex items-center gap-2 text-sm font-medium text-slate-700">
+              <label className="mb-1.5 flex items-center gap-2 text-sm font-medium text-gray-600">
                 <StickyNote className="h-4 w-4 text-emerald-700" />
                 Notlar
               </label>
@@ -330,9 +330,9 @@ export default function ProjeNotlarPage() {
                 onChange={(e) => setDraft(e.target.value)}
                 rows={6}
                 placeholder="Notunuzu yazın…"
-                className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2.5 text-sm text-slate-900 outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-2 focus:ring-emerald-500/20"
+                className="w-full rounded-xl border border-gray-200 bg-gray-50/50 px-3 py-2.5 text-sm text-gray-900 outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-2 focus:ring-emerald-500/20"
               />
-              <div className="mt-4 flex justify-end border-t border-slate-100 pt-4">
+              <div className="mt-4 flex justify-end border-t border-gray-100 pt-4">
                 <button
                   type="submit"
                   disabled={saving}

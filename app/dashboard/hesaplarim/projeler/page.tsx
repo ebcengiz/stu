@@ -57,7 +57,7 @@ export default function ProjelerPage() {
   return (
     <div className="mx-auto w-full min-w-0 max-w-full space-y-4 overflow-x-hidden pb-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
-        <h1 className="text-xl font-bold tracking-tight text-slate-900">Projeler</h1>
+        <h1 className="text-xl font-bold tracking-tight text-gray-900">Projeler</h1>
         <button
           type="button"
           onClick={openCreate}
@@ -98,18 +98,18 @@ export default function ProjelerPage() {
 
       {!loading && rows.length > 0 && (
         <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-md">
-          <div className="flex flex-wrap items-center justify-end gap-3 border-b border-gray-100 bg-slate-50 px-3 py-2.5">
-            <label className="flex items-center gap-2 text-xs font-medium text-slate-700">
+          <div className="flex flex-wrap items-center justify-end gap-3 border-b border-gray-100 bg-gray-50 px-3 py-2.5">
+            <label className="flex items-center gap-2 text-xs font-medium text-gray-600">
               <span>Bul:</span>
               <input
                 type="search"
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
                 placeholder="Ara…"
-                className="w-40 rounded border border-gray-200 bg-white px-2 py-1 text-xs text-slate-900 sm:w-52"
+                className="w-40 rounded border border-gray-200 bg-white px-2 py-1 text-xs text-gray-900 sm:w-52"
               />
             </label>
-            <label className="flex cursor-pointer items-center gap-2 text-xs font-medium text-slate-700">
+            <label className="flex cursor-pointer items-center gap-2 text-xs font-medium text-gray-600">
               <input
                 type="checkbox"
                 checked={showInactive}
@@ -121,7 +121,7 @@ export default function ProjelerPage() {
           </div>
           <div className="divide-y divide-gray-100 p-2">
             {filtered.length === 0 ? (
-              <p className="px-2 py-6 text-center text-sm text-slate-500">Sonuç yok. Filtreyi değiştirin veya yeni proje ekleyin.</p>
+              <p className="px-2 py-6 text-center text-sm text-gray-400">Sonuç yok. Filtreyi değiştirin veya yeni proje ekleyin.</p>
             ) : (
               filtered.map((r) => (
                 <Link
@@ -135,7 +135,7 @@ export default function ProjelerPage() {
                       <span className="truncate">{r.name}</span>
                     </span>
                     {!r.is_active && (
-                      <span className="shrink-0 rounded bg-white/20 px-1.5 py-0.5 text-[10px] font-semibold uppercase">Pasif</span>
+                      <span className="shrink-0 rounded bg-gray-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase">Pasif</span>
                     )}
                   </div>
                 </Link>
@@ -145,9 +145,9 @@ export default function ProjelerPage() {
         </div>
       )}
 
-      {loading && <p className="text-sm text-slate-500">Yükleniyor…</p>}
+      {loading && <p className="text-sm text-gray-400">Yükleniyor…</p>}
 
-      <p className="text-xs text-slate-400">{new Date().getFullYear()} © Mikro Muhasebe</p>
+      <p className="text-xs text-gray-500">{new Date().getFullYear()} © Mikro Muhasebe</p>
 
       <ProjectModal
         open={modalOpen}

@@ -281,7 +281,7 @@ export default function WarehousesPage() {
                     <div className="flex gap-2 mt-4">
                       <button
                         onClick={(e) => handleEdit(e, warehouse)}
-                        className="p-2 text-blue-600 hover:bg-blue-50 rounded"
+                        className="p-2 text-primary-600 hover:bg-primary-50 rounded"
                         title="Düzenle"
                       >
                         <Edit2 className="h-4 w-4" />
@@ -328,8 +328,8 @@ export default function WarehousesPage() {
                   <h2 className="text-xl font-bold text-gray-900">{selectedWarehouse.name}</h2>
                   <div className="flex items-center gap-2 text-sm text-gray-500">
                     <span>Depo Stok Detayları</span>
-                    <span className="text-gray-300">•</span>
-                    <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded">Döviz Kurları Güncel</span>
+                    <span className="text-gray-500">•</span>
+                    <span className="text-xs bg-primary-50 text-primary-700 px-2 py-0.5 rounded">Döviz Kurları Güncel</span>
                   </div>
                 </div>
               </div>
@@ -410,7 +410,7 @@ export default function WarehousesPage() {
                             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${
                               item.quantity < 0 
                                 ? 'bg-red-100 text-red-700 border border-red-200' 
-                                : 'bg-blue-50 text-blue-700'
+                                : 'bg-primary-50 text-primary-700'
                             }`}>
                               {item.quantity.toLocaleString('tr-TR')} {item.unit}
                             </span>

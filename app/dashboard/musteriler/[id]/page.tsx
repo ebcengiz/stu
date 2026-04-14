@@ -637,7 +637,7 @@ export default function CustomerDetailPage() {
                 <div className="flex flex-wrap items-center gap-3">
                   <h1 className="text-xl sm:text-2xl font-black text-gray-900 tracking-tight">{customer.company_name}</h1>
                   <div className="flex gap-2">
-                    {customer.category1 && <span className="inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-100">{customer.category1}</span>}
+                    {customer.category1 && <span className="inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-bold bg-primary-50 text-primary-700 border border-primary-100">{customer.category1}</span>}
                     {customer.category2 && <span className="inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-bold bg-purple-50 text-purple-700 border border-purple-100">{customer.category2}</span>}
                   </div>
                 </div>
@@ -691,7 +691,7 @@ export default function CustomerDetailPage() {
           <CardBody className="p-4">
             <div className="flex justify-between items-start">
               <h3 className="text-primary-100 font-bold text-xs uppercase tracking-wider">Açık Bakiye</h3>
-              <div className="p-1.5 bg-white/20 rounded-xl backdrop-blur-sm"><Scale className="h-4 w-4 text-white" /></div>
+              <div className="p-1.5 bg-gray-100 rounded-xl backdrop-blur-sm"><Scale className="h-4 w-4 text-white" /></div>
             </div>
             <div className="mt-3">
               <div className="text-2xl font-black tracking-tight">{acikBakiye.toLocaleString('tr-TR', { minimumFractionDigits: 2 })}</div>
@@ -736,9 +736,9 @@ export default function CustomerDetailPage() {
         </button>
 
         {/* Teklif Hazırla */}
-        <button onClick={() => router.push(`/dashboard/teklifler/yeni?customerId=${customerId}`)} className="flex flex-col items-center justify-center p-3 bg-white rounded-xl border-2 border-gray-100 hover:border-blue-300 hover:bg-blue-50 transition-all group shadow-sm">
-          <div className="p-3 bg-blue-100/50 rounded-full group-hover:bg-blue-200/50 transition-colors mb-1"><FileText className="h-5 w-5 text-blue-600" /></div>
-          <span className="font-bold text-[13px] text-gray-900 group-hover:text-blue-700">Teklif Hazırla</span>
+        <button onClick={() => router.push(`/dashboard/teklifler/yeni?customerId=${customerId}`)} className="flex flex-col items-center justify-center p-3 bg-white rounded-xl border-2 border-gray-100 hover:border-primary-300 hover:bg-primary-50 transition-all group shadow-sm">
+          <div className="p-3 bg-primary-100/50 rounded-full group-hover:bg-primary-100/50 transition-colors mb-1"><FileText className="h-5 w-5 text-primary-600" /></div>
+          <span className="font-bold text-[13px] text-gray-900 group-hover:text-primary-700">Teklif Hazırla</span>
         </button>
 
         {/* Tahsilat/Ödeme (Accordion/Dropdown) */}
@@ -970,7 +970,7 @@ export default function CustomerDetailPage() {
                 <CardTitle className="text-xl font-bold flex items-center gap-3"><CreditCard className="h-6 w-6" /> Tahsilat / Ödeme Girişi</CardTitle>
                 <p className="text-xs text-emerald-100 mt-1">Müşteriden alınan ödemeyi kaydedin</p>
               </div>
-              <button onClick={() => setShowPaymentModal(false)} className="p-2 hover:bg-white/20 rounded-full transition-all"><X className="h-6 w-6 text-white" /></button>
+              <button onClick={() => setShowPaymentModal(false)} className="p-2 hover:bg-gray-100 rounded-full transition-all"><X className="h-6 w-6 text-white" /></button>
             </CardHeader>
             <CardBody className="p-8">
               <form onSubmit={handleAddTransaction} className="space-y-6">
@@ -1059,7 +1059,7 @@ export default function CustomerDetailPage() {
                 <CardTitle className="text-xl font-bold flex items-center gap-3"><Scale className="h-6 w-6" /> Bakiye Düzeltme</CardTitle>
                 <p className="text-xs text-gray-400 mt-1">Müşteri bakiyesine manuel müdahale</p>
               </div>
-              <button onClick={() => setShowBalanceFixModal(false)} className="p-2 hover:bg-white/20 rounded-full transition-all"><X className="h-6 w-6 text-white" /></button>
+              <button onClick={() => setShowBalanceFixModal(false)} className="p-2 hover:bg-gray-100 rounded-full transition-all"><X className="h-6 w-6 text-white" /></button>
             </CardHeader>
             <CardBody className="p-8">
               <form onSubmit={handleBalanceFix} className="space-y-6">
@@ -1117,7 +1117,7 @@ export default function CustomerDetailPage() {
                     <tr key={tx.id} onClick={() => { setSelectedTx(tx); setShowTxDetailModal(true); }} className="hover:bg-gray-50 transition-colors cursor-pointer group">
                       <td className="px-6 py-4 text-sm text-gray-900 whitespace-nowrap font-medium group-hover:text-primary-600">{new Date(tx.transaction_date || tx.date || '').toLocaleDateString('tr-TR')}</td>
                       <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">{tx.document_number || tx.document_no || '-'}</td>
-                      <td className="px-6 py-4 whitespace-nowrap"><span className={`px-3 py-1 rounded-lg text-xs font-bold ${tx.isDebt ? 'bg-blue-50 text-blue-700' : 'bg-emerald-50 text-emerald-700'}`}>{tx.isDebt ? 'Borçlandırma' : 'Alacaklandırma'}</span></td>
+                      <td className="px-6 py-4 whitespace-nowrap"><span className={`px-3 py-1 rounded-lg text-xs font-bold ${tx.isDebt ? 'bg-primary-50 text-primary-700' : 'bg-emerald-50 text-emerald-700'}`}>{tx.isDebt ? 'Borçlandırma' : 'Alacaklandırma'}</span></td>
                       <td className="px-6 py-4 text-sm text-gray-500 truncate max-w-xs">{tx.description || '-'}</td>
                       <td className={`px-6 py-4 text-sm font-bold text-right whitespace-nowrap ${tx.isDebt ? 'text-gray-900' : 'text-emerald-600'}`}>{tx.isDebt ? '+' : '-'}{Number(tx.amount).toLocaleString('tr-TR', { minimumFractionDigits: 2 })} {getCurrencySymbol(tx.currency)}</td>
                       <td className="px-6 py-4 text-sm font-black text-right text-gray-900 whitespace-nowrap bg-gray-50/50">{tx.balance.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} {getCurrencySymbol(customer.currency)}</td>
@@ -1185,11 +1185,11 @@ export default function CustomerDetailPage() {
       {/* Diğer modallar (Item detail, Tx Detail, Cheque) buraya eklendi (Kısa halleriyle, mevcut mantık korundu) */}
       {/* Tx Detail Modal */}
       {showTxDetailModal && selectedTx && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center z-[130] p-4 animate-in fade-in duration-300">
-          <Card className="w-full max-w-3xl shadow-2xl animate-in zoom-in duration-300 rounded-3xl overflow-hidden border-0">
-            <CardHeader className={`${selectedTx.type === 'sale' || selectedTx.type === 'invoice' ? 'bg-gradient-to-r from-primary-600 to-primary-700' : 'bg-gradient-to-r from-emerald-600 to-emerald-700'} text-white flex flex-row items-center justify-between py-6 px-8 border-0`}>
+        <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-[130] p-4 animate-in fade-in duration-300">
+          <Card className="w-full max-w-3xl shadow-xl shadow-gray-200/50 animate-in zoom-in duration-300 rounded-2xl overflow-hidden">
+            <CardHeader className={`${selectedTx.type === 'sale' || selectedTx.type === 'invoice' ? 'bg-primary-600' : 'bg-emerald-600'} text-white flex flex-row items-center justify-between py-5 px-8 border-0`}>
               <div className="flex items-center gap-4">
-                <div className="p-3 bg-white/20 rounded-2xl backdrop-blur-md">
+                <div className="p-3 bg-gray-100 rounded-2xl backdrop-blur-md">
                   {selectedTx.type === 'sale' || selectedTx.type === 'invoice' ? <ShoppingCart className="h-6 w-6 text-white" /> : <CreditCard className="h-6 w-6 text-white" />}
                 </div>
                 <div>
@@ -1197,7 +1197,7 @@ export default function CustomerDetailPage() {
                   <p className="text-xs text-white/80 font-bold tracking-widest uppercase mt-1">İşlem ID: #{selectedTx.id.slice(0,8)}</p>
                 </div>
               </div>
-              <button onClick={() => setShowTxDetailModal(false)} className="p-2 hover:bg-white/10 rounded-full transition-all"><X className="h-7 w-7 text-white" /></button>
+              <button onClick={() => setShowTxDetailModal(false)} className="p-2 hover:bg-gray-50 rounded-full transition-all"><X className="h-7 w-7 text-white" /></button>
             </CardHeader>
             <CardBody className="p-0 bg-white">
               <div className="grid grid-cols-3 divide-x divide-gray-100 bg-gray-50/50 border-b">
@@ -1213,12 +1213,12 @@ export default function CustomerDetailPage() {
                     {selectedTx.cheque_due_date && <div><p className="text-[10px] font-black text-amber-500 uppercase tracking-widest mb-1">Vade Tarihi</p><p className="text-sm font-bold text-amber-900">{new Date(selectedTx.cheque_due_date).toLocaleDateString('tr-TR')}</p></div>}
                   </div>
                 )}
-                <div className="mt-4 flex items-center justify-between p-8 bg-gradient-to-br from-primary-800 to-primary-950 rounded-[2.5rem] text-white shadow-xl">
+                <div className="mt-4 flex items-center justify-between p-6 bg-gray-50 rounded-2xl border border-gray-200">
                   <div className="flex items-center gap-4">
-                    <div className="p-4 bg-white/10 rounded-3xl"><DollarSign className="h-8 w-8 text-primary-300" /></div>
-                    <div><p className="text-[10px] font-black text-white/50 uppercase tracking-[0.2em] mb-1">İşlem Toplamı</p><p className="text-3xl font-black tracking-tight">{Number(selectedTx.amount).toLocaleString('tr-TR', { minimumFractionDigits: 2 })} {getCurrencySymbol(selectedTx.currency)}</p></div>
+                    <div className="p-3 bg-primary-50 rounded-xl"><DollarSign className="h-7 w-7 text-primary-600" /></div>
+                    <div><p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">İşlem Toplamı</p><p className="text-3xl font-black text-gray-900 tracking-tight">{Number(selectedTx.amount).toLocaleString('tr-TR', { minimumFractionDigits: 2 })} {getCurrencySymbol(selectedTx.currency)}</p></div>
                   </div>
-                  <Button onClick={() => setShowTxDetailModal(false)} className="h-14 px-10 rounded-2xl font-black bg-white text-primary-900 hover:bg-primary-50 transition-all shadow-lg active:scale-95 border-0">KAPAT</Button>
+                  <Button onClick={() => setShowTxDetailModal(false)} className="h-12 px-8 rounded-xl font-bold">KAPAT</Button>
                 </div>
               </div>
             </CardBody>
@@ -1254,7 +1254,7 @@ export default function CustomerDetailPage() {
                   <p className="text-xs text-white font-bold flex items-center gap-1"><Package className="h-3 w-3" /> Toplam Stok: {totalStock} {currentItem.unit}</p>
                 </div>
               </div>
-              <button onClick={() => setShowItemDetailModal(false)} className="p-2 hover:bg-white/10 rounded-full transition-all"><X className="h-6 w-6 text-white" /></button>
+              <button onClick={() => setShowItemDetailModal(false)} className="p-2 hover:bg-gray-50 rounded-full transition-all"><X className="h-6 w-6 text-white" /></button>
             </CardHeader>
             <CardBody className="p-8">
               <div className="grid grid-cols-2 gap-6">

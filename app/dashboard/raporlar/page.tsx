@@ -110,7 +110,7 @@ export default function ReportsPage() {
       name: 'Stok Durum Raporu',
       description: `${totalProducts} ürün için güncel stok durumu`,
       icon: Package,
-      color: 'bg-blue-500',
+      color: 'bg-primary-500',
     },
     {
       id: 'movements',
@@ -311,7 +311,7 @@ export default function ReportsPage() {
                             : movement.movement_type === 'out'
                             ? 'bg-red-100 text-red-800'
                             : movement.movement_type === 'transfer'
-                            ? 'bg-blue-100 text-blue-800'
+                            ? 'bg-primary-100 text-primary-800'
                             : 'bg-yellow-100 text-yellow-800'
                         }`}>
                           {getMovementTypeLabel(movement.movement_type)}

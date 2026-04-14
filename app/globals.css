@@ -4,23 +4,65 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 0 0% 3.9%;
-    --primary: 142 76% 36%;
-    --primary-foreground: 356 29% 98%;
-    --border: 0 0% 89.8%;
+    --background: 140 20% 96%;
+    --foreground: 160 10% 18%;
+    --primary: 160 30% 42%;
+    --primary-foreground: 0 0% 100%;
+    --border: 150 10% 85%;
+    --card: 0 0% 100%;
+    --card-foreground: 160 10% 18%;
+    --muted: 140 10% 93%;
+    --muted-foreground: 160 6% 52%;
+    --accent: 160 30% 42%;
+    --ring: 160 30% 42%;
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(120, 153, 139, 0.3) transparent;
+  }
+
+  *::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background: rgba(120, 153, 139, 0.3);
+    border-radius: 999px;
+  }
+
+  *::-webkit-scrollbar-thumb:hover {
+    background: rgba(120, 153, 139, 0.5);
   }
 
   body {
-    background-color: white;
-    color: #0a0a0a;
+    background-color: #f0f5f2;
+    color: #2d3a35;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Focus ring standardization */
+  input:focus,
+  select:focus,
+  textarea:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(90, 138, 120, 0.25);
+  }
+
+  /* Placeholder stilleri */
+  input::placeholder,
+  textarea::placeholder {
+    color: #9ca8a1;
   }
 }
 
 /* CRITICAL: Leaflet Map z-index overrides to fix dropdown issues */
-/* Leaflet defaults use z-index: 1000 which blocks ALL dropdowns */
-/* Solution from: https://github.com/Leaflet/Leaflet/issues/6555 */
-
 .leaflet-container {
   z-index: 1 !important;
   position: relative !important;
@@ -32,13 +74,13 @@
 
 .leaflet-top,
 .leaflet-bottom {
-  z-index: 100 !important; /* Changed from default 1000 to 100 */
-  pointer-events: none !important; /* Allow clicks through to map */
+  z-index: 100 !important;
+  pointer-events: none !important;
 }
 
 .leaflet-control {
   z-index: 100 !important;
-  pointer-events: auto !important; /* Re-enable clicks on controls */
+  pointer-events: auto !important;
 }
 
 .leaflet-control-zoom,
@@ -46,25 +88,21 @@
   z-index: 100 !important;
 }
 
-/* Ensure map tiles stay below everything */
 .leaflet-tile-pane {
   z-index: 1 !important;
 }
 
-/* Marker pane should be above tiles but below UI */
 .leaflet-marker-pane {
   z-index: 50 !important;
 }
 
-/* Remove number input spinner arrows that hide the typed numbers */
-/* Chrome, Safari, Edge, Opera */
+/* Remove number input spinner arrows */
 input[type="number"]::-webkit-outer-spin-button,
 input[type="number"]::-webkit-inner-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
 
-/* Firefox */
 input[type="number"] {
   -moz-appearance: textfield;
   appearance: textfield;

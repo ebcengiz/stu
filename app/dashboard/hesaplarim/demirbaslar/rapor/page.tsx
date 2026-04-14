@@ -112,7 +112,7 @@ export default function DemirbaslarRaporPage() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <Link
           href="/dashboard/hesaplarim/demirbaslar"
-          className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-600 hover:text-emerald-700"
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-emerald-700"
         >
           <ArrowLeft className="h-4 w-4" />
           Demirbaşlara dön
@@ -121,7 +121,7 @@ export default function DemirbaslarRaporPage() {
           <button
             type="button"
             onClick={() => window.print()}
-            className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-800 shadow-sm hover:bg-slate-50"
+            className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-semibold text-gray-800 shadow-sm hover:bg-gray-50"
           >
             <Printer className="h-4 w-4" />
             Yazdır
@@ -137,7 +137,7 @@ export default function DemirbaslarRaporPage() {
           <button
             type="button"
             onClick={exportPdf}
-            className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-800 shadow-sm hover:bg-slate-50"
+            className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-semibold text-gray-800 shadow-sm hover:bg-gray-50"
           >
             PDF
           </button>
@@ -145,8 +145,8 @@ export default function DemirbaslarRaporPage() {
       </div>
 
       <div className="print:block">
-        <h1 className="text-xl font-bold tracking-tight text-slate-900">Demirbaşlar — Rapor</h1>
-        <p className="mt-1 text-sm text-slate-500">
+        <h1 className="text-xl font-bold tracking-tight text-gray-900">Demirbaşlar — Rapor</h1>
+        <p className="mt-1 text-sm text-gray-400">
           Tüm demirbaş kayıtları; alış tarihi ve fiyat isteğe bağlı alanlardır.
         </p>
       </div>
@@ -156,15 +156,15 @@ export default function DemirbaslarRaporPage() {
       )}
 
       {loading ? (
-        <p className="text-sm text-slate-500">Yükleniyor…</p>
+        <p className="text-sm text-gray-400">Yükleniyor…</p>
       ) : rows.length === 0 ? (
-        <p className="text-sm text-slate-600">Henüz demirbaş kaydı yok.</p>
+        <p className="text-sm text-gray-500">Henüz demirbaş kaydı yok.</p>
       ) : (
         <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-md print:shadow-none print:border-gray-400">
           <div className="w-full overflow-x-auto">
             <table className="w-full min-w-[900px] table-auto border-collapse text-sm">
               <thead>
-                <tr className="bg-[#1e3a5f] text-left text-xs font-bold uppercase tracking-wide text-white print:bg-slate-700 print:text-white">
+                <tr className="bg-[#1e3a5f] text-left text-xs font-bold uppercase tracking-wide text-white print:bg-gray-100 print:text-white">
                   <th className="px-3 py-2.5">Demirbaş adı</th>
                   <th className="px-3 py-2.5">Açıklama</th>
                   <th className="px-3 py-2.5">Seri / plaka</th>
@@ -176,15 +176,15 @@ export default function DemirbaslarRaporPage() {
                 {rows.map((r, idx) => (
                   <tr
                     key={r.id}
-                    className={`border-b border-gray-100 ${idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/80'} print:break-inside-avoid`}
+                    className={`border-b border-gray-100 ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'} print:break-inside-avoid`}
                   >
-                    <td className="px-3 py-2 align-top font-medium text-slate-900">{r.name}</td>
-                    <td className="max-w-md px-3 py-2 align-top whitespace-pre-wrap text-slate-700">
+                    <td className="px-3 py-2 align-top font-medium text-gray-900">{r.name}</td>
+                    <td className="max-w-md px-3 py-2 align-top whitespace-pre-wrap text-gray-600">
                       {r.description?.trim() || '—'}
                     </td>
-                    <td className="px-3 py-2 align-top text-slate-700">{r.serial_no?.trim() || '—'}</td>
-                    <td className="px-3 py-2 align-top text-slate-700">{formatDate(r.purchase_date)}</td>
-                    <td className="px-3 py-2 align-top text-slate-900">{formatMoney(r.price, r.currency || 'TRY')}</td>
+                    <td className="px-3 py-2 align-top text-gray-600">{r.serial_no?.trim() || '—'}</td>
+                    <td className="px-3 py-2 align-top text-gray-600">{formatDate(r.purchase_date)}</td>
+                    <td className="px-3 py-2 align-top text-gray-900">{formatMoney(r.price, r.currency || 'TRY')}</td>
                   </tr>
                 ))}
               </tbody>
@@ -193,7 +193,7 @@ export default function DemirbaslarRaporPage() {
         </div>
       )}
 
-      <p className="text-xs text-slate-400 print:hidden">{new Date().getFullYear()} © Mikro Muhasebe</p>
+      <p className="text-xs text-gray-500 print:hidden">{new Date().getFullYear()} © Mikro Muhasebe</p>
     </div>
   )
 }
