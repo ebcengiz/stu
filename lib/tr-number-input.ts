@@ -33,10 +33,14 @@ export function normalizeTrNumberInput(raw: string): string {
     decRaw = ''
   }
 
-  const intFormatted = formatTrIntegerPart(intRaw)
-  if (decRaw.length > 0) {
+  // Virgül varken ondalık henüz yazılmamış olsa bile virgülü koru (örn. 250.000, → 50 yazılabilsin).
+  if (commaIdx >= 0) {
+    let intFormatted = formatTrIntegerPart(intRaw)
+    if (intFormatted === '') intFormatted = '0'
     return `${neg ? '-' : ''}${intFormatted},${decRaw}`
   }
+
+  const intFormatted = formatTrIntegerPart(intRaw)
   return `${neg ? '-' : ''}${intFormatted}`
 }
 
