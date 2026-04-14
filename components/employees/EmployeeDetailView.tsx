@@ -25,8 +25,11 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { toast } from 'react-hot-toast'
-import { isOdemeHesabi } from '@/lib/account-sections'
-import { formatPaymentAccountOptionLabel, groupPaymentAccounts } from '@/lib/payment-account-options'
+import {
+  formatPaymentAccountOptionLabel,
+  groupPaymentAccounts,
+  isDisbursementAccountType,
+} from '@/lib/payment-account-options'
 import type { MasrafGroup } from '@/lib/masraf-kalemleri'
 import { MASRAF_GROUPS, findMasrafLabel, KDV_ORAN_OPTIONS } from '@/lib/masraf-kalemleri'
 import TrNumberInput from '@/components/ui/TrNumberInput'
@@ -273,7 +276,7 @@ export default function EmployeeDetailView({ employeeId }: { employeeId: string 
         list.filter(
           (a: { is_active?: boolean; type: string; currency?: string }) =>
             a.is_active !== false &&
-            isOdemeHesabi(a.type) &&
+            isDisbursementAccountType(a.type) &&
             String(a.currency || 'TRY') === String(cur)
         )
       )
@@ -299,7 +302,7 @@ export default function EmployeeDetailView({ employeeId }: { employeeId: string 
         list.filter(
           (a: { is_active?: boolean; type: string; currency?: string }) =>
             a.is_active !== false &&
-            isOdemeHesabi(a.type) &&
+            isDisbursementAccountType(a.type) &&
             String(a.currency || 'TRY') === String(cur)
         )
       )
@@ -1016,7 +1019,7 @@ export default function EmployeeDetailView({ employeeId }: { employeeId: string 
                 </select>
                 {paymentAccounts.length === 0 && (
                   <p className="text-xs text-amber-700 mt-1.5">
-                    Bu para birimi için uygun hesap yok. Hesaplarım sayfasından kasa veya banka ekleyin.
+                    Bu para birimi için uygun hesap yok. Hesaplarım sayfasından kasa, banka veya kredi kartı hesabı ekleyin.
                   </p>
                 )}
                 {paymentAccountId && (
@@ -1135,7 +1138,7 @@ export default function EmployeeDetailView({ employeeId }: { employeeId: string 
                 </select>
                 {advanceAccounts.length === 0 && (
                   <p className="text-xs text-amber-700 mt-1.5">
-                    Bu para birimi için uygun hesap yok. Hesaplarım sayfasından kasa veya banka ekleyin.
+                    Bu para birimi için uygun hesap yok. Hesaplarım sayfasından kasa, banka veya kredi kartı hesabı ekleyin.
                   </p>
                 )}
                 {advanceAccountId && (

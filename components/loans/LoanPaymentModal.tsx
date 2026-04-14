@@ -5,7 +5,11 @@ import { X, Check } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 import TrNumberInput from '@/components/ui/TrNumberInput'
 import { parseTrNumberInput } from '@/lib/tr-number-input'
-import { formatPaymentAccountOptionLabel, groupPaymentAccounts } from '@/lib/payment-account-options'
+import {
+  formatPaymentAccountOptionLabel,
+  groupPaymentAccounts,
+  isDisbursementAccountType,
+} from '@/lib/payment-account-options'
 
 type AccountOpt = {
   id: string
@@ -44,7 +48,12 @@ export default function LoanPaymentModal({
 
   const matchingAccounts = useMemo(
     () =>
-      accounts.filter((a) => a.is_active !== false && (a.currency || 'TRY') === cur),
+      accounts.filter(
+        (a) =>
+          a.is_active !== false &&
+          (a.currency || 'TRY') === cur &&
+          isDisbursementAccountType(a.type)
+      ),
     [accounts, cur]
   )
   const groupedAccounts = useMemo(

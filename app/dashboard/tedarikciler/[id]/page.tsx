@@ -8,7 +8,11 @@ import { Card, CardHeader, CardBody, CardTitle } from '@/components/ui/Card'
 import { TagSelector } from '@/components/admin/TagSelector'
 import { CURRENCY_SYMBOLS } from '@/lib/currency'
 import ProjectSelect from '@/components/projects/ProjectSelect'
-import { groupPaymentAccounts, formatPaymentAccountOptionLabel } from '@/lib/payment-account-options'
+import {
+  groupPaymentAccounts,
+  formatPaymentAccountOptionLabel,
+  isDisbursementAccountType,
+} from '@/lib/payment-account-options'
 import { toast } from 'react-hot-toast'
 import TrNumberInput from '@/components/ui/TrNumberInput'
 import { looseToTrInputString, parseTrNumberInput, shouldClearTrLineFieldOnFocus } from '@/lib/tr-number-input'
@@ -311,7 +315,8 @@ export default function SupplierDetailPage() {
   }
 
   const getCurrencySymbol = (code: string = 'TRY') => CURRENCY_SYMBOLS[code] || '₺'
-  const supplierPaymentAccountGroups = groupPaymentAccounts(cashAccounts, {
+  const supplierDisbursementAccounts = cashAccounts.filter((a) => isDisbursementAccountType(a.type))
+  const supplierPaymentAccountGroups = groupPaymentAccounts(supplierDisbursementAccounts, {
     currency: supplier?.currency || 'TRY',
   })
   const hasSupplierPaymentAccount = supplierPaymentAccountGroups.some((g) => g.items.length > 0)
@@ -478,7 +483,7 @@ export default function SupplierDetailPage() {
         txForm.payment_method !== 'cheque' &&
         !txForm.payment_account_id
       ) {
-        toast.error('Ödemenin çekileceği kasa veya banka hesabını seçin')
+        toast.error('Ödemenin çekileceği kasa, banka veya kredi kartı hesabını seçin')
         setSaving(false)
         return
       }
@@ -1008,7 +1013,7 @@ export default function SupplierDetailPage() {
                       ))}
                     </select>
                     {!hasSupplierPaymentAccount && (
-                      <p className="text-xs text-amber-700 font-medium px-1">Bu para birimi için hesap bulunamadı. Hesaplarım sayfasından kasa veya banka ekleyin.</p>
+                      <p className="text-xs text-amber-700 font-medium px-1">Bu para birimi için hesap bulunamadı. Hesaplarım sayfasından kasa, banka veya kredi kartı hesabı ekleyin.</p>
                     )}
                   </div>
                 )}

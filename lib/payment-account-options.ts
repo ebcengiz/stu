@@ -26,6 +26,13 @@ export function isCollectionAccountType(type: string): boolean {
   return t === 'cash' || t === 'kasa' || t === 'bank' || t === 'banka' || t === 'pos'
 }
 
+/** Ödeme çıkışı: POS hesabından para çıkmaz (POS’a tahsilat yatar); kredi kartı ödemesi `other` hesaptan yapılır. */
+export function isDisbursementAccountType(type: string): boolean {
+  const t = String(type).toLowerCase()
+  if (t === 'pos') return false
+  return isOdemeHesabi(t)
+}
+
 export function groupPaymentAccounts(
   accounts: PaymentAccountLike[],
   opts?: { currency?: string; onlyActive?: boolean; onlyOdeme?: boolean }

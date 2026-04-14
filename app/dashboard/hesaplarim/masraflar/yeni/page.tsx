@@ -8,7 +8,11 @@ import { toast } from 'react-hot-toast'
 import { Button } from '@/components/ui/Button'
 import type { MasrafGroup } from '@/lib/masraf-kalemleri'
 import { KDV_ORAN_OPTIONS, MASRAF_GROUPS } from '@/lib/masraf-kalemleri'
-import { formatPaymentAccountOptionLabel, groupPaymentAccounts } from '@/lib/payment-account-options'
+import {
+  formatPaymentAccountOptionLabel,
+  groupPaymentAccounts,
+  isDisbursementAccountType,
+} from '@/lib/payment-account-options'
 import ProjectSelect from '@/components/projects/ProjectSelect'
 import TrNumberInput from '@/components/ui/TrNumberInput'
 import { looseToTrInputString, parseTrNumberInput } from '@/lib/tr-number-input'
@@ -63,7 +67,7 @@ function YeniMasrafForm() {
   const showPaidAccount = paymentStatus === 'paid'
 
   const groupedAccounts = useMemo(() => {
-    return groupPaymentAccounts(accounts)
+    return groupPaymentAccounts(accounts.filter((a) => isDisbursementAccountType(a.type)))
   }, [accounts])
 
   useEffect(() => {

@@ -5,7 +5,11 @@ import { X, Check } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 import TrNumberInput from '@/components/ui/TrNumberInput'
 import { looseToTrInputString, parseTrNumberInput } from '@/lib/tr-number-input'
-import { formatPaymentAccountOptionLabel, groupPaymentAccounts } from '@/lib/payment-account-options'
+import {
+  formatPaymentAccountOptionLabel,
+  groupPaymentAccounts,
+  isDisbursementAccountType,
+} from '@/lib/payment-account-options'
 
 const PAYMENT_SCHEDULE_OPTIONS = [
   { value: 'monthly', label: 'Her Ay' },
@@ -90,7 +94,10 @@ export default function LoanModal({
   }, [open, initial])
 
   const activeAccounts = accounts.filter((a) => a.is_active !== false)
-  const groupedAccounts = groupPaymentAccounts(activeAccounts, { onlyOdeme: false })
+  const groupedAccounts = groupPaymentAccounts(
+    activeAccounts.filter((a) => isDisbursementAccountType(a.type)),
+    { onlyOdeme: false }
+  )
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault()

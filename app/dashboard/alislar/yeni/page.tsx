@@ -7,7 +7,11 @@ import { Button } from '@/components/ui/Button'
 import { Card, CardBody, CardHeader, CardTitle } from '@/components/ui/Card'
 import { toast } from 'react-hot-toast'
 import { CURRENCY_SYMBOLS } from '@/lib/currency'
-import { groupPaymentAccounts, formatPaymentAccountOptionLabel } from '@/lib/payment-account-options'
+import {
+  groupPaymentAccounts,
+  formatPaymentAccountOptionLabel,
+  isDisbursementAccountType,
+} from '@/lib/payment-account-options'
 import ProjectSelect from '@/components/projects/ProjectSelect'
 import TrNumberInput from '@/components/ui/TrNumberInput'
 import { looseToTrInputString, parseTrNumberInput } from '@/lib/tr-number-input'
@@ -144,7 +148,8 @@ function PurchaseEntryForm() {
   }
 
   const getCurrencySymbol = () => CURRENCY_SYMBOLS[formData.currency] || '₺'
-  const paymentAccountGroups = groupPaymentAccounts(cashAccounts, { currency: formData.currency })
+  const disbursementAccounts = cashAccounts.filter((a) => isDisbursementAccountType(a.type))
+  const paymentAccountGroups = groupPaymentAccounts(disbursementAccounts, { currency: formData.currency })
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -162,7 +167,7 @@ function PurchaseEntryForm() {
       paidNum > 0 &&
       !formData.payment_account_id
     ) {
-      toast.error('Ödeme için paranın çekileceği kasa veya banka hesabını seçin')
+      toast.error('Ödeme için paranın çekileceği kasa, banka veya kredi kartı hesabını seçin')
       setSaving(false)
       return
     }
