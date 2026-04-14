@@ -213,6 +213,39 @@ export async function POST(request: Request) {
       }
     }
 
+    // Tedarikçiye kendi çeki verildiyse çek portföyüne "to_supplier" olarak ekle
+    if (type === 'payment' && !portfolioCheckId && payment_method === 'cheque' && transaction) {
+      const txDate = transaction_date
+        ? new Date(transaction_date).toISOString().slice(0, 10)
+        : new Date().toISOString().slice(0, 10)
+      const dueDate = effectiveChequeDue
+        ? new Date(effectiveChequeDue).toISOString().slice(0, 10)
+        : txDate
+
+      const { error: ownCheckErr } = await supabase.from('portfolio_checks').insert({
+        tenant_id: profile.tenant_id,
+        supplier_id,
+        debtor_name: 'Kendi çekimiz',
+        received_date: txDate,
+        due_date: dueDate,
+        bank_name: effectiveChequeBank || null,
+        check_number: effectiveChequeSerial || null,
+        description: paymentDescription?.trim() || `Tedarikçiye verilen kendi çekimiz (${supplierName})`,
+        amount,
+        currency,
+        status: 'to_supplier',
+        endorsed_at: new Date().toISOString(),
+      })
+
+      if (ownCheckErr) {
+        await supabase.from('supplier_transactions').delete().eq('id', transaction.id)
+        return NextResponse.json(
+          { error: ownCheckErr.message || 'Çek portföyü kaydı oluşturulamadı' },
+          { status: 400 }
+        )
+      }
+    }
+
     if (
       type === 'payment' &&
       account_id &&
