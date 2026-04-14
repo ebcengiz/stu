@@ -8,7 +8,7 @@ import { toast } from 'react-hot-toast'
 import { Button } from '@/components/ui/Button'
 import type { MasrafGroup } from '@/lib/masraf-kalemleri'
 import { KDV_ORAN_OPTIONS, MASRAF_GROUPS } from '@/lib/masraf-kalemleri'
-import { formatAccountBalance } from '@/lib/account-sections'
+import { formatPaymentAccountOptionLabel, groupPaymentAccounts } from '@/lib/payment-account-options'
 import ProjectSelect from '@/components/projects/ProjectSelect'
 import TrNumberInput from '@/components/ui/TrNumberInput'
 import { looseToTrInputString, parseTrNumberInput } from '@/lib/tr-number-input'
@@ -29,13 +29,6 @@ type AccountRow = {
 }
 
 type EmployeeRow = { id: string; name: string }
-
-const ACCOUNT_GROUPS: { title: string; match: (t: string) => boolean }[] = [
-  { title: 'Kasa', match: (t) => t === 'cash' || t === 'kasa' },
-  { title: 'Banka', match: (t) => t === 'bank' || t === 'banka' },
-  { title: 'POS', match: (t) => t === 'pos' },
-  { title: 'Kredi kartı', match: (t) => t === 'other' || t === 'kredi_karti' },
-]
 
 function YeniMasrafForm() {
   const router = useRouter()
@@ -70,19 +63,7 @@ function YeniMasrafForm() {
   const showPaidAccount = paymentStatus === 'paid'
 
   const groupedAccounts = useMemo(() => {
-    const active = accounts.filter((a) => a.is_active !== false)
-    const used = new Set<string>()
-    const groups = ACCOUNT_GROUPS.map((g) => {
-      const items = active.filter((a) => {
-        const ok = g.match(String(a.type).toLowerCase())
-        if (ok) used.add(a.id)
-        return ok
-      })
-      return { title: g.title, items }
-    }).filter((g) => g.items.length > 0)
-    const rest = active.filter((a) => !used.has(a.id))
-    if (rest.length) groups.push({ title: 'Diğer hesaplar', items: rest })
-    return groups
+    return groupPaymentAccounts(accounts)
   }, [accounts])
 
   useEffect(() => {
@@ -430,7 +411,7 @@ function YeniMasrafForm() {
                       <optgroup key={g.title} label={g.title}>
                         {g.items.map((a) => (
                           <option key={a.id} value={`acc:${a.id}`}>
-                            {a.name} ({formatAccountBalance(a.currency, Number(a.balance))})
+                            {formatPaymentAccountOptionLabel(a)}
                           </option>
                         ))}
                       </optgroup>

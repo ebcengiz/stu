@@ -8,7 +8,7 @@ import { Card, CardHeader, CardBody, CardTitle } from '@/components/ui/Card'
 import { TagSelector } from '@/components/admin/TagSelector'
 import { CURRENCY_SYMBOLS } from '@/lib/currency'
 import ProjectSelect from '@/components/projects/ProjectSelect'
-import { accountTypeLabel, isOdemeHesabi } from '@/lib/account-sections'
+import { groupPaymentAccounts, formatPaymentAccountOptionLabel } from '@/lib/payment-account-options'
 import { toast } from 'react-hot-toast'
 import TrNumberInput from '@/components/ui/TrNumberInput'
 import { looseToTrInputString, parseTrNumberInput, shouldClearTrLineFieldOnFocus } from '@/lib/tr-number-input'
@@ -311,6 +311,10 @@ export default function SupplierDetailPage() {
   }
 
   const getCurrencySymbol = (code: string = 'TRY') => CURRENCY_SYMBOLS[code] || '₺'
+  const supplierPaymentAccountGroups = groupPaymentAccounts(cashAccounts, {
+    currency: supplier?.currency || 'TRY',
+  })
+  const hasSupplierPaymentAccount = supplierPaymentAccountGroups.some((g) => g.items.length > 0)
 
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]; if (!file) return
@@ -992,23 +996,18 @@ export default function SupplierDetailPage() {
                       onChange={e => setTxForm({ ...txForm, payment_account_id: e.target.value })}
                       className="w-full px-4 py-3.5 border-2 border-gray-100 rounded-2xl focus:border-emerald-500 outline-none font-semibold text-gray-900 bg-white"
                     >
-                      <option value="">Kasa veya banka seçin</option>
-                      {cashAccounts
-                        .filter(
-                          a =>
-                            isOdemeHesabi(a.type) &&
-                            a.currency === (supplier?.currency || 'TRY')
-                        )
-                        .map(a => (
-                          <option key={a.id} value={a.id}>
-                            {a.name} ({accountTypeLabel(a.type)}) — {Number(a.balance).toLocaleString('tr-TR', { minimumFractionDigits: 2 })} {getCurrencySymbol(supplier.currency || 'TRY')}
-                          </option>
-                        ))}
+                      <option value="">Hesap seçin</option>
+                      {supplierPaymentAccountGroups.map((group) => (
+                        <optgroup key={group.title} label={group.title}>
+                          {group.items.map((a) => (
+                            <option key={a.id} value={a.id}>
+                              {formatPaymentAccountOptionLabel(a)}
+                            </option>
+                          ))}
+                        </optgroup>
+                      ))}
                     </select>
-                    {cashAccounts.filter(
-                      a =>
-                        isOdemeHesabi(a.type) && a.currency === (supplier?.currency || 'TRY')
-                    ).length === 0 && (
+                    {!hasSupplierPaymentAccount && (
                       <p className="text-xs text-amber-700 font-medium px-1">Bu para birimi için hesap bulunamadı. Hesaplarım sayfasından kasa veya banka ekleyin.</p>
                     )}
                   </div>

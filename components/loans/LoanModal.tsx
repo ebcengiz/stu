@@ -5,6 +5,7 @@ import { X, Check } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 import TrNumberInput from '@/components/ui/TrNumberInput'
 import { looseToTrInputString, parseTrNumberInput } from '@/lib/tr-number-input'
+import { formatPaymentAccountOptionLabel, groupPaymentAccounts } from '@/lib/payment-account-options'
 
 const PAYMENT_SCHEDULE_OPTIONS = [
   { value: 'monthly', label: 'Her Ay' },
@@ -15,7 +16,14 @@ const PAYMENT_SCHEDULE_OPTIONS = [
   { value: 'yearly', label: 'Yılda Bir' },
 ] as const
 
-type AccountOpt = { id: string; name: string; is_active?: boolean }
+type AccountOpt = {
+  id: string
+  name: string
+  type: string
+  currency?: string
+  balance?: number | string
+  is_active?: boolean
+}
 
 export type LoanModalValues = {
   id?: string
@@ -82,6 +90,7 @@ export default function LoanModal({
   }, [open, initial])
 
   const activeAccounts = accounts.filter((a) => a.is_active !== false)
+  const groupedAccounts = groupPaymentAccounts(activeAccounts, { onlyOdeme: false })
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -343,10 +352,14 @@ export default function LoanModal({
                   className={inputClass}
                 >
                   <option value="">Hesap seçin</option>
-                  {activeAccounts.map((a) => (
-                    <option key={a.id} value={a.id}>
-                      {a.name}
-                    </option>
+                  {groupedAccounts.map((group) => (
+                    <optgroup key={group.title} label={group.title}>
+                      {group.items.map((a) => (
+                        <option key={a.id} value={a.id}>
+                          {formatPaymentAccountOptionLabel(a)}
+                        </option>
+                      ))}
+                    </optgroup>
                   ))}
                 </select>
               </div>

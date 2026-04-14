@@ -41,7 +41,14 @@ type LoanData = {
   payment_account?: { id: string; name: string } | null
 }
 
-type AccountOpt = { id: string; name: string; is_active?: boolean }
+type AccountOpt = {
+  id: string
+  name: string
+  type: string
+  currency?: string
+  balance?: number | string
+  is_active?: boolean
+}
 
 function formatMoney(n: number | string, cur: string) {
   const num = typeof n === 'number' ? n : parseFloat(String(n))

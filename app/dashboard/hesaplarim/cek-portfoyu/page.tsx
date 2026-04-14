@@ -12,7 +12,8 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { toast } from 'react-hot-toast'
-import { accountTypeLabel, isOdemeHesabi } from '@/lib/account-sections'
+import { isOdemeHesabi } from '@/lib/account-sections'
+import { formatPaymentAccountOptionLabel, groupPaymentAccounts } from '@/lib/payment-account-options'
 import type { MasrafGroup } from '@/lib/masraf-kalemleri'
 import TrNumberInput from '@/components/ui/TrNumberInput'
 import { numberToTrInputString, parseTrNumberInput } from '@/lib/tr-number-input'
@@ -567,6 +568,7 @@ export default function CekPortfoyuPage() {
   }
 
   const tryAccounts = accounts.filter((a) => isOdemeHesabi(a.type))
+  const groupedTryAccounts = groupPaymentAccounts(tryAccounts)
 
   return (
     <div className="mx-auto w-full min-w-0 max-w-full space-y-4 overflow-x-hidden pb-6">
@@ -891,11 +893,15 @@ export default function CekPortfoyuPage() {
                   onChange={(e) => setCollectAccountId(e.target.value)}
                   className="mt-1 w-full rounded border border-slate-200 px-3 py-2 text-sm"
                 >
-                  <option value="">Tahsilat hesabını seçin</option>
-                  {tryAccounts.map((a) => (
-                    <option key={a.id} value={a.id}>
-                      {a.name} ({accountTypeLabel(a.type)})
-                    </option>
+                  <option value="">Hesap seçin</option>
+                  {groupedTryAccounts.map((group) => (
+                    <optgroup key={group.title} label={group.title}>
+                      {group.items.map((a) => (
+                        <option key={a.id} value={a.id}>
+                          {formatPaymentAccountOptionLabel(a)}
+                        </option>
+                      ))}
+                    </optgroup>
                   ))}
                 </select>
               </div>
@@ -1054,11 +1060,15 @@ export default function CekPortfoyuPage() {
                   onChange={(e) => setCollectAccountId(e.target.value)}
                   className="mt-1 w-full rounded border border-slate-200 px-3 py-2 text-sm"
                 >
-                  <option value="">Seçin</option>
-                  {tryAccounts.map((a) => (
-                    <option key={a.id} value={a.id}>
-                      {a.name} ({accountTypeLabel(a.type)})
-                    </option>
+                  <option value="">Hesap seçin</option>
+                  {groupedTryAccounts.map((group) => (
+                    <optgroup key={group.title} label={group.title}>
+                      {group.items.map((a) => (
+                        <option key={a.id} value={a.id}>
+                          {formatPaymentAccountOptionLabel(a)}
+                        </option>
+                      ))}
+                    </optgroup>
                   ))}
                 </select>
               </div>

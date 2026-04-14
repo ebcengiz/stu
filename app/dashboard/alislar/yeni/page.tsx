@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/Button'
 import { Card, CardBody, CardHeader, CardTitle } from '@/components/ui/Card'
 import { toast } from 'react-hot-toast'
 import { CURRENCY_SYMBOLS } from '@/lib/currency'
-import { isOdemeHesabi } from '@/lib/account-sections'
+import { groupPaymentAccounts, formatPaymentAccountOptionLabel } from '@/lib/payment-account-options'
 import ProjectSelect from '@/components/projects/ProjectSelect'
 import TrNumberInput from '@/components/ui/TrNumberInput'
 import { looseToTrInputString, parseTrNumberInput } from '@/lib/tr-number-input'
@@ -144,6 +144,7 @@ function PurchaseEntryForm() {
   }
 
   const getCurrencySymbol = () => CURRENCY_SYMBOLS[formData.currency] || '₺'
+  const paymentAccountGroups = groupPaymentAccounts(cashAccounts, { currency: formData.currency })
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -251,14 +252,16 @@ function PurchaseEntryForm() {
                     onChange={e => setFormData({ ...formData, payment_account_id: e.target.value })}
                     className="w-full px-3 py-2 border border-blue-300 bg-white rounded-lg font-semibold"
                   >
-                    <option value="">Kasa veya banka seçin</option>
-                    {cashAccounts
-                      .filter(a => isOdemeHesabi(a.type) && a.currency === formData.currency)
-                      .map(a => (
-                        <option key={a.id} value={a.id}>
-                          {a.name} ({a.type}) — {Number(a.balance).toLocaleString('tr-TR', { minimumFractionDigits: 2 })}
-                        </option>
-                      ))}
+                    <option value="">Hesap seçin</option>
+                    {paymentAccountGroups.map((group) => (
+                      <optgroup key={group.title} label={group.title}>
+                        {group.items.map((a) => (
+                          <option key={a.id} value={a.id}>
+                            {formatPaymentAccountOptionLabel(a)}
+                          </option>
+                        ))}
+                      </optgroup>
+                    ))}
                   </select>
                 </div>
               )}

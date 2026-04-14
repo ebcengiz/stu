@@ -30,6 +30,7 @@ import { toast } from 'react-hot-toast'
 import TediyeMakbuzu, { type TediyeMakbuzuData } from '@/components/expenses/TediyeMakbuzu'
 import TrNumberInput from '@/components/ui/TrNumberInput'
 import { numberToTrInputString, parseTrNumberInput } from '@/lib/tr-number-input'
+import { formatPaymentAccountOptionLabel, groupPaymentAccounts } from '@/lib/payment-account-options'
 
 interface Account {
   id: string
@@ -431,6 +432,7 @@ export default function AccountDetailPage() {
 
   const toplamGiris = transactions.filter(t => t.type === 'inflow' || t.type === 'transfer_in').reduce((sum, t) => sum + Number(t.amount), 0)
   const toplamCikis = transactions.filter(t => t.type === 'outflow' || t.type === 'transfer_out').reduce((sum, t) => sum + Number(t.amount), 0)
+  const groupedTargetAccounts = groupPaymentAccounts(targetAccounts, { onlyOdeme: false })
 
   return (
     <div className="mx-auto w-full min-w-0 max-w-full space-y-4 overflow-x-hidden pb-4">
@@ -889,7 +891,15 @@ export default function AccountDetailPage() {
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-gray-500 uppercase px-1">Hedef Hesap *</label>
                   <select required value={txForm.target_account_id} onChange={e => setTxForm({...txForm, target_account_id: e.target.value})} className="w-full px-3 py-2.5 border-2 border-gray-100 rounded-xl focus:border-blue-500 outline-none font-bold bg-white">
-                    {targetAccounts.map(a => <option key={a.id} value={a.id}>{a.name} ({getCurrencySymbol(a.currency)})</option>)}
+                    {groupedTargetAccounts.map((group) => (
+                      <optgroup key={group.title} label={group.title}>
+                        {group.items.map((a) => (
+                          <option key={a.id} value={a.id}>
+                            {formatPaymentAccountOptionLabel(a)}
+                          </option>
+                        ))}
+                      </optgroup>
+                    ))}
                     {targetAccounts.length === 0 && <option value="">Transfer edilecek başka hesap yok</option>}
                   </select>
                 </div>

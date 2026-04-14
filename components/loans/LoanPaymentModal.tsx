@@ -5,14 +5,15 @@ import { X, Check } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 import TrNumberInput from '@/components/ui/TrNumberInput'
 import { parseTrNumberInput } from '@/lib/tr-number-input'
+import { formatPaymentAccountOptionLabel, groupPaymentAccounts } from '@/lib/payment-account-options'
 
-type AccountOpt = { id: string; name: string; balance?: number | string; currency?: string; is_active?: boolean }
-
-function formatMoney(n: number | string, cur: string) {
-  const num = typeof n === 'number' ? n : parseFloat(String(n))
-  if (Number.isNaN(num)) return '—'
-  const s = num.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-  return cur === 'TRY' ? `${s} TL` : `${s} ${cur}`
+type AccountOpt = {
+  id: string
+  name: string
+  type: string
+  balance?: number | string
+  currency?: string
+  is_active?: boolean
 }
 
 export default function LoanPaymentModal({
@@ -45,6 +46,10 @@ export default function LoanPaymentModal({
     () =>
       accounts.filter((a) => a.is_active !== false && (a.currency || 'TRY') === cur),
     [accounts, cur]
+  )
+  const groupedAccounts = useMemo(
+    () => groupPaymentAccounts(matchingAccounts, { currency: cur, onlyOdeme: false }),
+    [matchingAccounts, cur]
   )
 
   useEffect(() => {
@@ -162,10 +167,14 @@ export default function LoanPaymentModal({
               className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 disabled:opacity-60"
             >
               <option value="">{loadingAcc ? 'Yükleniyor…' : 'Hesap seçin'}</option>
-              {matchingAccounts.map((a) => (
-                <option key={a.id} value={a.id}>
-                  {a.name} ({formatMoney(a.balance ?? 0, cur)})
-                </option>
+              {groupedAccounts.map((group) => (
+                <optgroup key={group.title} label={group.title}>
+                  {group.items.map((a) => (
+                    <option key={a.id} value={a.id}>
+                      {formatPaymentAccountOptionLabel(a)}
+                    </option>
+                  ))}
+                </optgroup>
               ))}
             </select>
             {matchingAccounts.length === 0 && !loadingAcc ? (

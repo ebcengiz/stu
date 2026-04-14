@@ -26,6 +26,7 @@ import {
 import { Button } from '@/components/ui/Button'
 import { toast } from 'react-hot-toast'
 import { isOdemeHesabi } from '@/lib/account-sections'
+import { formatPaymentAccountOptionLabel, groupPaymentAccounts } from '@/lib/payment-account-options'
 import type { MasrafGroup } from '@/lib/masraf-kalemleri'
 import { MASRAF_GROUPS, findMasrafLabel, KDV_ORAN_OPTIONS } from '@/lib/masraf-kalemleri'
 import TrNumberInput from '@/components/ui/TrNumberInput'
@@ -494,6 +495,14 @@ export default function EmployeeDetailView({ employeeId }: { employeeId: string 
 
   const selectedPaymentBalance = paymentAccounts.find((a) => a.id === paymentAccountId)?.balance
   const selectedAdvanceBalance = advanceAccounts.find((a) => a.id === advanceAccountId)?.balance
+  const groupedPaymentAccounts = useMemo(
+    () => groupPaymentAccounts(paymentAccounts, { currency, onlyOdeme: false }),
+    [paymentAccounts, currency]
+  )
+  const groupedAdvanceAccounts = useMemo(
+    () => groupPaymentAccounts(advanceAccounts, { currency, onlyOdeme: false }),
+    [advanceAccounts, currency]
+  )
 
   const cariTableRows = useMemo(() => {
     const sorted = [...txs].sort((a, b) => {
@@ -994,14 +1003,15 @@ export default function EmployeeDetailView({ employeeId }: { employeeId: string 
                   value={paymentAccountId}
                   onChange={(e) => setPaymentAccountId(e.target.value)}
                 >
-                  <option value="">Ödemeyi yaptığınız hesabı seçin</option>
-                  {paymentAccounts.map((a) => (
-                    <option key={a.id} value={a.id}>
-                      {a.name} ({a.currency}) — {Number(a.balance).toLocaleString('tr-TR', {
-                        minimumFractionDigits: 2,
-                      })}{' '}
-                      {currency === 'USD' ? '$' : currency === 'EUR' ? '€' : '₺'}
-                    </option>
+                  <option value="">Hesap seçin</option>
+                  {groupedPaymentAccounts.map((group) => (
+                    <optgroup key={group.title} label={group.title}>
+                      {group.items.map((a) => (
+                        <option key={a.id} value={a.id}>
+                          {formatPaymentAccountOptionLabel(a)}
+                        </option>
+                      ))}
+                    </optgroup>
                   ))}
                 </select>
                 {paymentAccounts.length === 0 && (
@@ -1112,13 +1122,15 @@ export default function EmployeeDetailView({ employeeId }: { employeeId: string 
                   value={advanceAccountId}
                   onChange={(e) => setAdvanceAccountId(e.target.value)}
                 >
-                  <option value="">İadeyi aldığınız hesabı seçin</option>
-                  {advanceAccounts.map((a) => (
-                    <option key={a.id} value={a.id}>
-                      {a.name} ({a.currency}) —{' '}
-                      {Number(a.balance).toLocaleString('tr-TR', { minimumFractionDigits: 2 })}{' '}
-                      {currency === 'USD' ? '$' : currency === 'EUR' ? '€' : '₺'}
-                    </option>
+                  <option value="">Hesap seçin</option>
+                  {groupedAdvanceAccounts.map((group) => (
+                    <optgroup key={group.title} label={group.title}>
+                      {group.items.map((a) => (
+                        <option key={a.id} value={a.id}>
+                          {formatPaymentAccountOptionLabel(a)}
+                        </option>
+                      ))}
+                    </optgroup>
                   ))}
                 </select>
                 {advanceAccounts.length === 0 && (
