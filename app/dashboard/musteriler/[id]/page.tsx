@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { ArrowLeft, Building, CreditCard, FileText, ShoppingCart, DollarSign, Plus, Search, Trash2, Package, X, Check, History, ChevronDown, Calendar, Phone, Mail, MapPin, MoreVertical, Edit2, Scale } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
@@ -16,6 +16,7 @@ import {
 import { toast } from 'react-hot-toast'
 import TrNumberInput from '@/components/ui/TrNumberInput'
 import { looseToTrInputString, parseTrNumberInput, shouldClearTrLineFieldOnFocus } from '@/lib/tr-number-input'
+import { paymentAmountInWordsLine } from '@/lib/turkish-money-words'
 
 interface Product {
   id: string
@@ -294,6 +295,12 @@ export default function CustomerDetailPage() {
     currency: customer?.currency || 'TRY',
   })
   const hasCustomerPaymentAccount = customerPaymentAccountGroups.some((g) => g.items.length > 0)
+
+  const paymentAmountWordsLine = useMemo(() => {
+    const n = parseTrNumberInput(txForm.amount)
+    if (!Number.isFinite(n) || n <= 0) return ''
+    return paymentAmountInWordsLine(n, customer?.currency || 'TRY')
+  }, [txForm.amount, customer?.currency])
 
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]; if (!file) return
@@ -1010,6 +1017,9 @@ export default function CustomerDetailPage() {
                       className="w-full px-4 py-3.5 border-2 border-emerald-100 rounded-2xl bg-emerald-50/30 text-xl font-black text-emerald-900 focus:border-emerald-500 outline-none placeholder-emerald-200"
                       placeholder="0,00"
                     />
+                    {paymentAmountWordsLine ? (
+                      <p className="text-xs text-gray-500 px-1">{paymentAmountWordsLine}</p>
+                    ) : null}
                   </div>
                 </div>
 

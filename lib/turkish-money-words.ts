@@ -58,3 +58,38 @@ export function tryAmountToWords(amount: number): string {
   }
   return s
 }
+
+/** Tutar girişi altında gösterim: boşluksuz küçük harf + para birimi (örn. #beşyüzbin TL#) */
+function compactTurkishWords(n: number): string {
+  return integerToTurkishWords(n)
+    .toLowerCase()
+    .replace(/\s+/g, '')
+}
+
+/**
+ * Ödeme/tahsilat modallarında tutar alanının altı için tek satır metin.
+ * TRY: Türkçe okunuş + TL/kuruş; USD/EUR: aynı sayı okunuşu + Dolar/Euro + Cent.
+ */
+export function paymentAmountInWordsLine(amount: number, currency: string): string {
+  if (!Number.isFinite(amount) || amount < 0) return ''
+  const cur = String(currency || 'TRY').toUpperCase()
+  const whole = Math.floor(amount)
+  const cents = Math.round((amount - whole) * 100)
+
+  if (cur === 'TRY') {
+    let s = `${compactTurkishWords(whole)} TL`
+    if (cents > 0) s += ` ${compactTurkishWords(cents)} kuruş`
+    return `#${s}#`
+  }
+  if (cur === 'USD') {
+    let s = `${compactTurkishWords(whole)} Dolar`
+    if (cents > 0) s += ` ${compactTurkishWords(cents)} Cent`
+    return `#${s}#`
+  }
+  if (cur === 'EUR') {
+    let s = `${compactTurkishWords(whole)} Euro`
+    if (cents > 0) s += ` ${compactTurkishWords(cents)} Cent`
+    return `#${s}#`
+  }
+  return `#${compactTurkishWords(whole)} ${cur}#`
+}
