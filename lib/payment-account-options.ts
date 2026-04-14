@@ -21,6 +21,11 @@ const GROUP_ORDER: { title: string; keys: string[] }[] = [
   { title: 'Diğer', keys: ['other', 'kredi_karti', 'sirket_ortagi', 'veresiye'] },
 ]
 
+export function isCollectionAccountType(type: string): boolean {
+  const t = String(type).toLowerCase()
+  return t === 'cash' || t === 'kasa' || t === 'bank' || t === 'banka' || t === 'pos'
+}
+
 export function groupPaymentAccounts(
   accounts: PaymentAccountLike[],
   opts?: { currency?: string; onlyActive?: boolean; onlyOdeme?: boolean }

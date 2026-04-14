@@ -8,7 +8,11 @@ import { Card, CardHeader, CardBody, CardTitle } from '@/components/ui/Card'
 import { TagSelector } from '@/components/admin/TagSelector'
 import { CURRENCY_SYMBOLS } from '@/lib/currency'
 import ProjectSelect from '@/components/projects/ProjectSelect'
-import { groupPaymentAccounts, formatPaymentAccountOptionLabel } from '@/lib/payment-account-options'
+import {
+  groupPaymentAccounts,
+  formatPaymentAccountOptionLabel,
+  isCollectionAccountType,
+} from '@/lib/payment-account-options'
 import { toast } from 'react-hot-toast'
 import TrNumberInput from '@/components/ui/TrNumberInput'
 import { looseToTrInputString, parseTrNumberInput, shouldClearTrLineFieldOnFocus } from '@/lib/tr-number-input'
@@ -114,6 +118,15 @@ interface PriceHistory {
   date: string
   customer_id: string
   customer_name: string
+}
+
+/** Peşin tahsilatta ödeme türü seçilen hesabın türünden türetilir (kasa→nakit, banka→havale, pos→k.kartı). */
+function paymentMethodFromAccountType(accountType: string): 'cash' | 'credit_card' | 'bank_transfer' {
+  const t = String(accountType).toLowerCase()
+  if (t === 'cash' || t === 'kasa') return 'cash'
+  if (t === 'bank' || t === 'banka') return 'bank_transfer'
+  if (t === 'pos') return 'credit_card'
+  return 'credit_card'
 }
 
 export default function CustomerDetailPage() {
@@ -276,7 +289,8 @@ export default function CustomerDetailPage() {
   }
 
   const getCurrencySymbol = (code: string = 'TRY') => CURRENCY_SYMBOLS[code] || '₺'
-  const customerPaymentAccountGroups = groupPaymentAccounts(cashAccounts, {
+  const customerPaymentAccounts = cashAccounts.filter((a) => isCollectionAccountType(a.type))
+  const customerPaymentAccountGroups = groupPaymentAccounts(customerPaymentAccounts, {
     currency: customer?.currency || 'TRY',
   })
   const hasCustomerPaymentAccount = customerPaymentAccountGroups.some((g) => g.items.length > 0)
@@ -443,17 +457,27 @@ export default function CustomerDetailPage() {
         txForm.payment_method !== 'cheque' &&
         !txForm.payment_account_id
       ) {
-        toast.error('Tahsilatın yatırılacağı kasa veya banka hesabını seçin')
+        toast.error('Tahsilatın yatırılacağı kasa, banka veya POS hesabını seçin')
         setSaving(false)
         return
       }
+      const resolvedPaymentMethod =
+        txForm.type === 'payment' && txForm.payment_method === 'cheque'
+          ? 'cheque'
+          : txForm.type === 'payment' && txForm.payment_method !== 'cheque'
+            ? (() => {
+                const acc = cashAccounts.find((a) => a.id === txForm.payment_account_id)
+                return acc ? paymentMethodFromAccountType(acc.type) : 'cash'
+              })()
+            : null
+
       const payload = {
         customer_id: customerId,
         type: txForm.type === 'sale' ? 'sale' : txForm.type,
         amount: parseTrNumberInput(txForm.amount),
         currency: customer?.currency || 'TRY',
         description: txForm.description, transaction_date: new Date(txForm.transaction_date).toISOString(),
-        payment_method: txForm.type === 'payment' ? txForm.payment_method : null,
+        payment_method: txForm.type === 'payment' ? resolvedPaymentMethod : null,
         account_id:
           txForm.type === 'payment' && txForm.payment_method !== 'cheque'
             ? txForm.payment_account_id
@@ -721,7 +745,7 @@ export default function CustomerDetailPage() {
             <>
               <div className="fixed inset-0 z-40" onClick={() => setShowPaymentMenu(false)} />
               <div className="absolute top-full left-0 w-full mt-2 bg-white rounded-xl shadow-xl border border-gray-100 z-50 overflow-hidden animate-in fade-in slide-in-from-top-2">
-                <button onClick={() => { setShowPaymentMenu(false); setTxForm({...txForm, type: 'payment', payment_method: 'cash', payment_account_id: ''}); setShowPaymentModal(true); }} className="w-full text-left px-4 py-3 font-bold text-sm text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 border-b border-gray-50 flex items-center gap-3"><DollarSign className="h-4 w-4" /> Nakit - Banka - Kredi Kartı</button>
+                <button onClick={() => { setShowPaymentMenu(false); setTxForm({...txForm, type: 'payment', payment_method: 'cash', payment_account_id: ''}); setShowPaymentModal(true); }} className="w-full text-left px-4 py-3 font-bold text-sm text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 border-b border-gray-50 flex items-center gap-3"><DollarSign className="h-4 w-4" /> Nakit - Kredi Kartı - Banka</button>
                 <button onClick={() => { setShowPaymentMenu(false); setTxForm({...txForm, type: 'payment', payment_method: 'cheque', payment_account_id: ''}); setShowPaymentModal(true); setShowChequeModal(true); }} className="w-full text-left px-4 py-3 font-bold text-sm text-gray-700 hover:bg-amber-50 hover:text-amber-700 border-b border-gray-50 flex items-center gap-3"><FileText className="h-4 w-4" /> Çek Girişi</button>
                 <button onClick={() => { setShowPaymentMenu(false); setShowBalanceFixModal(true); }} className="w-full text-left px-4 py-3 font-bold text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-700 flex items-center gap-3"><Scale className="h-4 w-4" /> Bakiye Düzelt</button>
               </div>
@@ -794,7 +818,7 @@ export default function CustomerDetailPage() {
                   {prevPayments.length > 0 ? prevPayments.slice(0, 20).map(t => (
                     <tr key={t.id} onClick={() => { setSelectedTx(t); setShowTxDetailModal(true); }} className="hover:bg-gray-50 cursor-pointer">
                       <td className="px-4 py-2.5 text-sm text-gray-600 font-medium">{new Date(t.transaction_date || t.date || '').toLocaleDateString('tr-TR')}</td>
-                      <td className="px-4 py-2.5 text-xs font-bold text-gray-500 uppercase">{t.payment_method === 'cash' ? 'Nakit' : t.payment_method === 'cheque' ? 'Çek' : t.payment_method === 'credit_card' ? 'K.Kartı' : 'Diğer'}</td>
+                      <td className="px-4 py-2.5 text-xs font-bold text-gray-500 uppercase">{t.payment_method === 'cash' ? 'Nakit' : t.payment_method === 'cheque' ? 'Çek' : t.payment_method === 'credit_card' ? 'K.Kartı' : t.payment_method === 'bank_transfer' ? 'Banka' : 'Diğer'}</td>
                       <td className="px-4 py-2.5 text-sm font-bold text-right text-emerald-600">{Number(t.amount).toLocaleString('tr-TR', { minimumFractionDigits: 2 })} {getCurrencySymbol(t.currency)}</td>
                     </tr>
                   )) : <tr><td colSpan={3} className="px-4 py-6 text-center text-sm text-gray-500">Kayıt bulunamadı.</td></tr>}
@@ -943,22 +967,12 @@ export default function CustomerDetailPage() {
             </CardHeader>
             <CardBody className="p-8">
               <form onSubmit={handleAddTransaction} className="space-y-6">
-                  <div className="space-y-4">
-                  <label className="block text-xs font-black text-gray-400 uppercase tracking-widest px-1">Ödeme Yöntemi</label>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    {[
-                      { id: 'cash', label: 'Nakit' },
-                      { id: 'credit_card', label: 'Kredi Kartı' },
-                      { id: 'bank_transfer', label: 'Banka' }
-                    ].map(m => (
-                      <button key={m.id} type="button" onClick={() => { setTxForm({...txForm, payment_method: m.id as any, payment_account_id: ''}); if (m.id === 'cheque') setShowChequeModal(true); }} className={`p-3 border-2 rounded-xl text-sm font-bold transition-all ${txForm.payment_method === m.id ? 'border-emerald-500 bg-emerald-50 text-emerald-700' : 'border-gray-100 text-gray-500 hover:border-gray-300'}`}>{m.label}</button>
-                    ))}
-                  </div>
-                </div>
-
                 {txForm.payment_method !== 'cheque' && (
                   <div className="space-y-2">
                     <label className="block text-xs font-black text-gray-400 uppercase tracking-widest px-1">Paranın yatırılacağı hesap *</label>
+                    <p className="text-xs text-gray-500 px-1">
+                      Ödeme türü (nakit / banka / kredi kartı), seçtiğiniz hesabın türüne göre kayda işlenir.
+                    </p>
                     <select
                       required
                       value={txForm.payment_account_id}
@@ -977,7 +991,7 @@ export default function CustomerDetailPage() {
                       ))}
                     </select>
                     {!hasCustomerPaymentAccount && (
-                      <p className="text-xs text-amber-700 font-medium px-1">Bu para birimi için hesap bulunamadı. Hesaplarım sayfasından kasa veya banka ekleyin.</p>
+                      <p className="text-xs text-amber-700 font-medium px-1">Bu para birimi için hesap bulunamadı. Hesaplarım sayfasından kasa, banka veya POS hesabı ekleyin.</p>
                     )}
                   </div>
                 )}

@@ -13,7 +13,11 @@ import {
 import Link from 'next/link'
 import { toast } from 'react-hot-toast'
 import { isOdemeHesabi } from '@/lib/account-sections'
-import { formatPaymentAccountOptionLabel, groupPaymentAccounts } from '@/lib/payment-account-options'
+import {
+  formatPaymentAccountOptionLabel,
+  groupPaymentAccounts,
+  isCollectionAccountType,
+} from '@/lib/payment-account-options'
 import type { MasrafGroup } from '@/lib/masraf-kalemleri'
 import TrNumberInput from '@/components/ui/TrNumberInput'
 import { numberToTrInputString, parseTrNumberInput } from '@/lib/tr-number-input'
@@ -567,7 +571,7 @@ export default function CekPortfoyuPage() {
     }
   }
 
-  const tryAccounts = accounts.filter((a) => isOdemeHesabi(a.type))
+  const tryAccounts = accounts.filter((a) => isOdemeHesabi(a.type) && isCollectionAccountType(a.type))
   const groupedTryAccounts = groupPaymentAccounts(tryAccounts)
 
   return (
