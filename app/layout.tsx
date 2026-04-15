@@ -24,22 +24,22 @@ export default function RootLayout({
           toastOptions={{
             duration: 3000,
             style: {
-              background: '#ffffff',
-              color: '#2d3a35',
-              border: '1px solid #e2e8e5',
+              background: '#FAFAF7',
+              color: '#2d332f',
+              border: '1px solid #e0e0d9',
               borderRadius: '12px',
               fontSize: '14px',
               boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
             },
             success: {
               iconTheme: {
-                primary: '#4a9175',
+                primary: '#5D866C',
                 secondary: '#ffffff',
               },
             },
             error: {
               iconTheme: {
-                primary: '#ef4444',
+                primary: '#c45e5e',
                 secondary: '#ffffff',
               },
             },

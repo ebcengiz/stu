@@ -237,7 +237,7 @@ export default function LocationPicker({ value, onChange }: LocationPickerProps)
           <button
             type="button"
             onClick={() => setShowResults(false)}
-            className="mt-2 text-xs text-primary-600 hover:text-blue-800 underline"
+            className="mt-2 text-xs text-primary-600 hover:text-primary-800 underline"
           >
             Haritayı tekrar göster
           </button>
@@ -246,11 +246,11 @@ export default function LocationPicker({ value, onChange }: LocationPickerProps)
 
       {/* Seçilen lokasyon bilgisi */}
       {value && value.trim() && (
-        <div className="flex items-start gap-2 p-3 bg-green-50 border-2 border-green-300 rounded-md">
-          <MapPin className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
+        <div className="flex items-start gap-2 p-3 bg-primary-50 border-2 border-primary-300 rounded-md">
+          <MapPin className="h-5 w-5 text-primary-600 mt-0.5 flex-shrink-0" />
           <div className="flex-1">
-            <p className="text-xs font-semibold text-green-900 mb-1">✓ Lokasyon Seçildi</p>
-            <p className="text-xs text-green-700 break-words">
+            <p className="text-xs font-semibold text-primary-900 mb-1">✓ Lokasyon Seçildi</p>
+            <p className="text-xs text-primary-700 break-words">
               {value.replace(/\s*\(-?\d+\.?\d*,\s*-?\d+\.?\d*\)\s*$/, '')}
             </p>
           </div>

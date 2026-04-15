@@ -11,8 +11,8 @@ import { parseTrNumberInput } from '@/lib/tr-number-input'
 /** Tek tip rozet: hafif alternans (renk gürültüsü yok) */
 const chipClass = (i: number) =>
   i % 2 === 0
-    ? 'border-gray-200/90 bg-white text-gray-800 hover:border-emerald-300/50 hover:bg-emerald-50/60'
-    : 'border-gray-200/90 bg-gray-50 text-gray-800 hover:border-emerald-300/50 hover:bg-emerald-50/60'
+    ? 'border-gray-200/90 bg-white text-gray-800 hover:border-primary-300/50 hover:bg-primary-50/60'
+    : 'border-gray-200/90 bg-gray-50 text-gray-800 hover:border-primary-300/50 hover:bg-primary-50/60'
 
 function groupByCategory(items: ExpenseItemDefinitionRow[]) {
   const sorted = [...items].sort((a, b) => {
@@ -230,7 +230,7 @@ export default function MasrafKalemleriPage() {
   }
 
   const inputClass =
-    'w-full rounded-md border border-gray-200 bg-white px-2.5 py-2 text-sm text-gray-900 outline-none placeholder:text-gray-500 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/30'
+    'w-full rounded-md border border-gray-200 bg-white px-2.5 py-2 text-sm text-gray-900 outline-none placeholder:text-gray-500 focus:border-primary-500 focus:ring-1 focus:ring-primary-500/30'
 
   return (
     <div className="mx-auto w-full min-w-0 max-w-full space-y-4 overflow-x-hidden pb-4">
@@ -238,7 +238,7 @@ export default function MasrafKalemleriPage() {
         <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
           <Link
             href="/dashboard/hesaplarim/masraflar"
-            className="inline-flex shrink-0 items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-emerald-700"
+            className="inline-flex shrink-0 items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-primary-700"
           >
             <ArrowLeft className="h-4 w-4" />
             Masraflar
@@ -254,14 +254,14 @@ export default function MasrafKalemleriPage() {
               setMainFirstLabel('')
               setDialog({ kind: 'addMain' })
             }}
-            className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700"
+            className="inline-flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-primary-700"
           >
             <Plus className="h-4 w-4" />
             Yeni ana kalem
           </button>
           <Link
             href="/dashboard/hesaplarim/masraflar/yeni"
-            className="inline-flex items-center gap-2 rounded-lg border border-emerald-600 bg-white px-4 py-2.5 text-sm font-semibold text-emerald-700 shadow-sm transition hover:bg-emerald-50"
+            className="inline-flex items-center gap-2 rounded-lg border border-primary-600 bg-white px-4 py-2.5 text-sm font-semibold text-primary-700 shadow-sm transition hover:bg-primary-50"
           >
             <Plus className="h-4 w-4" />
             Yeni masraf
@@ -296,7 +296,7 @@ export default function MasrafKalemleriPage() {
                     setSubLabel('')
                     setDialog({ kind: 'addSub', groupName })
                   }}
-                  className="shrink-0 rounded-md border border-emerald-200 bg-white px-2 py-1 text-[11px] font-semibold text-emerald-800 transition hover:bg-emerald-50"
+                  className="shrink-0 rounded-md border border-primary-200 bg-white px-2 py-1 text-[11px] font-semibold text-primary-800 transition hover:bg-primary-50"
                 >
                   + Alt hesap
                 </button>
@@ -333,7 +333,7 @@ export default function MasrafKalemleriPage() {
 
       {dialog?.kind === 'addMain' && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-[#f0f5f2]/30 p-3"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-[#F5F5F0]/30 p-3"
           role="presentation"
           onClick={closeDialog}
         >
@@ -376,7 +376,7 @@ export default function MasrafKalemleriPage() {
                 <button
                   type="submit"
                   disabled={saving}
-                  className="rounded-md bg-emerald-600 px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
+                  className="rounded-md bg-primary-600 px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-primary-700 disabled:opacity-50"
                 >
                   Kaydet
                 </button>
@@ -388,7 +388,7 @@ export default function MasrafKalemleriPage() {
 
       {dialog?.kind === 'addSub' && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-[#f0f5f2]/30 p-3"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-[#F5F5F0]/30 p-3"
           onClick={closeDialog}
         >
           <div
@@ -421,7 +421,7 @@ export default function MasrafKalemleriPage() {
                 <button
                   type="submit"
                   disabled={saving}
-                  className="rounded-md bg-emerald-600 px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
+                  className="rounded-md bg-primary-600 px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-primary-700 disabled:opacity-50"
                 >
                   Ekle
                 </button>
@@ -433,7 +433,7 @@ export default function MasrafKalemleriPage() {
 
       {dialog?.kind === 'edit' && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-[#f0f5f2]/30 p-3"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-[#F5F5F0]/30 p-3"
           onClick={closeDialog}
         >
           <div
@@ -483,7 +483,7 @@ export default function MasrafKalemleriPage() {
                   <button
                     type="submit"
                     disabled={saving}
-                    className="rounded-md bg-emerald-600 px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
+                    className="rounded-md bg-primary-600 px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-primary-700 disabled:opacity-50"
                   >
                     Kaydet
                   </button>

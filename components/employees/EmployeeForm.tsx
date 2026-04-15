@@ -235,7 +235,7 @@ export default function EmployeeForm({ employeeId }: { employeeId?: string }) {
   if (loading) {
     return (
       <div className="flex justify-center py-24">
-        <div className="h-10 w-10 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin" />
+        <div className="h-10 w-10 border-2 border-primary-600 border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
@@ -246,7 +246,7 @@ export default function EmployeeForm({ employeeId }: { employeeId?: string }) {
         <Button
           type="submit"
           disabled={saving || deleting}
-          className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg px-5 h-11 gap-2"
+          className="bg-primary-600 hover:bg-primary-700 text-white rounded-lg px-5 h-11 gap-2"
         >
           <Check className="h-4 w-4" />
           Kaydet
@@ -266,7 +266,7 @@ export default function EmployeeForm({ employeeId }: { employeeId?: string }) {
               type="button"
               onClick={openLeaveModal}
               disabled={saving || deleting}
-              className="bg-orange-500 hover:bg-orange-600 text-white rounded-lg px-5 h-11 gap-2"
+              className="bg-primary-600 hover:bg-primary-700 text-white rounded-lg px-5 h-11 gap-2"
             >
               <X className="h-4 w-4" />
               İşten Çıkar
@@ -279,7 +279,7 @@ export default function EmployeeForm({ employeeId }: { employeeId?: string }) {
               ? `/dashboard/hesaplarim/calisanlar/${employeeId}`
               : '/dashboard/hesaplarim/calisanlar'
           }
-          className="inline-flex items-center justify-center px-5 h-11 gap-2 rounded-lg border border-sky-300 bg-white text-sky-700 hover:bg-sky-50 font-medium transition-colors"
+          className="inline-flex items-center justify-center px-5 h-11 gap-2 rounded-lg border border-primary-300 bg-white text-primary-700 hover:bg-primary-50 font-medium transition-colors"
         >
           <Undo2 className="h-4 w-4" />
           Geri Dön
@@ -287,14 +287,14 @@ export default function EmployeeForm({ employeeId }: { employeeId?: string }) {
       </div>
 
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-        <div className="flex bg-emerald-600">
+        <div className="flex bg-primary-600">
           <button
             type="button"
             onClick={() => setTab('info')}
             className={`flex-1 flex items-center justify-center gap-2 py-3.5 text-sm font-bold uppercase tracking-wide transition-colors ${
               tab === 'info'
-                ? 'bg-white text-emerald-700 rounded-tl-lg'
-                : 'text-white/95 hover:bg-emerald-700/80'
+                ? 'bg-white text-primary-700 rounded-tl-lg'
+                : 'text-white/95 hover:bg-primary-700/80'
             }`}
           >
             <User className="h-4 w-4" />
@@ -305,8 +305,8 @@ export default function EmployeeForm({ employeeId }: { employeeId?: string }) {
             onClick={() => setTab('other')}
             className={`flex-1 flex items-center justify-center gap-2 py-3.5 text-sm font-bold uppercase tracking-wide transition-colors ${
               tab === 'other'
-                ? 'bg-white text-emerald-700 rounded-tr-lg'
-                : 'text-white/95 hover:bg-emerald-700/80'
+                ? 'bg-white text-primary-700 rounded-tr-lg'
+                : 'text-white/95 hover:bg-primary-700/80'
             }`}
           >
             <List className="h-4 w-4" />
@@ -326,7 +326,7 @@ export default function EmployeeForm({ employeeId }: { employeeId?: string }) {
                       required
                       value={form.name}
                       onChange={(e) => setField('name', e.target.value)}
-                      className="w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
+                      className="w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
                       placeholder="Ad Soyad"
                     />
                   </div>
@@ -339,7 +339,7 @@ export default function EmployeeForm({ employeeId }: { employeeId?: string }) {
                       type="email"
                       value={form.email}
                       onChange={(e) => setField('email', e.target.value)}
-                      className="w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
+                      className="w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"
                       placeholder="İsteğe bağlı"
                     />
                   </div>
@@ -351,7 +351,7 @@ export default function EmployeeForm({ employeeId }: { employeeId?: string }) {
                     <input
                       value={form.phone}
                       onChange={(e) => setField('phone', e.target.value)}
-                      className="w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
+                      className="w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"
                       placeholder="İsteğe bağlı"
                     />
                   </div>
@@ -373,7 +373,7 @@ export default function EmployeeForm({ employeeId }: { employeeId?: string }) {
                     disabled={uploading}
                     onChange={(e) => handlePhoto(e.target.files?.[0] ?? null)}
                   />
-                  <span className="inline-flex items-center justify-center px-4 py-2 text-sm font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg cursor-pointer hover:bg-emerald-100">
+                  <span className="inline-flex items-center justify-center px-4 py-2 text-sm font-semibold text-primary-700 bg-primary-50 border border-primary-200 rounded-lg cursor-pointer hover:bg-primary-100">
                     {uploading ? 'Yükleniyor...' : 'Resim seçin'}
                   </span>
                 </label>
@@ -389,7 +389,7 @@ export default function EmployeeForm({ employeeId }: { employeeId?: string }) {
                   <select
                     value={form.currency}
                     onChange={(e) => setField('currency', e.target.value)}
-                    className="w-full px-3 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none bg-white"
+                    className="w-full px-3 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none bg-white"
                   >
                     <option value="TRY">TL</option>
                     <option value="USD">USD</option>
@@ -407,7 +407,7 @@ export default function EmployeeForm({ employeeId }: { employeeId?: string }) {
                       type="date"
                       value={form.hire_date}
                       onChange={(e) => setField('hire_date', e.target.value)}
-                      className="w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
+                      className="w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"
                     />
                   </div>
                 </div>
@@ -419,7 +419,7 @@ export default function EmployeeForm({ employeeId }: { employeeId?: string }) {
                       type="date"
                       value={form.leave_date}
                       onChange={(e) => setField('leave_date', e.target.value)}
-                      className="w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
+                      className="w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"
                     />
                   </div>
                 </div>
@@ -431,7 +431,7 @@ export default function EmployeeForm({ employeeId }: { employeeId?: string }) {
                       type="date"
                       value={form.birth_date}
                       onChange={(e) => setField('birth_date', e.target.value)}
-                      className="w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
+                      className="w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"
                     />
                   </div>
                 </div>
@@ -442,7 +442,7 @@ export default function EmployeeForm({ employeeId }: { employeeId?: string }) {
                     <input
                       value={form.national_id}
                       onChange={(e) => setField('national_id', e.target.value)}
-                      className="w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
+                      className="w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"
                       placeholder="İsteğe bağlı"
                     />
                   </div>
@@ -454,7 +454,7 @@ export default function EmployeeForm({ employeeId }: { employeeId?: string }) {
                     <TrNumberInput
                       value={form.monthly_net_salary}
                       onChange={(v) => setField('monthly_net_salary', v)}
-                      className="w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
+                      className="w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"
                       placeholder="İsteğe bağlı"
                     />
                   </div>
@@ -466,7 +466,7 @@ export default function EmployeeForm({ employeeId }: { employeeId?: string }) {
                     <input
                       value={form.bank_account_no}
                       onChange={(e) => setField('bank_account_no', e.target.value)}
-                      className="w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
+                      className="w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"
                       placeholder="İsteğe bağlı (hesap, IBAN)"
                     />
                   </div>
@@ -478,7 +478,7 @@ export default function EmployeeForm({ employeeId }: { employeeId?: string }) {
                     <input
                       value={form.department}
                       onChange={(e) => setField('department', e.target.value)}
-                      className="w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
+                      className="w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"
                       placeholder="İsteğe bağlı"
                     />
                   </div>
@@ -491,7 +491,7 @@ export default function EmployeeForm({ employeeId }: { employeeId?: string }) {
                     value={form.address}
                     onChange={(e) => setField('address', e.target.value)}
                     rows={4}
-                    className="w-full px-3 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none resize-y min-h-[100px]"
+                    className="w-full px-3 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none resize-y min-h-[100px]"
                     placeholder="İsteğe bağlı"
                   />
                 </div>
@@ -501,7 +501,7 @@ export default function EmployeeForm({ employeeId }: { employeeId?: string }) {
                     value={form.bank_details}
                     onChange={(e) => setField('bank_details', e.target.value)}
                     rows={4}
-                    className="w-full px-3 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none resize-y min-h-[100px]"
+                    className="w-full px-3 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none resize-y min-h-[100px]"
                     placeholder="çalışanın banka hesap bilgilerini girebilirsiniz"
                   />
                 </div>
@@ -511,7 +511,7 @@ export default function EmployeeForm({ employeeId }: { employeeId?: string }) {
                     value={form.notes}
                     onChange={(e) => setField('notes', e.target.value)}
                     rows={3}
-                    className="w-full px-3 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none resize-y"
+                    className="w-full px-3 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none resize-y"
                     placeholder="İsteğe bağlı"
                   />
                 </div>
@@ -533,14 +533,14 @@ export default function EmployeeForm({ employeeId }: { employeeId?: string }) {
             aria-labelledby="leave-modal-title"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between bg-emerald-100 px-4 py-3">
-              <h2 id="leave-modal-title" className="text-lg font-bold text-emerald-900">
+            <div className="flex items-center justify-between bg-primary-100 px-4 py-3">
+              <h2 id="leave-modal-title" className="text-lg font-bold text-primary-900">
                 İşten Ayrılma
               </h2>
               <button
                 type="button"
                 onClick={() => setShowLeaveModal(false)}
-                className="rounded-lg p-1.5 text-white bg-emerald-600 hover:bg-emerald-700"
+                className="rounded-lg p-1.5 text-white bg-primary-600 hover:bg-primary-700"
                 aria-label="Kapat"
               >
                 <X className="h-5 w-5" />
@@ -563,7 +563,7 @@ export default function EmployeeForm({ employeeId }: { employeeId?: string }) {
                   type="date"
                   value={leaveModalDate}
                   onChange={(e) => setLeaveModalDate(e.target.value)}
-                  className="w-full rounded-lg border border-gray-200 px-3 py-2.5 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500"
+                  className="w-full rounded-lg border border-gray-200 px-3 py-2.5 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500"
                 />
               </div>
               <div className="flex justify-end gap-3 pt-1">
@@ -571,7 +571,7 @@ export default function EmployeeForm({ employeeId }: { employeeId?: string }) {
                   type="button"
                   onClick={() => setShowLeaveModal(false)}
                   disabled={leaveSaving}
-                  className="rounded-lg bg-orange-500 px-5 hover:bg-orange-600 text-white"
+                  className="rounded-lg bg-primary-600 px-5 hover:bg-primary-700 text-white"
                 >
                   Vazgeç
                 </Button>

@@ -223,7 +223,7 @@ export default function KrediDetayPage() {
     return (
       <div className="space-y-3">
         <p className="text-sm text-red-700">{loadError || 'Kayıt yok'}</p>
-        <Link href="/dashboard/hesaplarim/krediler" className="text-sm font-medium text-emerald-700 hover:underline">
+        <Link href="/dashboard/hesaplarim/krediler" className="text-sm font-medium text-primary-700 hover:underline">
           ← Kredilere dön
         </Link>
       </div>
@@ -237,7 +237,7 @@ export default function KrediDetayPage() {
       <div className="flex flex-wrap items-center gap-3">
         <Link
           href="/dashboard/hesaplarim/krediler"
-          className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-emerald-700"
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-primary-700"
         >
           <ArrowLeft className="h-4 w-4" />
           Kredilere dön
@@ -245,7 +245,7 @@ export default function KrediDetayPage() {
       </div>
 
       <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-md">
-        <div className="bg-[#1e3a5f] px-3 py-2">
+        <div className="bg-[#3d5847] px-3 py-2">
           <h1 className="text-sm font-bold uppercase tracking-wide text-white">{loan.name}</h1>
         </div>
         <div className="grid gap-2 p-4 sm:grid-cols-2">
@@ -284,7 +284,7 @@ export default function KrediDetayPage() {
         <button
           type="button"
           onClick={openEdit}
-          className="inline-flex items-center gap-1.5 rounded-lg border border-sky-300 bg-sky-50 px-3 py-2 text-xs font-semibold text-sky-900 shadow-sm hover:bg-sky-100"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-primary-300 bg-primary-50 px-3 py-2 text-xs font-semibold text-primary-900 shadow-sm hover:bg-primary-100"
         >
           <Pencil className="h-3.5 w-3.5" />
           Güncelle
@@ -296,7 +296,7 @@ export default function KrediDetayPage() {
             setInstAmount('')
             setAddInstOpen(true)
           }}
-          className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-2 text-xs font-semibold text-white shadow-sm hover:bg-emerald-700"
+          className="inline-flex items-center gap-1.5 rounded-lg bg-primary-600 px-3 py-2 text-xs font-semibold text-white shadow-sm hover:bg-primary-700"
         >
           <CalendarPlus className="h-3.5 w-3.5" />
           Taksit tarihi ekle
@@ -311,7 +311,7 @@ export default function KrediDetayPage() {
         </button>
         <Link
           href={`/dashboard/hesaplarim/krediler/${id}/dokumanlar`}
-          className="inline-flex items-center gap-1.5 rounded-lg border border-violet-300 bg-violet-50 px-3 py-2 text-xs font-semibold text-violet-900 shadow-sm hover:bg-violet-100"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-primary-300 bg-primary-50 px-3 py-2 text-xs font-semibold text-primary-900 shadow-sm hover:bg-primary-100"
         >
           <FileText className="h-3.5 w-3.5" />
           Dökümanlar
@@ -325,7 +325,7 @@ export default function KrediDetayPage() {
             <button
               type="button"
               onClick={() => toast('Excel dışa aktarma yakında', { icon: '📊' })}
-              className="inline-flex items-center gap-1 rounded bg-emerald-600 px-2 py-1 text-[11px] font-semibold text-white hover:bg-emerald-700"
+              className="inline-flex items-center gap-1 rounded bg-primary-600 px-2 py-1 text-[11px] font-semibold text-white hover:bg-primary-700"
             >
               <List className="h-3 w-3" />
               Excel
@@ -333,7 +333,7 @@ export default function KrediDetayPage() {
             <button
               type="button"
               onClick={() => toast('PDF yakında', { icon: '📄' })}
-              className="inline-flex items-center gap-1 rounded bg-orange-500 px-2 py-1 text-[11px] font-semibold text-white hover:bg-orange-600"
+              className="inline-flex items-center gap-1 rounded bg-primary-600 px-2 py-1 text-[11px] font-semibold text-white hover:bg-primary-700"
             >
               <Printer className="h-3 w-3" />
               PDF
@@ -370,17 +370,17 @@ export default function KrediDetayPage() {
                       className={`border-b border-gray-100 ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}
                     >
                       <td className="px-2 py-2 text-gray-600">{row.sort_order}</td>
-                      <td className="px-2 py-2 font-medium text-emerald-700">{formatDateLong(row.due_date)}</td>
+                      <td className="px-2 py-2 font-medium text-primary-700">{formatDateLong(row.due_date)}</td>
                       <td className="px-2 py-2 text-gray-900">{formatMoney(row.amount, cur)}</td>
                       <td className="px-2 py-2 text-gray-600">{formatMoney(row.paid_amount, cur)}</td>
                       <td className="px-2 py-2 text-center">
                         {done ? (
-                          <span className="text-xs text-emerald-600">Ödendi</span>
+                          <span className="text-xs text-primary-600">Ödendi</span>
                         ) : (
                           <button
                             type="button"
                             onClick={() => openPayModal(row.id, unpaid)}
-                            className="rounded-md bg-emerald-600 px-2 py-1 text-[11px] font-semibold text-white hover:bg-emerald-700"
+                            className="rounded-md bg-primary-600 px-2 py-1 text-[11px] font-semibold text-white hover:bg-primary-700"
                           >
                             ödeme yap
                           </button>
@@ -416,7 +416,7 @@ export default function KrediDetayPage() {
       />
 
       {addInstOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#f0f5f2]/40 p-3" onClick={() => setAddInstOpen(false)}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#F5F5F0]/40 p-3" onClick={() => setAddInstOpen(false)}>
           <div
             className="w-full max-w-sm rounded-lg border border-gray-200 bg-white p-4 shadow-xl"
             onClick={(e) => e.stopPropagation()}
@@ -454,7 +454,7 @@ export default function KrediDetayPage() {
                 <button
                   type="submit"
                   disabled={instSaving}
-                  className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-50"
+                  className="rounded-lg bg-primary-600 px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-50"
                 >
                   Ekle
                 </button>

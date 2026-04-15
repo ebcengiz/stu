@@ -184,9 +184,7 @@ export default function DefinitionsPage() {
                         )}
                       </td>
                       <td className="px-6 py-4">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          tag.entity_type === 'customer' ? 'bg-primary-100 text-primary-800' : 'bg-orange-100 text-orange-800'
-                        }`}>
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-100 text-primary-800">
                           {tag.entity_type === 'customer' ? <Users className="h-3 w-3 mr-1" /> : <Warehouse className="h-3 w-3 mr-1" />}
                           {tag.entity_type === 'customer' ? 'Müşteri' : 'Tedarikçi'}
                         </span>

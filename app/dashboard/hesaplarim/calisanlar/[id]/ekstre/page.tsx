@@ -205,7 +205,7 @@ export default function CalisanEkstrePage() {
       <div className="max-w-5xl mx-auto px-4 pt-6 space-y-4">
         <Link
           href={`/dashboard/hesaplarim/calisanlar/${id}`}
-          className="inline-flex items-center gap-2 rounded-lg border border-sky-200 bg-sky-50 px-4 py-2 text-sm font-bold text-sky-800 hover:bg-sky-100 transition-colors"
+          className="inline-flex items-center gap-2 rounded-lg border border-primary-200 bg-primary-50 px-4 py-2 text-sm font-bold text-primary-800 hover:bg-primary-100 transition-colors"
         >
           <ArrowLeft className="h-4 w-4" />
           Geri Dön
@@ -252,7 +252,7 @@ export default function CalisanEkstrePage() {
               <button
                 type="button"
                 onClick={handleExcel}
-                className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 text-sm font-bold shadow-sm"
+                className="inline-flex items-center gap-2 rounded-lg bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 text-sm font-bold shadow-sm"
               >
                 <FileSpreadsheet className="h-4 w-4" />
                 Excel
@@ -260,7 +260,7 @@ export default function CalisanEkstrePage() {
               <button
                 type="button"
                 onClick={handlePdf}
-                className="inline-flex items-center gap-2 rounded-lg bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 text-sm font-bold shadow-sm"
+                className="inline-flex items-center gap-2 rounded-lg bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 text-sm font-bold shadow-sm"
               >
                 <FileText className="h-4 w-4" />
                 PDF
@@ -268,7 +268,7 @@ export default function CalisanEkstrePage() {
               <button
                 type="button"
                 onClick={handleSend}
-                className="inline-flex items-center gap-2 rounded-lg bg-white hover:bg-[#f0f5f2] text-white px-4 py-2 text-sm font-bold shadow-sm"
+                className="inline-flex items-center gap-2 rounded-lg bg-white hover:bg-[#F5F5F0] text-white px-4 py-2 text-sm font-bold shadow-sm"
               >
                 <Mail className="h-4 w-4" />
                 Gönder
@@ -288,7 +288,7 @@ export default function CalisanEkstrePage() {
           <div className="overflow-x-auto">
             <table className="min-w-full text-sm">
               <thead>
-                <tr className="bg-sky-100 border-b border-gray-200">
+                <tr className="bg-primary-100 border-b border-gray-200">
                   <th className="text-left font-black text-gray-800 px-4 py-3">Tarih</th>
                   <th className="text-left font-black text-gray-800 px-4 py-3">Açıklama</th>
                   <th className="text-right font-black text-gray-800 px-4 py-3 whitespace-nowrap">
@@ -336,7 +336,7 @@ export default function CalisanEkstrePage() {
               </tbody>
               {prepared.rows.length > 0 && (
                 <tfoot>
-                  <tr className="bg-sky-50/80 border-t-2 border-gray-300 font-bold">
+                  <tr className="bg-primary-50/80 border-t-2 border-gray-300 font-bold">
                     <td colSpan={2} className="px-4 py-3 text-gray-800">
                       Toplam
                     </td>

@@ -34,10 +34,10 @@ interface Account {
 
 /** DB `account_type` enum: cash | bank | pos | other */
 const ADD_MENU_TYPES: { type: string; label: string; icon: React.ReactNode }[] = [
-  { type: 'cash', label: 'Kasa Ekle', icon: <Banknote className="h-4 w-4 text-emerald-600" /> },
+  { type: 'cash', label: 'Kasa Ekle', icon: <Banknote className="h-4 w-4 text-primary-600" /> },
   { type: 'bank', label: 'Banka Hesabı Ekle', icon: <Building className="h-4 w-4 text-primary-600" /> },
   { type: 'pos', label: 'POS Hesabı Ekle', icon: <Calculator className="h-4 w-4 text-amber-600" /> },
-  { type: 'other', label: 'Kredi kartı / diğer hesap', icon: <CreditCard className="h-4 w-4 text-purple-600" /> },
+  { type: 'other', label: 'Kredi kartı / diğer hesap', icon: <CreditCard className="h-4 w-4 text-primary-600" /> },
 ]
 
 export default function HesaplarimPage() {
@@ -181,7 +181,7 @@ export default function HesaplarimPage() {
           <div className="relative">
             <Button
               onClick={() => setShowAddMenu(!showAddMenu)}
-              className="shadow-sm font-bold bg-emerald-600 hover:bg-emerald-700"
+              className="shadow-sm font-bold bg-primary-600 hover:bg-primary-700"
             >
               <PlusCircle className="mr-2 h-4 w-4" />
               Yeni Hesap Ekle

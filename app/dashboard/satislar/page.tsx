@@ -109,9 +109,9 @@ export default function SalesPage() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'Bekliyor': return 'bg-amber-50 text-amber-600'
-      case 'İrsaliyeleşmiş': return 'bg-sky-50 text-sky-600'
-      case 'Faturalaşmış': return 'bg-emerald-50 text-emerald-600'
-      case 'Faturalaşmış (E-Fatura)': return 'bg-violet-500/15 text-violet-400'
+      case 'İrsaliyeleşmiş': return 'bg-primary-50 text-primary-600'
+      case 'Faturalaşmış': return 'bg-primary-100 text-primary-700'
+      case 'Faturalaşmış (E-Fatura)': return 'bg-primary-500/15 text-primary-400'
       default: return 'bg-gray-50 text-gray-500'
     }
   }
@@ -161,7 +161,7 @@ export default function SalesPage() {
           </div>
         </div>
       ),
-      { duration: 8000, position: 'top-center', style: { minWidth: '300px', background: '#1e293b', color: '#e2e8f0', border: '1px solid rgba(100,116,139,0.3)' } }
+      { duration: 8000, position: 'top-center', style: { minWidth: '300px', background: '#283b2f', color: '#e2e8f0', border: '1px solid rgba(100,116,139,0.3)' } }
     )
   }
 
@@ -217,7 +217,7 @@ export default function SalesPage() {
           onClick={() => router.push('/dashboard/satislar/yeni')}
           className="bg-white  p-6 rounded-2xl border border-gray-200 shadow-lg shadow-black/10 hover:shadow-xl hover:border-primary-300 transition-all text-left group"
         >
-          <div className="w-12 h-12 bg-sky-50 text-sky-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+          <div className="w-12 h-12 bg-primary-50 text-primary-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
             <Store className="h-6 w-6" />
           </div>
           <h3 className="text-lg font-bold text-gray-800 mb-1">Perakende Satış Gir</h3>
@@ -228,7 +228,7 @@ export default function SalesPage() {
           onClick={() => setShowNewCustomerModal(true)}
           className="bg-white  p-6 rounded-2xl border border-gray-200 shadow-lg shadow-black/10 hover:shadow-xl hover:border-primary-300 transition-all text-left group"
         >
-          <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+          <div className="w-12 h-12 bg-primary-50 text-primary-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
             <UserPlus className="h-6 w-6" />
           </div>
           <h3 className="text-lg font-bold text-gray-800 mb-1">Yeni Müşteriye Satış Gir</h3>
@@ -239,7 +239,7 @@ export default function SalesPage() {
           onClick={handleOpenCustomerSearch}
           className="bg-white  p-6 rounded-2xl border border-gray-200 shadow-lg shadow-black/10 hover:shadow-xl hover:border-primary-300 transition-all text-left group"
         >
-          <div className="w-12 h-12 bg-violet-500/15 text-violet-400 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+          <div className="w-12 h-12 bg-primary-500/15 text-primary-400 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
             <Users className="h-6 w-6" />
           </div>
           <h3 className="text-lg font-bold text-gray-800 mb-1">Kayıtlı Müşteriye Satış Gir</h3>

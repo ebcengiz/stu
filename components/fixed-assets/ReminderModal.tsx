@@ -5,7 +5,7 @@ import { X } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 
 const inputClass =
-  'w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20'
+  'w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20'
 
 const SMS_OPTIONS: { value: string; label: string }[] = [
   { value: '', label: 'SMS İstemiyorum' },
@@ -105,7 +105,7 @@ export default function ReminderModal({
   if (!open) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-3" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/40 p-3" onClick={onClose}>
       <div
         className="w-full max-w-md overflow-hidden rounded-lg border border-gray-200 bg-white shadow-xl"
         onClick={(e) => e.stopPropagation()}
@@ -113,7 +113,7 @@ export default function ReminderModal({
         aria-modal="true"
         aria-labelledby="reminder-modal-title"
       >
-        <div className="flex items-center justify-between bg-emerald-500/90 px-3 py-2.5">
+        <div className="flex items-center justify-between bg-primary-500/90 px-3 py-2.5">
           <h2 id="reminder-modal-title" className="text-sm font-bold text-white">
             Hatırlatma Notları
           </h2>
@@ -129,7 +129,7 @@ export default function ReminderModal({
         <form onSubmit={submit} className="p-4">
           <div className="space-y-3">
             <div>
-              <label className="mb-1 block text-xs font-semibold text-slate-600">Tarih</label>
+              <label className="mb-1 block text-xs font-semibold text-gray-600">Tarih</label>
               <input
                 type="date"
                 value={form.reminder_date}
@@ -139,7 +139,7 @@ export default function ReminderModal({
               />
             </div>
             <div>
-              <label className="mb-1 block text-xs font-semibold text-slate-600">Açıklama</label>
+              <label className="mb-1 block text-xs font-semibold text-gray-600">Açıklama</label>
               <textarea
                 value={form.description}
                 onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
@@ -149,7 +149,7 @@ export default function ReminderModal({
               />
             </div>
             <div>
-              <label className="mb-1 block text-xs font-semibold text-slate-600">
+              <label className="mb-1 block text-xs font-semibold text-gray-600">
                 Şu saatte SMS gönder
               </label>
               <select
@@ -163,7 +163,7 @@ export default function ReminderModal({
                   </option>
                 ))}
               </select>
-              <p className="mt-1 text-[11px] text-slate-500">
+              <p className="mt-1 text-[11px] text-gray-500">
                 SMS gönderimi ileride entegre edilebilir; saat kaydı şimdilik saklanır.
               </p>
             </div>
@@ -172,7 +172,7 @@ export default function ReminderModal({
             <button
               type="submit"
               disabled={saving}
-              className="rounded-lg bg-emerald-600 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700 disabled:opacity-50"
+              className="rounded-lg bg-primary-600 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-700 disabled:opacity-50"
             >
               {saving ? 'Kaydediliyor…' : 'Kaydet'}
             </button>

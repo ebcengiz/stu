@@ -163,7 +163,7 @@ export default function ProjeDetayPage() {
     return (
       <div className="space-y-3">
         <p className="text-sm text-red-700">{loadError || 'Kayıt yok'}</p>
-        <Link href="/dashboard/hesaplarim/projeler" className="text-sm font-medium text-emerald-700 hover:underline">
+        <Link href="/dashboard/hesaplarim/projeler" className="text-sm font-medium text-primary-700 hover:underline">
           ← Projelere dön
         </Link>
       </div>
@@ -183,14 +183,14 @@ export default function ProjeDetayPage() {
     <div className="mx-auto w-full min-w-0 max-w-full space-y-4 overflow-x-hidden pb-4">
       <Link
         href="/dashboard/hesaplarim/projeler"
-        className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-emerald-700"
+        className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-primary-700"
       >
         <ArrowLeft className="h-4 w-4" />
         Projelere dön
       </Link>
 
       <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-md">
-        <div className="bg-[#1e3a5f] px-3 py-2 sm:px-4 sm:py-2.5">
+        <div className="bg-[#3d5847] px-3 py-2 sm:px-4 sm:py-2.5">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h1 className="text-sm font-bold uppercase tracking-wide text-white sm:text-base">{project.name}</h1>
             {!project.is_active && (
@@ -218,7 +218,7 @@ export default function ProjeDetayPage() {
         <button
           type="button"
           onClick={() => setModalOpen(true)}
-          className="inline-flex items-center gap-1.5 rounded-lg border border-sky-300 bg-sky-50 px-3 py-2 text-xs font-semibold text-sky-900 shadow-sm hover:bg-sky-100"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-primary-300 bg-primary-50 px-3 py-2 text-xs font-semibold text-primary-900 shadow-sm hover:bg-primary-100"
         >
           <Pencil className="h-3.5 w-3.5" />
           Güncelle
@@ -227,7 +227,7 @@ export default function ProjeDetayPage() {
           <button
             type="button"
             onClick={() => setCloseConfirmOpen(true)}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-orange-300 bg-orange-50 px-3 py-2 text-xs font-semibold text-orange-900 hover:bg-orange-100"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-primary-300 bg-primary-50 px-3 py-2 text-xs font-semibold text-primary-900 hover:bg-primary-100"
           >
             <Ban className="h-3.5 w-3.5" />
             Projeyi Kapat
@@ -236,7 +236,7 @@ export default function ProjeDetayPage() {
           <button
             type="button"
             onClick={() => void reopenProject()}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-900 shadow-sm hover:bg-emerald-100"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-primary-300 bg-primary-50 px-3 py-2 text-xs font-semibold text-primary-900 shadow-sm hover:bg-primary-100"
           >
             <RotateCcw className="h-3.5 w-3.5" />
             Projeyi Tekrar Aç
@@ -244,14 +244,14 @@ export default function ProjeDetayPage() {
         )}
         <Link
           href={`/dashboard/hesaplarim/projeler/${id}/notlar`}
-          className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-white shadow-sm hover:bg-[#f0f5f2]"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-white shadow-sm hover:bg-[#F5F5F0]"
         >
           <StickyNote className="h-3.5 w-3.5" />
           Notlar
         </Link>
         <Link
           href={`/dashboard/hesaplarim/projeler/${id}/dokumanlar`}
-          className="inline-flex items-center gap-1.5 rounded-lg border border-violet-300 bg-violet-50 px-3 py-2 text-xs font-semibold text-violet-900 shadow-sm hover:bg-violet-100"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-primary-300 bg-primary-50 px-3 py-2 text-xs font-semibold text-primary-900 shadow-sm hover:bg-primary-100"
         >
           <FileText className="h-3.5 w-3.5" />
           Dökümanlar
@@ -276,22 +276,22 @@ export default function ProjeDetayPage() {
             <p className="text-lg font-bold text-rose-950">{formatMoney(totals?.expenses ?? 0, 'TRY')}</p>
           </div>
         </div>
-        <div className="flex items-center gap-3 rounded-xl border border-sky-200 bg-sky-50 px-4 py-4 shadow-sm">
-          <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-sky-500 text-white">
+        <div className="flex items-center gap-3 rounded-xl border border-primary-200 bg-primary-50 px-4 py-4 shadow-sm">
+          <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary-500 text-white">
             <Tag className="h-6 w-6" />
           </div>
           <div>
-            <p className="text-xs font-semibold uppercase text-sky-900/80">Alışlar</p>
-            <p className="text-lg font-bold text-sky-950">{formatMoney(totals?.purchases ?? 0, 'TRY')}</p>
+            <p className="text-xs font-semibold uppercase text-primary-900/80">Alışlar</p>
+            <p className="text-lg font-bold text-primary-950">{formatMoney(totals?.purchases ?? 0, 'TRY')}</p>
           </div>
         </div>
-        <div className="flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-4 shadow-sm">
-          <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-emerald-600 text-white">
+        <div className="flex items-center gap-3 rounded-xl border border-primary-200 bg-primary-50 px-4 py-4 shadow-sm">
+          <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary-600 text-white">
             <Gavel className="h-6 w-6" />
           </div>
           <div>
-            <p className="text-xs font-semibold uppercase text-emerald-900/80">Satışlar</p>
-            <p className="text-lg font-bold text-emerald-950">{formatMoney(totals?.sales ?? 0, 'TRY')}</p>
+            <p className="text-xs font-semibold uppercase text-primary-900/80">Satışlar</p>
+            <p className="text-lg font-bold text-primary-950">{formatMoney(totals?.sales ?? 0, 'TRY')}</p>
           </div>
         </div>
         <div className="flex items-center gap-3 rounded-xl border border-gray-200 bg-white px-4 py-4 shadow-sm text-white">
@@ -402,7 +402,7 @@ export default function ProjeDetayPage() {
             aria-labelledby="delete-project-confirm-title"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between bg-teal-500 px-4 py-3 sm:px-5">
+            <div className="flex items-center justify-between bg-primary-500 px-4 py-3 sm:px-5">
               <h2 id="delete-project-confirm-title" className="text-base font-semibold text-white">
                 Dikkat
               </h2>
@@ -426,7 +426,7 @@ export default function ProjeDetayPage() {
               <div className="flex flex-wrap justify-end gap-2 pt-1">
                 <button
                   type="button"
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-orange-500 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-orange-600"
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-primary-700"
                   onClick={() => setDeleteConfirmOpen(false)}
                 >
                   Hayır
@@ -460,7 +460,7 @@ export default function ProjeDetayPage() {
             aria-labelledby="close-project-confirm-title"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between bg-teal-600 px-4 py-3 sm:px-5">
+            <div className="flex items-center justify-between bg-primary-600 px-4 py-3 sm:px-5">
               <h2 id="close-project-confirm-title" className="text-base font-semibold text-white">
                 Proje Kapatma Onayı
               </h2>
@@ -490,7 +490,7 @@ export default function ProjeDetayPage() {
                 </button>
                 <button
                   type="button"
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700"
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-primary-700"
                   onClick={() => {
                     setCloseConfirmOpen(false)
                     void closeProject()

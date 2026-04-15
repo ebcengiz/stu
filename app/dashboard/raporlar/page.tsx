@@ -117,14 +117,14 @@ export default function ReportsPage() {
       name: 'Hareket Raporu',
       description: `Son ${Math.min(totalMovements, 50)} stok hareketi`,
       icon: Calendar,
-      color: 'bg-green-500',
+      color: 'bg-primary-500',
     },
     {
       id: 'lowstock',
       name: 'Düşük Stok Raporu',
       description: `${lowStockProducts.length} ürün kritik seviyede`,
       icon: TrendingDown,
-      color: 'bg-red-500',
+      color: 'bg-red-400',
     },
   ]
 
@@ -248,7 +248,7 @@ export default function ReportsPage() {
                               ? 'bg-red-600 text-white'
                               : isLow
                               ? 'bg-red-100 text-red-800'
-                              : 'bg-green-100 text-green-800'
+                              : 'bg-primary-100 text-primary-800'
                           }`}>
                             {isCritical ? 'Kritik' : isLow ? 'Düşük' : 'Normal'}
                           </span>
@@ -307,7 +307,7 @@ export default function ReportsPage() {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
                           movement.movement_type === 'in'
-                            ? 'bg-green-100 text-green-800'
+                            ? 'bg-primary-100 text-primary-800'
                             : movement.movement_type === 'out'
                             ? 'bg-red-100 text-red-800'
                             : movement.movement_type === 'transfer'

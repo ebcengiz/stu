@@ -48,7 +48,7 @@ function EmployeeAvatar({ name, photoUrl }: { name: string; photoUrl: string | n
   }
   return (
     <div
-      className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-sm font-black text-emerald-800 ring-2 ring-white shadow-sm"
+      className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary-100 text-sm font-black text-primary-800 ring-2 ring-white shadow-sm"
       aria-hidden
     >
       {initial}
@@ -82,7 +82,7 @@ export default function CalisanlarPage() {
   if (loading) {
     return (
       <div className="mx-auto flex w-full min-w-0 max-w-full justify-center overflow-x-hidden py-24">
-        <div className="h-10 w-10 animate-spin rounded-full border-2 border-emerald-600 border-t-transparent" />
+        <div className="h-10 w-10 animate-spin rounded-full border-2 border-primary-600 border-t-transparent" />
       </div>
     )
   }
@@ -92,7 +92,7 @@ export default function CalisanlarPage() {
       <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-black text-gray-900 tracking-tight flex items-center gap-2">
-            <Users className="h-7 w-7 text-emerald-600" />
+            <Users className="h-7 w-7 text-primary-600" />
             Çalışanlar
           </h1>
           <p className="text-sm text-gray-500 mt-1">Nakit Yönetimi · Personel kayıtları</p>
@@ -108,7 +108,7 @@ export default function CalisanlarPage() {
             </Button>
           </Link>
           <Link href="/dashboard/hesaplarim/calisanlar/yeni">
-            <Button className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2 rounded-xl">
+            <Button className="bg-primary-600 hover:bg-primary-700 text-white gap-2 rounded-xl">
               <Plus className="h-4 w-4" />
               Yeni çalışan
             </Button>
@@ -199,7 +199,7 @@ export default function CalisanlarPage() {
                           hasTerminationDate(r.leave_date)
                             ? 'text-gray-400'
                             : (r.cari_balance ?? 0) >= 0
-                              ? 'text-emerald-700'
+                              ? 'text-primary-700'
                               : 'text-red-700'
                         }`}
                       >

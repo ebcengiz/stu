@@ -54,8 +54,8 @@ export default function UserManagement({ initialUsers }: { initialUsers: User[] 
 
   const getRoleBadge = (role: string) => {
     const roles: Record<string, { label: string; class: string }> = {
-      'admin': { label: 'Admin', class: 'bg-purple-100 text-purple-800' },
-      'manager': { label: 'Yönetici', class: 'bg-primary-100 text-blue-800' },
+      'admin': { label: 'Admin', class: 'bg-primary-100 text-primary-800' },
+      'manager': { label: 'Yönetici', class: 'bg-primary-100 text-primary-800' },
       'user': { label: 'Kullanıcı', class: 'bg-gray-100 text-gray-800' }
     }
     return roles[role] || roles['user']

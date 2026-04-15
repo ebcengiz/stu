@@ -139,7 +139,7 @@ export default function CustomersPage() {
           </div>
         </div>
       ),
-      { duration: 8000, position: 'top-center', style: { minWidth: '300px', background: '#1e293b', color: '#e2e8f0', border: '1px solid rgba(100,116,139,0.3)' } }
+      { duration: 8000, position: 'top-center', style: { minWidth: '300px', background: '#283b2f', color: '#e2e8f0', border: '1px solid rgba(100,116,139,0.3)' } }
     )
   }
 
@@ -285,12 +285,12 @@ export default function CustomersPage() {
                             <div className="font-medium text-gray-700">{customer.company_name}</div>
                             <div className="flex flex-wrap gap-1 mt-1">
                               {customer.category1 && (
-                                <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-sky-50 text-sky-600">
+                                <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-primary-50 text-primary-600">
                                   {customer.category1}
                                 </span>
                               )}
                               {customer.category2 && (
-                                <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-violet-500/15 text-violet-400">
+                                <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-primary-500/15 text-primary-400">
                                   {customer.category2}
                                 </span>
                               )}
@@ -330,13 +330,13 @@ export default function CustomersPage() {
                         </div>
                       </td>
                       <td className="px-6 py-4 text-right whitespace-nowrap">
-                        <div className={`text-sm font-bold ${customer.balance > 0 ? 'text-red-500' : customer.balance < 0 ? 'text-emerald-600' : 'text-gray-600'}`}>
+                        <div className={`text-sm font-bold ${customer.balance > 0 ? 'text-red-500' : customer.balance < 0 ? 'text-primary-600' : 'text-gray-600'}`}>
                           {(customer.balance || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2 })} {CURRENCY_SYMBOLS[customer.currency || 'TRY']}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium whitespace-nowrap ${
-                          customer.is_active ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-500'
+                          customer.is_active ? 'bg-primary-50 text-primary-600' : 'bg-red-50 text-red-500'
                         }`}>
                           {customer.is_active ? 'Aktif' : 'Pasif'}
                         </span>

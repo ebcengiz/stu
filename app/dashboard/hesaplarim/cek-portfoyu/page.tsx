@@ -105,11 +105,11 @@ function showPortfolioConfirm(opts: {
       ? 'from-rose-600 to-red-600'
       : opts.headerTone === 'slate'
         ? 'from-gray-600 to-gray-700'
-        : 'from-teal-600 to-emerald-600'
+        : 'from-primary-600 to-primary-700'
   const btnGrad =
     opts.confirmTone === 'rose'
       ? 'from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700'
-      : 'from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700'
+      : 'from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800'
 
   toast.custom(
     (t) => (
@@ -540,7 +540,7 @@ export default function CekPortfoyuPage() {
           <div className="rounded-xl border border-gray-200 bg-gray-50 px-3 py-2">
             <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">Çek</p>
             <p className="mt-0.5 font-semibold text-gray-900">{c.debtor_name}</p>
-            <p className="mt-1 text-sm font-bold text-emerald-800">{formatMoney(Number(c.amount), c.currency)}</p>
+            <p className="mt-1 text-sm font-bold text-primary-800">{formatMoney(Number(c.amount), c.currency)}</p>
           </div>
           <p className="text-center text-xs font-medium text-gray-600">Tahsilatı iptal etmek istediğinize emin misiniz?</p>
         </div>
@@ -609,22 +609,22 @@ export default function CekPortfoyuPage() {
             <p className="text-xl font-bold text-rose-950">{stats.n}</p>
           </div>
         </div>
-        <div className="flex items-center gap-3 rounded-xl border border-sky-200 bg-sky-50 px-4 py-4 shadow-sm">
-          <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-sky-500 text-white">
+        <div className="flex items-center gap-3 rounded-xl border border-primary-200 bg-primary-50 px-4 py-4 shadow-sm">
+          <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-primary-500 text-white">
             <Banknote className="h-5 w-5" />
           </div>
           <div className="min-w-0">
-            <p className="text-xs font-semibold uppercase text-sky-900/80">Toplam tutar</p>
-            <p className="truncate text-lg font-bold text-sky-950">{formatMoney(stats.total)}</p>
+            <p className="text-xs font-semibold uppercase text-primary-900/80">Toplam tutar</p>
+            <p className="truncate text-lg font-bold text-primary-950">{formatMoney(stats.total)}</p>
           </div>
         </div>
-        <div className="flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-4 shadow-sm">
-          <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-emerald-600 text-white">
+        <div className="flex items-center gap-3 rounded-xl border border-primary-200 bg-primary-50 px-4 py-4 shadow-sm">
+          <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-primary-600 text-white">
             <CalendarDays className="h-5 w-5" />
           </div>
           <div className="min-w-0">
-            <p className="text-xs font-semibold uppercase text-emerald-900/80">Ortalama vade</p>
-            <p className="text-sm font-bold text-emerald-950">
+            <p className="text-xs font-semibold uppercase text-primary-900/80">Ortalama vade</p>
+            <p className="text-sm font-bold text-primary-950">
               {stats.avgDue ? stats.avgDue.toLocaleDateString('tr-TR') : '—'}
             </p>
           </div>
@@ -713,7 +713,7 @@ export default function CekPortfoyuPage() {
                             onClick={(e) => toggleActionMenu(e, r)}
                             className={`inline-flex items-center gap-1 rounded border px-2.5 py-1.5 text-xs font-semibold shadow-sm transition ${
                               actionMenu?.row.id === r.id
-                                ? 'border-sky-400 bg-[#E1F5FE] text-gray-900'
+                                ? 'border-primary-400 bg-[#eef3f0] text-gray-900'
                                 : 'border-gray-200 bg-white text-gray-800 hover:bg-gray-50'
                             }`}
                           >
@@ -765,14 +765,14 @@ export default function CekPortfoyuPage() {
           <div className="fixed inset-0 z-[90]" aria-hidden onClick={closeActionMenu} />
           <div
             role="menu"
-            className="fixed z-[100] w-[280px] overflow-hidden rounded border border-sky-300/90 bg-[#E1F5FE] py-1 shadow-md"
+            className="fixed z-[100] w-[280px] overflow-hidden rounded border border-primary-300/90 bg-[#eef3f0] py-1 shadow-md"
             style={{ top: actionMenu.top, left: actionMenu.left }}
           >
             {actionMenu.row.status === 'paid' ? (
               <button
                 type="button"
                 role="menuitem"
-                className="block w-full px-3 py-2.5 text-left text-sm font-normal text-gray-900 hover:bg-sky-200/80"
+                className="block w-full px-3 py-2.5 text-left text-sm font-normal text-gray-900 hover:bg-primary-200/80"
                 onClick={() => openCancelCollectionToast(actionMenu.row)}
               >
                 Çekin tahsilatını iptal et
@@ -782,7 +782,7 @@ export default function CekPortfoyuPage() {
                 <button
                   type="button"
                   role="menuitem"
-                  className="block w-full px-3 py-2.5 text-left text-sm font-normal text-gray-900 hover:bg-sky-200/80"
+                  className="block w-full px-3 py-2.5 text-left text-sm font-normal text-gray-900 hover:bg-primary-200/80"
                   onClick={() => openCollect(actionMenu.row)}
                 >
                   Çeki tahsil et
@@ -790,7 +790,7 @@ export default function CekPortfoyuPage() {
                 <button
                   type="button"
                   role="menuitem"
-                  className="block w-full px-3 py-2.5 text-left text-sm font-normal text-gray-900 hover:bg-sky-200/80"
+                  className="block w-full px-3 py-2.5 text-left text-sm font-normal text-gray-900 hover:bg-primary-200/80"
                   onClick={() => openBank(actionMenu.row)}
                 >
                   Çeki bankaya gönder
@@ -798,7 +798,7 @@ export default function CekPortfoyuPage() {
                 <button
                   type="button"
                   role="menuitem"
-                  className="block w-full px-3 py-2.5 text-left text-sm font-normal text-gray-900 hover:bg-sky-200/80"
+                  className="block w-full px-3 py-2.5 text-left text-sm font-normal text-gray-900 hover:bg-primary-200/80"
                   onClick={() => openFactoring(actionMenu.row)}
                 >
                   Faktoring ile tahsil et
@@ -806,7 +806,7 @@ export default function CekPortfoyuPage() {
                 <button
                   type="button"
                   role="menuitem"
-                  className="block w-full px-3 py-2.5 text-left text-sm font-normal text-gray-900 hover:bg-sky-200/80"
+                  className="block w-full px-3 py-2.5 text-left text-sm font-normal text-gray-900 hover:bg-primary-200/80"
                   onClick={() => promptCancelCheck(actionMenu.row)}
                 >
                   Çeki iptal et
@@ -814,7 +814,7 @@ export default function CekPortfoyuPage() {
                 <button
                   type="button"
                   role="menuitem"
-                  className="block w-full px-3 py-2.5 text-left text-sm font-normal text-gray-900 hover:bg-sky-200/80"
+                  className="block w-full px-3 py-2.5 text-left text-sm font-normal text-gray-900 hover:bg-primary-200/80"
                   onClick={() => promptBounceCheck(actionMenu.row)}
                 >
                   «Karşılıksız» olarak işaretle
@@ -825,7 +825,7 @@ export default function CekPortfoyuPage() {
                 <button
                   type="button"
                   role="menuitem"
-                  className="block w-full px-3 py-2.5 text-left text-sm font-normal text-gray-900 hover:bg-sky-200/80"
+                  className="block w-full px-3 py-2.5 text-left text-sm font-normal text-gray-900 hover:bg-primary-200/80"
                   onClick={() => openCollect(actionMenu.row)}
                 >
                   Çeki tahsil et
@@ -833,7 +833,7 @@ export default function CekPortfoyuPage() {
                 <button
                   type="button"
                   role="menuitem"
-                  className="block w-full px-3 py-2.5 text-left text-sm font-normal text-gray-900 hover:bg-sky-200/80"
+                  className="block w-full px-3 py-2.5 text-left text-sm font-normal text-gray-900 hover:bg-primary-200/80"
                   onClick={() => recallCheckFromBank(actionMenu.row)}
                 >
                   Çeki geri al
@@ -841,7 +841,7 @@ export default function CekPortfoyuPage() {
                 <button
                   type="button"
                   role="menuitem"
-                  className="block w-full px-3 py-2.5 text-left text-sm font-normal text-gray-900 hover:bg-sky-200/80"
+                  className="block w-full px-3 py-2.5 text-left text-sm font-normal text-gray-900 hover:bg-primary-200/80"
                   onClick={() => promptCancelCheck(actionMenu.row)}
                 >
                   Çeki iptal et
@@ -849,7 +849,7 @@ export default function CekPortfoyuPage() {
                 <button
                   type="button"
                   role="menuitem"
-                  className="block w-full px-3 py-2.5 text-left text-sm font-normal text-gray-900 hover:bg-sky-200/80"
+                  className="block w-full px-3 py-2.5 text-left text-sm font-normal text-gray-900 hover:bg-primary-200/80"
                   onClick={() => promptBounceCheck(actionMenu.row)}
                 >
                   «Karşılıksız» olarak işaretle
@@ -871,7 +871,7 @@ export default function CekPortfoyuPage() {
             role="dialog"
             aria-modal="true"
           >
-            <div className="flex items-center justify-between bg-teal-600 px-4 py-3">
+            <div className="flex items-center justify-between bg-primary-600 px-4 py-3">
               <h2 className="text-base font-semibold text-white">Tahsilat</h2>
               <button type="button" className="text-white hover:bg-gray-50 rounded p-1" onClick={() => setCollectOpen(false)}>
                 <X className="h-5 w-5" />
@@ -929,7 +929,7 @@ export default function CekPortfoyuPage() {
                 <button
                   type="button"
                   onClick={() => void submitCollect()}
-                  className="inline-flex items-center gap-1 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
+                  className="inline-flex items-center gap-1 rounded-lg bg-primary-600 px-4 py-2 text-sm font-semibold text-white hover:bg-primary-700"
                 >
                   <Check className="h-4 w-4" />
                   Kaydet
@@ -944,7 +944,7 @@ export default function CekPortfoyuPage() {
       {bankOpen && activeCheck && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4" onClick={() => setBankOpen(false)}>
           <div className="w-full max-w-md overflow-hidden rounded-xl bg-white shadow-2xl" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between bg-teal-600 px-4 py-3">
+            <div className="flex items-center justify-between bg-primary-600 px-4 py-3">
               <h2 className="text-base font-semibold text-white">Banka seçin</h2>
               <button type="button" className="text-white hover:bg-gray-50 rounded p-1" onClick={() => setBankOpen(false)}>
                 <X className="h-5 w-5" />
@@ -986,7 +986,7 @@ export default function CekPortfoyuPage() {
                 <button
                   type="button"
                   onClick={() => void submitBank()}
-                  className="inline-flex items-center gap-1 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white"
+                  className="inline-flex items-center gap-1 rounded-lg bg-primary-600 px-4 py-2 text-sm font-semibold text-white"
                 >
                   <Check className="h-4 w-4" />
                   Kaydet
@@ -1001,7 +1001,7 @@ export default function CekPortfoyuPage() {
       {factoringOpen && activeCheck && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4" onClick={() => setFactoringOpen(false)}>
           <div className="w-full max-w-lg overflow-hidden rounded-xl bg-white shadow-2xl" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between bg-teal-500 px-4 py-3">
+            <div className="flex items-center justify-between bg-primary-500 px-4 py-3">
               <h2 className="text-base font-semibold text-white">Faktoring yoluyla tahsilat</h2>
               <button type="button" className="text-white hover:bg-gray-50 rounded p-1" onClick={() => setFactoringOpen(false)}>
                 <X className="h-5 w-5" />
@@ -1048,7 +1048,7 @@ export default function CekPortfoyuPage() {
                 </select>
                 <Link
                   href="/dashboard/hesaplarim/masraflar/kalemleri"
-                  className="mt-1 inline-block text-xs font-medium text-teal-700 hover:text-teal-900 hover:underline"
+                  className="mt-1 inline-block text-xs font-medium text-primary-700 hover:text-primary-900 hover:underline"
                 >
                   Masraf kalemlerini düzenle
                 </Link>
@@ -1092,7 +1092,7 @@ export default function CekPortfoyuPage() {
                 <button
                   type="button"
                   onClick={() => void submitFactoring()}
-                  className="inline-flex items-center gap-1 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white"
+                  className="inline-flex items-center gap-1 rounded-lg bg-primary-600 px-4 py-2 text-sm font-semibold text-white"
                 >
                   <Check className="h-4 w-4" />
                   Kaydet

@@ -205,7 +205,7 @@ export default function SaleDetailPage() {
 
           <div className="bg-white p-4 rounded-2xl border border-gray-200/80 shadow-sm">
             <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">Tahsil Edilen</label>
-            <p className="text-xl font-bold text-emerald-600">{sale.collected_amount.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺</p>
+            <p className="text-xl font-bold text-primary-600">{sale.collected_amount.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺</p>
           </div>
 
           <div className={`p-4 rounded-2xl border shadow-sm ${remainingAmount > 0 ? 'bg-red-50 border-red-200' : 'bg-white border-gray-200/80'}`}>

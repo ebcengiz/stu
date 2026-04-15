@@ -463,14 +463,14 @@ export default function MasraflarPage() {
         <div className="flex flex-wrap items-center gap-3">
           <Link
             href="/dashboard/hesaplarim/masraflar/yeni"
-            className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700"
+            className="inline-flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-primary-700"
           >
             <Plus className="h-4 w-4" />
             Yeni Masraf Ekle
           </Link>
           <Link
             href="/dashboard/hesaplarim/masraflar/kalemleri"
-            className="inline-flex items-center gap-2 rounded-lg border border-emerald-600 bg-white px-4 py-2.5 text-sm font-semibold text-emerald-700 shadow-sm transition hover:bg-emerald-50"
+            className="inline-flex items-center gap-2 rounded-lg border border-primary-600 bg-white px-4 py-2.5 text-sm font-semibold text-primary-700 shadow-sm transition hover:bg-primary-50"
           >
             <ListChecks className="h-4 w-4" />
             Masraf Kalemleri
@@ -507,7 +507,7 @@ export default function MasraflarPage() {
               <button
                 type="button"
                 onClick={() => setPeriodOpen((v) => !v)}
-                className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-[#f0f5f2]"
+                className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-[#F5F5F0]"
               >
                 {periodLabel}
                 <ChevronDown className={`h-4 w-4 transition ${periodOpen ? 'rotate-180' : ''}`} />
@@ -558,7 +558,7 @@ export default function MasraflarPage() {
         <div className="w-full overflow-x-auto">
           <table className="w-full min-w-[1180px] table-auto border-collapse text-sm">
             <thead>
-              <tr className="bg-[#1e3a5f] text-left text-white">
+              <tr className="bg-[#3d5847] text-left text-white">
                 <th className="whitespace-nowrap px-2 py-3 font-semibold">
                   <SortHeader
                     label="İşlem Tarihi"
@@ -632,7 +632,7 @@ export default function MasraflarPage() {
                 filtered.map((r) => {
                   const statusBadge =
                     r.payment_status === 'paid' ? (
-                      <span className="inline-flex rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold text-emerald-800">
+                      <span className="inline-flex rounded-full bg-primary-100 px-2.5 py-0.5 text-xs font-semibold text-primary-800">
                         {paymentStatusLabel(r.payment_status)}
                       </span>
                     ) : r.payment_status === 'partial' ? (
@@ -677,7 +677,7 @@ export default function MasraflarPage() {
                               href={r.attachment_url}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="mt-0.5 shrink-0 rounded p-0.5 text-emerald-700 hover:bg-emerald-50 hover:text-emerald-900"
+                              className="mt-0.5 shrink-0 rounded p-0.5 text-primary-700 hover:bg-primary-50 hover:text-primary-900"
                               title="Belgeyi aç"
                               onClick={(e) => e.stopPropagation()}
                             >
@@ -797,7 +797,7 @@ export default function MasraflarPage() {
             </button>
             <button
               type="button"
-              className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-emerald-800 hover:bg-black/5"
+              className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-primary-800 hover:bg-black/5"
               onClick={() => {
                 const eid = actionMenu.id
                 setActionMenu(null)

@@ -101,7 +101,7 @@ export default function OfferDetailPage() {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'Onaylandı': return 'bg-green-100 text-green-800'
+      case 'Onaylandı': return 'bg-primary-100 text-primary-800'
       case 'Reddedildi': return 'bg-red-100 text-red-800'
       case 'İptal': return 'bg-gray-100 text-gray-800'
       default: return 'bg-yellow-100 text-yellow-800'
@@ -129,7 +129,7 @@ export default function OfferDetailPage() {
               <Button onClick={() => router.push(`/dashboard/teklifler/duzenle/${offer.id}`)} variant="outline" className="text-primary-600 border-primary-200 hover:bg-primary-50">
                 Teklifi Düzenle
               </Button>
-              <Button onClick={handleApprove} disabled={approving} className="bg-green-600 hover:bg-green-700">
+              <Button onClick={handleApprove} disabled={approving} className="bg-primary-600 hover:bg-primary-700">
                 <CheckCircle2 className="h-4 w-4 mr-2" /> {approving ? 'Onaylanıyor...' : 'Teklifi Onayla (Satışa Dönüştür)'}
               </Button>
               <Button onClick={() => handleUpdateStatus('Reddedildi')} variant="outline" className="text-red-600 border-red-200 hover:bg-red-50">

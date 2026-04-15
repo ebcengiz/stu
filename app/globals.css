@@ -4,22 +4,22 @@
 
 @layer base {
   :root {
-    --background: 140 20% 96%;
-    --foreground: 160 10% 18%;
-    --primary: 160 30% 42%;
+    --background: 60 20% 95%;
+    --foreground: 140 8% 19%;
+    --primary: 142 18% 45%;
     --primary-foreground: 0 0% 100%;
-    --border: 150 10% 85%;
-    --card: 0 0% 100%;
-    --card-foreground: 160 10% 18%;
-    --muted: 140 10% 93%;
-    --muted-foreground: 160 6% 52%;
-    --accent: 160 30% 42%;
-    --ring: 160 30% 42%;
+    --border: 60 10% 86%;
+    --card: 60 20% 98%;
+    --card-foreground: 140 8% 19%;
+    --muted: 60 12% 92%;
+    --muted-foreground: 140 6% 50%;
+    --accent: 142 18% 45%;
+    --ring: 142 18% 45%;
   }
 
   * {
     scrollbar-width: thin;
-    scrollbar-color: rgba(120, 153, 139, 0.3) transparent;
+    scrollbar-color: rgba(93, 134, 108, 0.3) transparent;
   }
 
   *::-webkit-scrollbar {
@@ -32,17 +32,17 @@
   }
 
   *::-webkit-scrollbar-thumb {
-    background: rgba(120, 153, 139, 0.3);
+    background: rgba(93, 134, 108, 0.3);
     border-radius: 999px;
   }
 
   *::-webkit-scrollbar-thumb:hover {
-    background: rgba(120, 153, 139, 0.5);
+    background: rgba(93, 134, 108, 0.5);
   }
 
   body {
-    background-color: #f0f5f2;
-    color: #2d3a35;
+    background-color: #F5F5F0;
+    color: #2d332f;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
@@ -52,13 +52,13 @@
   select:focus,
   textarea:focus {
     outline: none;
-    box-shadow: 0 0 0 2px rgba(90, 138, 120, 0.25);
+    box-shadow: 0 0 0 2px rgba(93, 134, 108, 0.25);
   }
 
   /* Placeholder stilleri */
   input::placeholder,
   textarea::placeholder {
-    color: #9ca8a1;
+    color: #9a9e96;
   }
 }
 

@@ -46,12 +46,12 @@ export default function ProjectSelect({
 
   return (
     <div className={className}>
-      <label className="mb-1 block text-sm font-medium text-slate-700">{label} (isteğe bağlı)</label>
+      <label className="mb-1 block text-sm font-medium text-gray-700">{label} (isteğe bağlı)</label>
       <select
         disabled={disabled || loading}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 disabled:opacity-60"
+        className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 disabled:opacity-60"
       >
         <option value="">— Proje seçilmedi —</option>
         {list.map((p) => (

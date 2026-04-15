@@ -266,7 +266,7 @@ function SaleEntryForm() {
                       collection_account_id: parseTrNumberInput(v) > 0 ? prev.collection_account_id : '',
                     }))
                   }
-                  className="w-full px-3 py-2 border border-green-300 bg-green-50 rounded-lg font-bold text-green-700"
+                  className="w-full px-3 py-2 border border-primary-300 bg-primary-50 rounded-lg font-bold text-primary-700"
                 />
               </div>
               {customerId && parseTrNumberInput(formData.collected_amount) > 0 && (
@@ -276,7 +276,7 @@ function SaleEntryForm() {
                     required
                     value={formData.collection_account_id}
                     onChange={e => setFormData({ ...formData, collection_account_id: e.target.value })}
-                    className="w-full px-3 py-2 border border-green-300 bg-white rounded-lg font-semibold"
+                    className="w-full px-3 py-2 border border-primary-300 bg-white rounded-lg font-semibold"
                   >
                     <option value="">Hesap seçin</option>
                     {collectionAccountGroups.map((group) => (

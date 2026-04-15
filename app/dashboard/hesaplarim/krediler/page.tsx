@@ -95,7 +95,7 @@ export default function KredilerPage() {
           <button
           type="button"
           onClick={openCreate}
-          className="inline-flex w-fit items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700"
+          className="inline-flex w-fit items-center gap-2 rounded-lg bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-primary-700"
         >
           <Plus className="h-4 w-4" />
           Yeni Kredi Ekle
@@ -105,7 +105,7 @@ export default function KredilerPage() {
         <div className="flex flex-wrap gap-2 sm:justify-end">
           <div className="rounded-lg border border-gray-200 bg-white px-3 py-2 shadow-sm">
             <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">Kalan ödemeler</p>
-            <p className="text-right text-base font-bold text-emerald-700">
+            <p className="text-right text-base font-bold text-primary-700">
               {formatMoney(summary.total_remaining, 'TRY')}
             </p>
           </div>
@@ -137,7 +137,7 @@ export default function KredilerPage() {
               <button
                 type="button"
                 onClick={openCreate}
-                className="mr-1 inline-flex align-middle items-center gap-1 rounded-md bg-emerald-600 px-2 py-1 text-xs font-semibold text-white shadow-sm transition hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-1"
+                className="mr-1 inline-flex align-middle items-center gap-1 rounded-md bg-primary-600 px-2 py-1 text-xs font-semibold text-white shadow-sm transition hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1"
               >
                 <Plus className="h-3.5 w-3.5" />
                 Yeni Kredi Ekle
@@ -157,7 +157,7 @@ export default function KredilerPage() {
                 type="checkbox"
                 checked={showCompleted}
                 onChange={(e) => setShowCompleted(e.target.checked)}
-                className="h-3.5 w-3.5 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                className="h-3.5 w-3.5 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
               />
               Borcu bitenleri de göster
             </label>
@@ -179,7 +179,7 @@ export default function KredilerPage() {
                   <Link
                     key={r.id}
                     href={`/dashboard/hesaplarim/krediler/${r.id}`}
-                    className="block rounded-md bg-sky-500 px-3 py-2.5 text-white transition hover:bg-sky-600"
+                    className="block rounded-md bg-primary-500 px-3 py-2.5 text-white transition hover:bg-primary-600"
                   >
                     <div className="flex items-start justify-between gap-2">
                       <span className="min-w-0 truncate text-sm font-semibold lowercase">{r.name}</span>
@@ -187,7 +187,7 @@ export default function KredilerPage() {
                         Kalan: {formatMoney(r.remaining_debt, ccy)}
                       </span>
                     </div>
-                    <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-sky-100">
+                    <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-primary-100">
                       <span>Çekilen: {cekilen}</span>
                       <span>Ödenecek toplam: {odenecek}</span>
                     </div>

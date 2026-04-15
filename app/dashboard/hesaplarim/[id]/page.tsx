@@ -417,16 +417,16 @@ export default function AccountDetailPage() {
   }
 
   const getAccountIcon = (type: string) => {
-    if (type === 'cash' || type === 'kasa') return <Banknote className="h-8 w-8 text-emerald-600" />
+    if (type === 'cash' || type === 'kasa') return <Banknote className="h-8 w-8 text-primary-600" />
     if (type === 'pos') return <Calculator className="h-8 w-8 text-amber-600" />
-    if (type === 'other' || type === 'kredi_karti') return <CreditCard className="h-8 w-8 text-purple-600" />
+    if (type === 'other' || type === 'kredi_karti') return <CreditCard className="h-8 w-8 text-primary-600" />
     return <Building className="h-8 w-8 text-primary-600" />
   }
 
   const getAccountBg = (type: string) => {
-    if (type === 'cash' || type === 'kasa') return 'bg-emerald-100 border-emerald-200'
+    if (type === 'cash' || type === 'kasa') return 'bg-primary-100 border-primary-200'
     if (type === 'pos') return 'bg-amber-100 border-amber-200'
-    if (type === 'other' || type === 'kredi_karti') return 'bg-purple-100 border-purple-200'
+    if (type === 'other' || type === 'kredi_karti') return 'bg-primary-100 border-primary-200'
     return 'bg-primary-100 border-primary-200'
   }
 
@@ -503,10 +503,10 @@ export default function AccountDetailPage() {
           <CardBody className="p-5">
             <div className="flex justify-between items-start">
               <h3 className="text-gray-500 font-bold text-xs uppercase tracking-wider">Toplam Giriş (Tahsilat)</h3>
-              <div className="p-1.5 bg-emerald-50 rounded-xl"><ArrowDownRight className="h-4 w-4 text-emerald-500" /></div>
+              <div className="p-1.5 bg-primary-50 rounded-xl"><ArrowDownRight className="h-4 w-4 text-primary-500" /></div>
             </div>
             <div className="mt-3">
-              <div className="text-2xl font-black text-emerald-600 tracking-tight">{toplamGiris.toLocaleString('tr-TR', { minimumFractionDigits: 2 })}</div>
+              <div className="text-2xl font-black text-primary-600 tracking-tight">{toplamGiris.toLocaleString('tr-TR', { minimumFractionDigits: 2 })}</div>
               <div className="text-gray-400 font-bold text-sm mt-1">{getCurrencySymbol(account.currency)}</div>
             </div>
           </CardBody>
@@ -530,9 +530,9 @@ export default function AccountDetailPage() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         
         {/* Para Girişi */}
-        <button onClick={() => { setTxForm({...txForm, type: 'inflow'}); setShowInflowModal(true); }} className="flex flex-col items-center justify-center p-4 bg-white rounded-xl border-2 border-gray-100 hover:border-emerald-300 hover:bg-emerald-50 transition-all group shadow-sm">
-          <div className="p-3 bg-emerald-100/50 rounded-full group-hover:bg-emerald-200/50 transition-colors mb-2"><ArrowDownRight className="h-6 w-6 text-emerald-600" /></div>
-          <span className="font-bold text-sm text-gray-900 group-hover:text-emerald-700">Para Girişi</span>
+        <button onClick={() => { setTxForm({...txForm, type: 'inflow'}); setShowInflowModal(true); }} className="flex flex-col items-center justify-center p-4 bg-white rounded-xl border-2 border-gray-100 hover:border-primary-300 hover:bg-primary-50 transition-all group shadow-sm">
+          <div className="p-3 bg-primary-100/50 rounded-full group-hover:bg-primary-200/50 transition-colors mb-2"><ArrowDownRight className="h-6 w-6 text-primary-600" /></div>
+          <span className="font-bold text-sm text-gray-900 group-hover:text-primary-700">Para Girişi</span>
         </button>
 
         {/* Para Çıkışı */}
@@ -574,7 +574,7 @@ export default function AccountDetailPage() {
         <CardBody className="p-0">
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-100">
-              <thead className="bg-emerald-50/80">
+              <thead className="bg-primary-50/80">
                 <tr>
                   <th className="px-4 py-3 text-left text-xs font-black text-gray-500 uppercase tracking-wider">Tarih</th>
                   <th className="px-4 py-3 text-left text-xs font-black text-gray-500 uppercase tracking-wider">İşlem Tipi</th>
@@ -591,12 +591,12 @@ export default function AccountDetailPage() {
                   <tr key={t.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-4 py-4 text-sm text-gray-600 font-medium whitespace-nowrap">{new Date(t.transaction_date).toLocaleDateString('tr-TR')}</td>
                     <td className="px-4 py-4 whitespace-nowrap">
-                      <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${isInflow ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
+                      <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${isInflow ? 'bg-primary-50 text-primary-700 border border-primary-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
                         {t.type === 'inflow' ? 'Para Girişi' : t.type === 'outflow' ? 'Para Çıkışı' : t.type === 'transfer_in' ? 'Transfer Girişi' : 'Transfer Çıkışı'}
                       </span>
                     </td>
                     <td className="px-4 py-4 text-sm font-medium text-gray-900 truncate max-w-[200px]">{t.description}</td>
-                    <td className={`px-4 py-4 text-sm font-bold text-right whitespace-nowrap ${isInflow ? 'text-emerald-600' : 'text-red-600'}`}>
+                    <td className={`px-4 py-4 text-sm font-bold text-right whitespace-nowrap ${isInflow ? 'text-primary-600' : 'text-red-600'}`}>
                       {isInflow ? '+' : '-'}{Number(t.amount).toLocaleString('tr-TR', { minimumFractionDigits: 2 })} {getCurrencySymbol(account.currency)}
                     </td>
                     <td className="px-4 py-4 text-sm font-black text-gray-900 text-right whitespace-nowrap bg-gray-50/50">
@@ -673,7 +673,7 @@ export default function AccountDetailPage() {
                 className="flex w-full items-center gap-2 border-b border-amber-200/70 px-3 py-2.5 text-left text-sm font-medium text-gray-900 hover:bg-amber-100/90"
                 onClick={() => openLineEdit(actionMenu.row)}
               >
-                <Pencil className="h-4 w-4 shrink-0 text-emerald-600" strokeWidth={2} />
+                <Pencil className="h-4 w-4 shrink-0 text-primary-600" strokeWidth={2} />
                 Düzenle
               </button>
               <button
@@ -720,7 +720,7 @@ export default function AccountDetailPage() {
             role="dialog"
             aria-labelledby="edit-line-title"
           >
-            <div className="flex items-center justify-between bg-teal-600 px-5 py-4">
+            <div className="flex items-center justify-between bg-primary-600 px-5 py-4">
               <h2 id="edit-line-title" className="text-base font-bold text-white">
                 Kasa/Hesap Hareketi Güncelleme
               </h2>
@@ -749,7 +749,7 @@ export default function AccountDetailPage() {
                   value={editLineForm.description}
                   onChange={(e) => setEditLineForm((f) => ({ ...f, description: e.target.value }))}
                   rows={3}
-                  className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm outline-none focus:border-teal-500"
+                  className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm outline-none focus:border-primary-500"
                   required
                 />
               </div>
@@ -759,7 +759,7 @@ export default function AccountDetailPage() {
                   type="date"
                   value={editLineForm.transaction_date}
                   onChange={(e) => setEditLineForm((f) => ({ ...f, transaction_date: e.target.value }))}
-                  className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm outline-none focus:border-teal-500"
+                  className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm outline-none focus:border-primary-500"
                   required
                 />
               </div>
@@ -769,7 +769,7 @@ export default function AccountDetailPage() {
                   value={editLineForm.amountStr}
                   onChange={(v) => setEditLineForm((f) => ({ ...f, amountStr: v }))}
                   disabled={isTransferRow(editLineModal)}
-                  className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm font-semibold tabular-nums outline-none focus:border-teal-500 disabled:bg-gray-100 disabled:text-gray-500"
+                  className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm font-semibold tabular-nums outline-none focus:border-primary-500 disabled:bg-gray-100 disabled:text-gray-500"
                   required={!isTransferRow(editLineModal)}
                 />
               </div>
@@ -820,7 +820,7 @@ export default function AccountDetailPage() {
       {showInflowModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in">
           <Card className="w-full max-w-lg shadow-2xl rounded-3xl border-0">
-            <CardHeader className="bg-emerald-600 text-white rounded-t-3xl py-5 px-6 flex flex-row items-center justify-between">
+            <CardHeader className="bg-primary-600 text-white rounded-t-3xl py-5 px-6 flex flex-row items-center justify-between">
               <CardTitle className="text-lg font-bold flex items-center gap-2"><ArrowDownRight className="h-5 w-5" /> Para Girişi (Tahsilat)</CardTitle>
               <button onClick={() => setShowInflowModal(false)} className="p-1.5 hover:bg-gray-100 rounded-full transition-all"><X className="h-5 w-5 text-white" /></button>
             </CardHeader>
@@ -829,18 +829,18 @@ export default function AccountDetailPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1.5">
                     <label className="text-xs font-bold text-gray-500 uppercase px-1">Tarih</label>
-                    <input type="date" required value={txForm.transaction_date} onChange={e => setTxForm({...txForm, transaction_date: e.target.value})} className="w-full px-3 py-2.5 border-2 border-gray-100 rounded-xl focus:border-emerald-500 outline-none font-bold" />
+                    <input type="date" required value={txForm.transaction_date} onChange={e => setTxForm({...txForm, transaction_date: e.target.value})} className="w-full px-3 py-2.5 border-2 border-gray-100 rounded-xl focus:border-primary-500 outline-none font-bold" />
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-xs font-bold text-gray-500 uppercase px-1">Tutar ({getCurrencySymbol(account.currency)}) *</label>
-                    <TrNumberInput required value={txForm.amount} onChange={(v) => setTxForm({ ...txForm, amount: v })} className="w-full px-3 py-2.5 border-2 border-emerald-200 rounded-xl bg-emerald-50/50 text-lg font-black text-emerald-900 focus:border-emerald-500 outline-none" placeholder="0,00" />
+                    <TrNumberInput required value={txForm.amount} onChange={(v) => setTxForm({ ...txForm, amount: v })} className="w-full px-3 py-2.5 border-2 border-primary-200 rounded-xl bg-primary-50/50 text-lg font-black text-primary-900 focus:border-primary-500 outline-none" placeholder="0,00" />
                   </div>
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-gray-500 uppercase px-1">Açıklama</label>
                   <textarea required placeholder="İşlem açıklaması girin..." value={txForm.description} onChange={e => setTxForm({...txForm, description: e.target.value})} className="w-full px-3 py-2.5 border-2 border-gray-100 rounded-xl outline-none h-20 resize-none font-medium" />
                 </div>
-                <div className="flex justify-end gap-3 pt-4 border-t"><Button type="button" variant="outline" onClick={() => setShowInflowModal(false)} className="rounded-xl">İptal</Button><Button type="submit" disabled={saving || !txForm.amount} className="rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white">{saving ? 'Kaydediliyor...' : 'Kaydet'}</Button></div>
+                <div className="flex justify-end gap-3 pt-4 border-t"><Button type="button" variant="outline" onClick={() => setShowInflowModal(false)} className="rounded-xl">İptal</Button><Button type="submit" disabled={saving || !txForm.amount} className="rounded-xl bg-primary-600 hover:bg-primary-700 text-white">{saving ? 'Kaydediliyor...' : 'Kaydet'}</Button></div>
               </form>
             </CardBody>
           </Card>

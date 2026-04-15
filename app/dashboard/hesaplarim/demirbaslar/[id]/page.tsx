@@ -194,7 +194,7 @@ export default function DemirbasDetayPage() {
     return (
       <div className="space-y-3">
         <p className="text-sm text-red-700">{loadError || 'Kayıt yok'}</p>
-        <Link href="/dashboard/hesaplarim/demirbaslar" className="text-sm font-medium text-emerald-700 hover:underline">
+        <Link href="/dashboard/hesaplarim/demirbaslar" className="text-sm font-medium text-primary-700 hover:underline">
           ← Demirbaşlara dön
         </Link>
       </div>
@@ -207,14 +207,14 @@ export default function DemirbasDetayPage() {
     <div className="mx-auto w-full min-w-0 max-w-full space-y-4 overflow-x-hidden pb-4">
       <Link
         href="/dashboard/hesaplarim/demirbaslar"
-        className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-emerald-700"
+        className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-primary-700"
       >
         <ArrowLeft className="h-4 w-4" />
         Demirbaşlara dön
       </Link>
 
       <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-md">
-        <div className="bg-[#1e3a5f] px-3 py-2 sm:px-4 sm:py-2.5">
+        <div className="bg-[#3d5847] px-3 py-2 sm:px-4 sm:py-2.5">
           <h1 className="text-sm font-bold uppercase tracking-wide text-white sm:text-base">{asset.name}</h1>
         </div>
         <div className="space-y-0 divide-y divide-gray-100 p-4">
@@ -255,7 +255,7 @@ export default function DemirbasDetayPage() {
         <button
           type="button"
           onClick={openEditAsset}
-          className="inline-flex items-center gap-1.5 rounded-lg border border-sky-300 bg-sky-50 px-3 py-2 text-xs font-semibold text-sky-900 shadow-sm hover:bg-sky-100"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-primary-300 bg-primary-50 px-3 py-2 text-xs font-semibold text-primary-900 shadow-sm hover:bg-primary-100"
         >
           <Pencil className="h-3.5 w-3.5" />
           Güncelle
@@ -263,7 +263,7 @@ export default function DemirbasDetayPage() {
         <button
           type="button"
           onClick={openNewReminder}
-          className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-2 text-xs font-semibold text-white shadow-sm hover:bg-emerald-700"
+          className="inline-flex items-center gap-1.5 rounded-lg bg-primary-600 px-3 py-2 text-xs font-semibold text-white shadow-sm hover:bg-primary-700"
         >
           <CalendarPlus className="h-3.5 w-3.5" />
           Hatırlatma Tarihi Ekle
@@ -278,7 +278,7 @@ export default function DemirbasDetayPage() {
         </button>
         <Link
           href={`/dashboard/hesaplarim/demirbaslar/${id}/dokumanlar`}
-          className="inline-flex items-center gap-1.5 rounded-lg border border-violet-300 bg-violet-50 px-3 py-2 text-xs font-semibold text-violet-900 shadow-sm hover:bg-violet-100"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-primary-300 bg-primary-50 px-3 py-2 text-xs font-semibold text-primary-900 shadow-sm hover:bg-primary-100"
         >
           <FileText className="h-3.5 w-3.5" />
           Dökümanlar
@@ -329,7 +329,7 @@ export default function DemirbasDetayPage() {
                     <button
                       type="button"
                       onClick={() => openEditReminder(r)}
-                      className="rounded-md border border-sky-200 bg-sky-50 px-2 py-1 text-[11px] font-semibold text-sky-900"
+                      className="rounded-md border border-primary-200 bg-primary-50 px-2 py-1 text-[11px] font-semibold text-primary-900"
                     >
                       Düzenle
                     </button>

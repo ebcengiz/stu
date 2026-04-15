@@ -255,7 +255,7 @@ export default function WarehousesPage() {
                       <h3 className="font-semibold text-gray-900 truncate group-hover:text-primary-700">{warehouse.name}</h3>
                       <span className={`px-2 py-1 text-xs font-semibold rounded-full whitespace-nowrap flex-shrink-0 ${
                         warehouse.is_active
-                          ? 'bg-green-100 text-green-800'
+                          ? 'bg-primary-100 text-primary-800'
                           : 'bg-red-100 text-red-800'
                       }`}>
                         {warehouse.is_active ? 'Aktif' : 'Pasif'}
@@ -364,9 +364,9 @@ export default function WarehousesPage() {
                     className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 text-sm"
                   />
                 </div>
-                <div className="bg-green-50 px-4 py-3 rounded-lg border border-green-100 flex flex-col items-end">
-                  <span className="text-xs text-green-700 font-medium mb-1">Toplam Depo Değeri (Tahmini)</span>
-                  <span className="text-2xl font-bold text-green-800">
+                <div className="bg-primary-50 px-4 py-3 rounded-lg border border-primary-100 flex flex-col items-end">
+                  <span className="text-xs text-primary-700 font-medium mb-1">Toplam Depo Değeri (Tahmini)</span>
+                  <span className="text-2xl font-bold text-primary-800">
                     ₺{totalWarehouseValueTRY.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </span>
                 </div>

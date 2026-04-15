@@ -237,7 +237,7 @@ function YeniMasrafForm() {
           <Button
             type="submit"
             disabled={saving || (showPaidAccount && sourcesLoading)}
-            className="gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700"
+            className="gap-2 rounded-lg bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-primary-700"
           >
             <Check className="h-4 w-4" />
             {editId ? 'Güncelle' : 'Kaydet'}
@@ -265,7 +265,7 @@ function YeniMasrafForm() {
                   required
                   value={expenseItem}
                   onChange={(e) => setExpenseItem(e.target.value)}
-                  className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+                  className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20"
                 >
                   <option value="">Masraf kalemi seçin</option>
                   {masrafGroups.map((g) => (
@@ -280,7 +280,7 @@ function YeniMasrafForm() {
                 </select>
                 <Link
                   href="/dashboard/hesaplarim/masraflar/kalemleri"
-                  className="mt-1 inline-block text-xs font-medium text-emerald-600 hover:text-emerald-800 hover:underline"
+                  className="mt-1 inline-block text-xs font-medium text-primary-600 hover:text-primary-800 hover:underline"
                 >
                   listeyi düzenlemek için tıklayın
                 </Link>
@@ -292,7 +292,7 @@ function YeniMasrafForm() {
                   type="date"
                   value={txDate}
                   onChange={(e) => setTxDate(e.target.value)}
-                  className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+                  className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20"
                 />
               </div>
 
@@ -302,7 +302,7 @@ function YeniMasrafForm() {
                   type="text"
                   value={docNo}
                   onChange={(e) => setDocNo(e.target.value)}
-                  className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+                  className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20"
                   placeholder="İsteğe bağlı"
                 />
                 <p className="mt-0.5 text-xs text-gray-500">(isteğe bağlı)</p>
@@ -314,7 +314,7 @@ function YeniMasrafForm() {
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   rows={3}
-                  className="w-full resize-y rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+                  className="w-full resize-y rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20"
                   placeholder=""
                 />
               </div>
@@ -338,7 +338,7 @@ function YeniMasrafForm() {
                 <button
                   type="button"
                   onClick={() => archiveInputRef.current?.click()}
-                  className="inline-flex items-center gap-2 rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-800 transition hover:bg-emerald-100"
+                  className="inline-flex items-center gap-2 rounded-lg border border-primary-300 bg-primary-50 px-3 py-2 text-sm font-semibold text-primary-800 transition hover:bg-primary-100"
                 >
                   <Plus className="h-4 w-4" />
                   Arşiv belgesi yükle
@@ -349,7 +349,7 @@ function YeniMasrafForm() {
                       href={existingAttachmentUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="font-medium text-emerald-700 underline hover:text-emerald-900"
+                      className="font-medium text-primary-700 underline hover:text-primary-900"
                     >
                       Mevcut belgeyi aç
                     </a>
@@ -368,7 +368,7 @@ function YeniMasrafForm() {
 
           {/* TUTAR */}
           <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-md">
-            <div className="bg-emerald-600 px-3 py-2 text-xs font-black uppercase tracking-wide text-white">
+            <div className="bg-primary-600 px-3 py-2 text-xs font-black uppercase tracking-wide text-white">
               Tutar
             </div>
             <div className="space-y-3 p-4">
@@ -377,7 +377,7 @@ function YeniMasrafForm() {
                 <select
                   value={paymentStatus}
                   onChange={(e) => setPaymentStatus(e.target.value)}
-                  className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+                  className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20"
                 >
                   {PAYMENT_STATUS_OPTIONS.map((o) => (
                     <option key={o.value} value={o.value}>
@@ -393,7 +393,7 @@ function YeniMasrafForm() {
                   type="date"
                   value={paymentDate}
                   onChange={(e) => setPaymentDate(e.target.value)}
-                  className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+                  className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20"
                 />
               </div>
 
@@ -408,7 +408,7 @@ function YeniMasrafForm() {
                     value={paymentSource}
                     onChange={(e) => setPaymentSource(e.target.value)}
                     disabled={sourcesLoading}
-                    className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 disabled:opacity-60"
+                    className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 disabled:opacity-60"
                   >
                     <option value="">{sourcesLoading ? 'Yükleniyor…' : 'Hesap seçin'}</option>
                     {groupedAccounts.map((g) => (
@@ -435,7 +435,7 @@ function YeniMasrafForm() {
 
               <div>
                 <label className="mb-1 block text-xs font-black text-gray-800">Tutar (KDV dahil)</label>
-                <div className="flex overflow-hidden rounded-lg border border-gray-200 focus-within:ring-2 focus-within:ring-emerald-500/30">
+                <div className="flex overflow-hidden rounded-lg border border-gray-200 focus-within:ring-2 focus-within:ring-primary-500/30">
                   <TrNumberInput
                     value={amountGross}
                     onChange={setAmountGross}
@@ -453,7 +453,7 @@ function YeniMasrafForm() {
                 <select
                   value={vatRate}
                   onChange={(e) => setVatRate(e.target.value)}
-                  className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+                  className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20"
                 >
                   {KDV_ORAN_OPTIONS.map((v) => (
                     <option key={v} value={v}>
@@ -473,7 +473,7 @@ function YeniMasrafForm() {
               type="checkbox"
               checked={recurring}
               onChange={(e) => setRecurring(e.target.checked)}
-              className="h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+              className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
             />
             Tekrarlayan masraf kaydı oluştur
           </label>

@@ -38,10 +38,10 @@ function fmtShortDate(iso: string) {
 }
 
 const kindStyles: Record<string, string> = {
-  sale: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-  customer: 'bg-sky-50 text-sky-700 border-sky-200',
+  sale: 'bg-primary-50 text-primary-700 border-primary-200',
+  customer: 'bg-primary-50 text-primary-700 border-primary-200',
   supplier: 'bg-amber-50 text-amber-700 border-amber-200',
-  stock: 'bg-violet-50 text-violet-700 border-violet-200',
+  stock: 'bg-primary-50 text-primary-700 border-primary-200',
 }
 
 export default function DashboardHomeView({ data }: { data: DashboardHomePayload }) {
@@ -97,13 +97,13 @@ export default function DashboardHomeView({ data }: { data: DashboardHomePayload
             Satışlar <ArrowRight className="h-3 w-3" />
           </Link>
         </div>
-        <div className="rounded-2xl bg-gradient-to-br from-sky-500 to-sky-600 p-5 text-white shadow-md">
-          <div className="flex items-center gap-2 text-sky-100">
+        <div className="rounded-2xl bg-gradient-to-br from-primary-500 to-primary-600 p-5 text-white shadow-md">
+          <div className="flex items-center gap-2 text-primary-100">
             <Wallet className="h-5 w-5" />
             <span className="text-xs font-bold uppercase tracking-wide">Bugünkü tahsilat</span>
           </div>
           <p className="mt-3 text-3xl font-black tabular-nums">{fmtTry(data.todayCollectionsTry)} {sym}</p>
-          <Link href="/dashboard/musteriler" className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-sky-200 hover:text-white transition-colors">
+          <Link href="/dashboard/musteriler" className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-primary-200 hover:text-white transition-colors">
             Müşteriler <ArrowRight className="h-3 w-3" />
           </Link>
         </div>
@@ -179,7 +179,7 @@ export default function DashboardHomeView({ data }: { data: DashboardHomePayload
         </div>
         <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
           <div className="mb-4 flex items-center gap-2">
-            <PiggyBank className="h-5 w-5 text-emerald-500" />
+            <PiggyBank className="h-5 w-5 text-primary-500" />
             <h3 className="font-bold text-gray-800">6 aylık ciro vs masraf</h3>
           </div>
           <div className="space-y-3">
@@ -190,12 +190,12 @@ export default function DashboardHomeView({ data }: { data: DashboardHomePayload
                 <div key={label}>
                   <div className="mb-1 flex justify-between text-xs font-medium text-gray-500"><span>{label}</span></div>
                   <div className="mb-1 flex justify-between text-[11px] tabular-nums text-gray-400">
-                    <span className="text-emerald-600">Ciro {fmtTry(rev)}</span>
+                    <span className="text-primary-600">Ciro {fmtTry(rev)}</span>
                     <span className="text-red-500">Masraf {fmtTry(exp)}</span>
                   </div>
                   <div className="space-y-1">
                     <div className="h-1.5 overflow-hidden rounded-full bg-gray-100">
-                      <div className="h-full rounded-full bg-emerald-500" style={{ width: `${max6 ? (rev / max6) * 100 : 0}%` }} />
+                      <div className="h-full rounded-full bg-primary-500" style={{ width: `${max6 ? (rev / max6) * 100 : 0}%` }} />
                     </div>
                     <div className="h-1.5 overflow-hidden rounded-full bg-gray-100">
                       <div className="h-full rounded-full bg-red-400" style={{ width: `${max6 ? (exp / max6) * 100 : 0}%` }} />
@@ -206,7 +206,7 @@ export default function DashboardHomeView({ data }: { data: DashboardHomePayload
             })}
           </div>
           <div className="mt-3 flex gap-4 text-[10px] font-semibold text-gray-400">
-            <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-emerald-500" /> Ciro</span>
+            <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-primary-500" /> Ciro</span>
             <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-red-400" /> Masraf</span>
           </div>
         </div>

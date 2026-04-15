@@ -45,7 +45,7 @@ export type LoanModalValues = {
 }
 
 const inputClass =
-  'w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20'
+  'w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20'
 
 const emptyForm: LoanModalValues = {
   name: '',
@@ -213,7 +213,7 @@ export default function LoanModal({
   if (!open) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-3" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/40 p-3" onClick={onClose}>
       <div
         className="flex max-h-[min(90vh,680px)] w-full max-w-lg flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-xl"
         onClick={(e) => e.stopPropagation()}
@@ -221,7 +221,7 @@ export default function LoanModal({
         aria-modal="true"
         aria-labelledby="loan-modal-title"
       >
-        <div className="flex items-center justify-between bg-emerald-600 px-3 py-2.5">
+        <div className="flex items-center justify-between bg-primary-600 px-3 py-2.5">
           <h2 id="loan-modal-title" className="text-sm font-bold text-white">
             Kredi Tanımı
           </h2>
@@ -238,7 +238,7 @@ export default function LoanModal({
         <form onSubmit={submit} className="flex min-h-0 flex-1 flex-col overflow-y-auto">
           <div className="space-y-3 p-4">
             <div>
-              <label className="mb-1 block text-xs font-semibold text-slate-600">Kredi adı</label>
+              <label className="mb-1 block text-xs font-semibold text-gray-600">Kredi adı</label>
               <input
                 value={form.name}
                 onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
@@ -250,7 +250,7 @@ export default function LoanModal({
             {isCreate ? (
               <>
                 <div>
-                  <label className="mb-1 block text-xs font-semibold text-slate-600">
+                  <label className="mb-1 block text-xs font-semibold text-gray-600">
                     <span className="text-red-600">*</span> Çekilen tutar (TL)
                   </label>
                   <TrNumberInput
@@ -262,7 +262,7 @@ export default function LoanModal({
                   />
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs font-semibold text-slate-600">
+                  <label className="mb-1 block text-xs font-semibold text-gray-600">
                     <span className="text-red-600">*</span> Ödenecek toplam tutar (TL)
                   </label>
                   <TrNumberInput
@@ -272,12 +272,12 @@ export default function LoanModal({
                     placeholder="Faiz, vergi ve masraflar dahil toplam"
                     required
                   />
-                  <p className="mt-1 text-[11px] text-slate-500">
+                  <p className="mt-1 text-[11px] text-gray-500">
                     Bu tutar üzerinden taksit planı oluşturulur; başlangıçtaki kalan borç buna eşittir.
                   </p>
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs font-semibold text-slate-600">
+                  <label className="mb-1 block text-xs font-semibold text-gray-600">
                     <span className="text-red-600">*</span> Vade (taksit sayısı)
                   </label>
                   <TrNumberInput
@@ -292,7 +292,7 @@ export default function LoanModal({
             ) : (
               <>
                 <div>
-                  <label className="mb-1 block text-xs font-semibold text-slate-600">Çekilen tutar (TL)</label>
+                  <label className="mb-1 block text-xs font-semibold text-gray-600">Çekilen tutar (TL)</label>
                   <TrNumberInput
                     value={form.total_loan_amount}
                     onChange={(v) => setForm((f) => ({ ...f, total_loan_amount: v }))}
@@ -300,7 +300,7 @@ export default function LoanModal({
                   />
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs font-semibold text-slate-600">Ödenecek toplam tutar (plan, TL)</label>
+                  <label className="mb-1 block text-xs font-semibold text-gray-600">Ödenecek toplam tutar (plan, TL)</label>
                   <TrNumberInput
                     value={form.total_repayment_planned}
                     onChange={(v) => setForm((f) => ({ ...f, total_repayment_planned: v }))}
@@ -308,7 +308,7 @@ export default function LoanModal({
                   />
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs font-semibold text-slate-600">Kalan borç (TL)</label>
+                  <label className="mb-1 block text-xs font-semibold text-gray-600">Kalan borç (TL)</label>
                   <TrNumberInput
                     value={form.remaining_debt}
                     onChange={(v) => setForm((f) => ({ ...f, remaining_debt: v }))}
@@ -316,7 +316,7 @@ export default function LoanModal({
                   />
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs font-semibold text-slate-600">Kalan taksit sayısı</label>
+                  <label className="mb-1 block text-xs font-semibold text-gray-600">Kalan taksit sayısı</label>
                   <TrNumberInput
                     value={form.remaining_installments}
                     onChange={(v) => setForm((f) => ({ ...f, remaining_installments: v }))}
@@ -328,7 +328,7 @@ export default function LoanModal({
             )}
 
             <div>
-              <label className="mb-1 block text-xs font-semibold text-slate-600">Sıradaki ilk taksit tarihi</label>
+              <label className="mb-1 block text-xs font-semibold text-gray-600">Sıradaki ilk taksit tarihi</label>
               <input
                 type="date"
                 value={form.next_installment_date}
@@ -337,7 +337,7 @@ export default function LoanModal({
               />
             </div>
             <div>
-              <label className="mb-1 block text-xs font-semibold text-slate-600">Ödeme takvimi</label>
+              <label className="mb-1 block text-xs font-semibold text-gray-600">Ödeme takvimi</label>
               <select
                 value={form.payment_schedule}
                 onChange={(e) => setForm((f) => ({ ...f, payment_schedule: e.target.value }))}
@@ -352,7 +352,7 @@ export default function LoanModal({
             </div>
             {initial?.id ? (
               <div>
-                <label className="mb-1 block text-xs font-semibold text-slate-600">Ödediğiniz hesap</label>
+                <label className="mb-1 block text-xs font-semibold text-gray-600">Ödediğiniz hesap</label>
                 <select
                   value={form.payment_account_id}
                   onChange={(e) => setForm((f) => ({ ...f, payment_account_id: e.target.value }))}
@@ -372,7 +372,7 @@ export default function LoanModal({
               </div>
             ) : null}
             <div>
-              <label className="mb-1 block text-xs font-semibold text-slate-600">Notlar</label>
+              <label className="mb-1 block text-xs font-semibold text-gray-600">Notlar</label>
               <textarea
                 value={form.notes}
                 onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
@@ -382,11 +382,11 @@ export default function LoanModal({
             </div>
           </div>
 
-          <div className="flex justify-end gap-2 border-t border-gray-100 bg-slate-50/80 px-4 py-3">
+          <div className="flex justify-end gap-2 border-t border-gray-100 bg-gray-50/80 px-4 py-3">
             <button
               type="button"
               onClick={onClose}
-              className="inline-flex items-center gap-1.5 rounded-lg bg-orange-500 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-orange-600"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-primary-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-700"
             >
               <X className="h-4 w-4" />
               Vazgeç
@@ -394,7 +394,7 @@ export default function LoanModal({
             <button
               type="submit"
               disabled={saving}
-              className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700 disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-primary-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-700 disabled:opacity-50"
             >
               <Check className="h-4 w-4" />
               Kaydet

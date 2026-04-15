@@ -129,7 +129,7 @@ export default function LoanPaymentModal({
   const amountOk = !Number.isNaN(pay) && pay > 0 && pay <= cap + 0.0001
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-3" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/40 p-3" onClick={onClose}>
       <div
         className="flex max-h-[min(90vh,640px)] w-full max-w-lg flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-xl"
         onClick={(e) => e.stopPropagation()}
@@ -137,7 +137,7 @@ export default function LoanPaymentModal({
         aria-modal="true"
         aria-labelledby="loan-pay-title"
       >
-        <div className="flex items-center justify-between bg-emerald-500 px-3 py-2.5">
+        <div className="flex items-center justify-between bg-primary-500 px-3 py-2.5">
           <h2 id="loan-pay-title" className="text-sm font-bold text-white">
             Ödeme Onayı
           </h2>
@@ -158,22 +158,22 @@ export default function LoanPaymentModal({
           </div>
 
           <div>
-            <label className="mb-1 block text-xs font-semibold text-slate-600">Ödediğiniz Tarih</label>
+            <label className="mb-1 block text-xs font-semibold text-gray-600">Ödediğiniz Tarih</label>
             <input
               type="date"
               value={paidDate}
               onChange={(e) => setPaidDate(e.target.value)}
-              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20"
             />
           </div>
 
           <div>
-            <label className="mb-1 block text-xs font-semibold text-slate-600">Ödediğiniz Hesap</label>
+            <label className="mb-1 block text-xs font-semibold text-gray-600">Ödediğiniz Hesap</label>
             <select
               value={accountId}
               onChange={(e) => setAccountId(e.target.value)}
               disabled={loadingAcc}
-              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 disabled:opacity-60"
+              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 disabled:opacity-60"
             >
               <option value="">{loadingAcc ? 'Yükleniyor…' : 'Hesap seçin'}</option>
               {groupedAccounts.map((group) => (
@@ -194,18 +194,18 @@ export default function LoanPaymentModal({
           </div>
 
           <div>
-            <label className="mb-1 block text-xs font-semibold text-slate-600">Ödediğiniz Tutar</label>
+            <label className="mb-1 block text-xs font-semibold text-gray-600">Ödediğiniz Tutar</label>
             <TrNumberInput
               value={amountStr}
               onChange={setAmountStr}
-              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20"
             />
           </div>
 
-          <p className="text-center text-base font-medium text-slate-500">Ödeme işlemini onaylıyor musunuz?</p>
+          <p className="text-center text-base font-medium text-gray-500">Ödeme işlemini onaylıyor musunuz?</p>
         </div>
 
-        <div className="flex justify-end gap-2 border-t border-gray-100 bg-slate-50/80 px-4 py-3">
+        <div className="flex justify-end gap-2 border-t border-gray-100 bg-gray-50/80 px-4 py-3">
           <button
             type="button"
             onClick={onClose}
@@ -218,7 +218,7 @@ export default function LoanPaymentModal({
             type="button"
             disabled={saving || !accountId || !amountOk || matchingAccounts.length === 0}
             onClick={() => void submit()}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700 disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-primary-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-700 disabled:opacity-50"
           >
             <Check className="h-4 w-4" />
             Evet

@@ -288,7 +288,7 @@ export default function CalisanRaporPage() {
       head: [headers],
       body,
       styles: { fontSize: 6, cellPadding: 1 },
-      headStyles: { fillColor: [30, 64, 175], textColor: 255, fontStyle: 'bold' },
+      headStyles: { fillColor: [93, 134, 108], textColor: 255, fontStyle: 'bold' },
       alternateRowStyles: { fillColor: [245, 245, 245] },
       margin: { left: 10, right: 10 },
     })
@@ -300,7 +300,7 @@ export default function CalisanRaporPage() {
     return (
       <div className="flex min-h-[40vh] items-center justify-center">
         <div className="flex flex-col items-center gap-3 rounded-2xl border border-gray-200 bg-white px-10 py-12 shadow-sm">
-          <div className="h-10 w-10 animate-spin rounded-full border-2 border-emerald-500 border-t-transparent" />
+          <div className="h-10 w-10 animate-spin rounded-full border-2 border-primary-500 border-t-transparent" />
           <p className="text-sm font-medium text-gray-400">Rapor yükleniyor…</p>
         </div>
       </div>
@@ -310,10 +310,10 @@ export default function CalisanRaporPage() {
   return (
     <div className="mx-auto w-full min-w-0 max-w-full space-y-6 overflow-x-hidden pb-2">
       {/* Üst başlık */}
-      <div className="rounded-2xl border border-gray-200/90 bg-gradient-to-br from-white via-white to-slate-50/90 p-6 shadow-sm sm:p-8">
+      <div className="rounded-2xl border border-gray-200/90 bg-gradient-to-br from-white via-white to-primary-50/90 p-6 shadow-sm sm:p-8">
         <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex gap-4">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-emerald-600 shadow-md shadow-emerald-600/25">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary-600 shadow-md shadow-primary-600/25">
               <FileBarChart className="h-6 w-6 text-white" />
             </div>
             <div>
@@ -327,7 +327,7 @@ export default function CalisanRaporPage() {
           </div>
           <Link
             href="/dashboard/hesaplarim/calisanlar"
-            className="inline-flex shrink-0 items-center justify-center rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-600 shadow-sm transition hover:border-emerald-300 hover:bg-emerald-50/80 hover:text-emerald-800"
+            className="inline-flex shrink-0 items-center justify-center rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-600 shadow-sm transition hover:border-primary-300 hover:bg-primary-50/80 hover:text-primary-800"
           >
             ← Çalışanlar
           </Link>
@@ -335,11 +335,11 @@ export default function CalisanRaporPage() {
       </div>
 
       {/* Rapor kriterleri */}
-      <div className="overflow-hidden rounded-2xl border border-gray-200/90 bg-white shadow-md shadow-slate-200/40">
+      <div className="overflow-hidden rounded-2xl border border-gray-200/90 bg-white shadow-md shadow-primary-200/40">
         <button
           type="button"
           onClick={() => setCriteriaOpen((v) => !v)}
-          className="flex w-full items-center justify-between bg-gradient-to-r from-slate-800 to-slate-900 px-5 py-4 text-left text-sm font-bold uppercase tracking-widest text-white"
+          className="flex w-full items-center justify-between bg-gradient-to-r from-primary-800 to-primary-900 px-5 py-4 text-left text-sm font-bold uppercase tracking-widest text-white"
         >
           <span>Rapor kriterleri</span>
           {criteriaOpen ? (
@@ -357,7 +357,7 @@ export default function CalisanRaporPage() {
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
-                className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-medium text-gray-800 shadow-sm outline-none ring-emerald-500/0 transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+                className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-medium text-gray-800 shadow-sm outline-none ring-primary-500/0 transition focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20"
               >
                 {STATUS_OPTIONS.map((o) => (
                   <option key={o.value} value={o.value}>
@@ -380,11 +380,11 @@ export default function CalisanRaporPage() {
 
       {/* Rapor sonucu */}
       {reportReady && (
-        <div className="flex w-full min-w-0 max-w-full flex-col overflow-hidden rounded-2xl border border-gray-200/90 bg-white shadow-md shadow-slate-200/40">
+        <div className="flex w-full min-w-0 max-w-full flex-col overflow-hidden rounded-2xl border border-gray-200/90 bg-white shadow-md shadow-primary-200/40">
           <button
             type="button"
             onClick={() => setResultOpen((v) => !v)}
-            className="flex w-full shrink-0 items-center justify-between bg-gradient-to-r from-slate-800 to-slate-900 px-5 py-4 text-left text-sm font-bold uppercase tracking-widest text-white"
+            className="flex w-full shrink-0 items-center justify-between bg-gradient-to-r from-primary-800 to-primary-900 px-5 py-4 text-left text-sm font-bold uppercase tracking-widest text-white"
           >
             <span>Rapor sonucu</span>
             {resultOpen ? (
@@ -394,7 +394,7 @@ export default function CalisanRaporPage() {
             )}
           </button>
           {resultOpen && (
-            <div className="flex w-full min-w-0 flex-col gap-3 border-t border-gray-100 bg-gradient-to-b from-slate-50/80 to-white p-5 sm:gap-4 sm:p-6">
+            <div className="flex w-full min-w-0 flex-col gap-3 border-t border-gray-100 bg-gradient-to-b from-primary-50/80 to-white p-5 sm:gap-4 sm:p-6">
               <div className="flex shrink-0 flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
                 <p className="text-sm font-medium text-gray-500">
                   <span className="font-bold tabular-nums text-gray-900">{displayRows.length}</span>{' '}
@@ -404,7 +404,7 @@ export default function CalisanRaporPage() {
                   <button
                     type="button"
                     onClick={exportExcel}
-                    className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-emerald-600/20 transition hover:bg-emerald-700"
+                    className="inline-flex items-center gap-2 rounded-xl bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-primary-600/20 transition hover:bg-primary-700"
                   >
                     <FileSpreadsheet className="h-4 w-4" />
                     Excel
@@ -436,7 +436,7 @@ export default function CalisanRaporPage() {
               </p>
 
               <div
-                className="relative isolate w-full min-w-0 max-w-full max-h-[min(70vh,calc(100dvh-20rem))] overflow-x-auto overflow-y-auto scroll-smooth rounded-xl border border-gray-200 bg-white shadow-inner ring-1 ring-slate-100 [-webkit-overflow-scrolling:touch] overscroll-x-contain overscroll-y-contain"
+                className="relative isolate w-full min-w-0 max-w-full max-h-[min(70vh,calc(100dvh-20rem))] overflow-x-auto overflow-y-auto scroll-smooth rounded-xl border border-gray-200 bg-white shadow-inner ring-1 ring-primary-100 [-webkit-overflow-scrolling:touch] overscroll-x-contain overscroll-y-contain"
               >
                 <table
                   lang="tr"
@@ -454,10 +454,10 @@ export default function CalisanRaporPage() {
                           <button
                             type="button"
                             onClick={() => toggleSort(col.key)}
-                            className="group inline-flex max-w-none items-center gap-1.5 whitespace-nowrap text-left text-xs font-semibold normal-case tracking-normal text-gray-600 transition hover:text-emerald-800"
+                            className="group inline-flex max-w-none items-center gap-1.5 whitespace-nowrap text-left text-xs font-semibold normal-case tracking-normal text-gray-600 transition hover:text-primary-800"
                           >
                             <span className="leading-none">{col.label}</span>
-                            <span className="shrink-0 text-gray-500 group-hover:text-emerald-600">
+                            <span className="shrink-0 text-gray-500 group-hover:text-primary-600">
                               {sortKey === col.key ? (
                                 sortDir === 'asc' ? (
                                   <ArrowUp className="h-3 w-3" />
@@ -487,7 +487,7 @@ export default function CalisanRaporPage() {
                       displayRows.map((row, idx) => (
                         <tr
                           key={row.id}
-                          className={`transition-colors hover:bg-emerald-50/50 ${
+                          className={`transition-colors hover:bg-primary-50/50 ${
                             idx % 2 === 1 ? 'bg-gray-50/70' : 'bg-white'
                           }`}
                         >

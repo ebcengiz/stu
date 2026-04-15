@@ -344,7 +344,7 @@ export default function SuppliersPage() {
                                 </span>
                               )}
                               {supplier.category2 && (
-                                <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-purple-100 text-purple-800">
+                                <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-primary-100 text-primary-800">
                                   {supplier.category2}
                                 </span>
                               )}
@@ -384,13 +384,13 @@ export default function SuppliersPage() {
                         </div>
                       </td>
                       <td className="px-6 py-4 text-right whitespace-nowrap">
-                        <div className={`text-sm font-bold ${supplier.balance > 0 ? 'text-red-600' : supplier.balance < 0 ? 'text-green-600' : 'text-gray-900'}`}>
+                        <div className={`text-sm font-bold ${supplier.balance > 0 ? 'text-red-600' : supplier.balance < 0 ? 'text-primary-600' : 'text-gray-900'}`}>
                           {(supplier.balance || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2 })} {CURRENCY_SYMBOLS[supplier.currency || 'TRY'] || '₺'}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium whitespace-nowrap ${
-                          supplier.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                          supplier.is_active ? 'bg-primary-100 text-primary-800' : 'bg-red-100 text-red-800'
                         }`}>
                           {supplier.is_active ? 'Aktif' : 'Pasif'}
                         </span>

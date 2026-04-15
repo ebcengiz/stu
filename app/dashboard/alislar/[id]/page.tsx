@@ -154,7 +154,7 @@ export default function PurchaseDetailPage() {
               </div>
               <div className="flex items-start gap-3">
                 <div className={`h-2.5 w-2.5 rounded-full mt-2 ${
-                  purchase.status === 'Faturalaşmış' ? 'bg-green-500' : 'bg-yellow-500'
+                  purchase.status === 'Faturalaşmış' ? 'bg-primary-500' : 'bg-yellow-500'
                 }`} />
                 <div>
                   <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Durum</label>

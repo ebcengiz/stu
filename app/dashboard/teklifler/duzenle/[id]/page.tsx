@@ -266,7 +266,7 @@ function OfferEditForm() {
                               })}
                             </select>
                             {item.product_id && item.warehouse_id && (
-                              <div className={`text-[10px] font-black px-1 py-0.5 rounded ${currentStock <= 0 ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-700'}`}>Stok: {currentStock} {unit}</div>
+                              <div className={`text-[10px] font-black px-1 py-0.5 rounded ${currentStock <= 0 ? 'bg-red-50 text-red-600' : 'bg-primary-50 text-primary-700'}`}>Stok: {currentStock} {unit}</div>
                             )}
                           </div>
                         </td>

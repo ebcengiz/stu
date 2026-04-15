@@ -111,8 +111,8 @@ export default function PurchasesPage() {
     switch (status) {
       case 'Bekliyor': return 'bg-yellow-100 text-yellow-800'
       case 'İrsaliyeleşmiş': return 'bg-primary-100 text-primary-800'
-      case 'Faturalaşmış': return 'bg-green-100 text-green-800'
-      case 'Faturalaşmış (E-Fatura)': return 'bg-purple-100 text-purple-800'
+      case 'Faturalaşmış': return 'bg-primary-100 text-primary-800'
+      case 'Faturalaşmış (E-Fatura)': return 'bg-primary-100 text-primary-800'
       default: return 'bg-gray-100 text-gray-800'
     }
   }
@@ -229,7 +229,7 @@ export default function PurchasesPage() {
           onClick={() => setShowNewSupplierModal(true)}
           className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-md hover:border-primary-300 transition-all text-left group"
         >
-          <div className="w-12 h-12 bg-green-50 text-green-600 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+          <div className="w-12 h-12 bg-primary-50 text-primary-600 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
             <UserPlus className="h-6 w-6" />
           </div>
           <h3 className="text-lg font-bold text-gray-900 mb-1">Yeni Tedarikçiden Alış Gir</h3>
@@ -240,7 +240,7 @@ export default function PurchasesPage() {
           onClick={handleOpenSupplierSearch}
           className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-md hover:border-primary-300 transition-all text-left group"
         >
-          <div className="w-12 h-12 bg-purple-50 text-purple-600 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+          <div className="w-12 h-12 bg-primary-50 text-primary-600 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
             <Users className="h-6 w-6" />
           </div>
           <h3 className="text-lg font-bold text-gray-900 mb-1">Kayıtlı Tedarikçiden Alış Gir</h3>

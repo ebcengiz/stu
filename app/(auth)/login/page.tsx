@@ -41,17 +41,17 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 via-green-50 to-emerald-50">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#F5F5F0] via-primary-50 to-primary-100">
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-primary-200/30 rounded-full blur-3xl" />
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-emerald-200/30 rounded-full blur-3xl" />
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-primary-200/30 rounded-full blur-3xl" />
       </div>
 
       <div className="w-full max-w-md relative z-10">
-        <div className="bg-white rounded-2xl shadow-xl shadow-gray-200/50 p-8 border border-gray-200/60">
+        <div className="bg-[#FAFAF7] rounded-2xl shadow-xl shadow-[#e0e0d9]/50 p-8 border border-[#e0e0d9]/60">
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-primary-700">Mikro Muhasebe</h1>
-            <p className="text-gray-500 mt-2">Hesabınıza giriş yapın</p>
+            <p className="text-[#7a7e76] mt-2">Hesabınıza giriş yapın</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -62,7 +62,7 @@ export default function LoginPage() {
             )}
 
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="email" className="block text-sm font-medium text-[#2d332f] mb-2">
                 Email
               </label>
               <input
@@ -71,13 +71,13 @@ export default function LoginPage() {
                 required
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-800 placeholder-gray-400 focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500 transition-all"
+                className="w-full px-4 py-3 bg-primary-50/50 border border-[#e0e0d9] rounded-xl text-[#2d332f] placeholder-[#9a9e96] focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500 transition-all"
                 placeholder="ornek@email.com"
               />
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="password" className="block text-sm font-medium text-[#2d332f] mb-2">
                 Şifre
               </label>
               <input
@@ -86,7 +86,7 @@ export default function LoginPage() {
                 required
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-800 placeholder-gray-400 focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500 transition-all"
+                className="w-full px-4 py-3 bg-primary-50/50 border border-[#e0e0d9] rounded-xl text-[#2d332f] placeholder-[#9a9e96] focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500 transition-all"
                 placeholder="••••••••"
               />
             </div>
@@ -101,7 +101,7 @@ export default function LoginPage() {
           </form>
 
           <div className="mt-6 text-center">
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-[#7a7e76]">
               Hesabınız yok mu?{' '}
               <Link href="/register" className="text-primary-600 hover:text-primary-700 font-medium transition-colors">
                 Kayıt Ol

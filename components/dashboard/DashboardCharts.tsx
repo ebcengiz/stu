@@ -29,13 +29,13 @@ export default function DashboardCharts({ topProducts, warehouseStats }: Dashboa
   const totalMetric = warehouseStats.reduce((sum, w) => sum + (pieMetric === 'value' ? w.totalValueTRY : w.totalQty), 0) || 1
   
   const colors = [
-    '#818cf8',
-    '#34d399',
-    '#fbbf24',
-    '#f87171',
-    '#a78bfa',
-    '#f472b6',
-    '#22d3ee',
+    '#5D866C',
+    '#8db3a0',
+    '#b3ccbe',
+    '#3d5847',
+    '#739c84',
+    '#d6e2db',
+    '#283b2f',
   ] as const
 
   const pieSlices = warehouseStats.reduce<
@@ -94,7 +94,7 @@ export default function DashboardCharts({ topProducts, warehouseStats }: Dashboa
                 </div>
                 <div className="h-2.5 w-full bg-gray-100/60 rounded-full overflow-hidden">
                   <div 
-                    className="h-full bg-indigo-500 rounded-full transition-all duration-1000 ease-out"
+                    className="h-full bg-primary-500 rounded-full transition-all duration-1000 ease-out"
                     style={{ width: `${(product.stock / maxStock) * 100}%` }}
                   />
                 </div>
@@ -119,7 +119,7 @@ export default function DashboardCharts({ topProducts, warehouseStats }: Dashboa
               <button
                 onClick={() => setPieMetric('value')}
                 className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${
-                  pieMetric === 'value' ? 'bg-slate-600 shadow text-gray-800' : 'text-gray-500 hover:text-gray-600'
+                  pieMetric === 'value' ? 'bg-primary-600 shadow text-gray-800' : 'text-gray-500 hover:text-gray-600'
                 }`}
               >
                 Değer (₺)
@@ -127,7 +127,7 @@ export default function DashboardCharts({ topProducts, warehouseStats }: Dashboa
               <button
                 onClick={() => setPieMetric('qty')}
                 className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${
-                  pieMetric === 'qty' ? 'bg-slate-600 shadow text-gray-800' : 'text-gray-500 hover:text-gray-600'
+                  pieMetric === 'qty' ? 'bg-primary-600 shadow text-gray-800' : 'text-gray-500 hover:text-gray-600'
                 }`}
               >
                 Miktar

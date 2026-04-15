@@ -190,7 +190,7 @@ export default function CategoriesPage() {
                         <span className="inline-flex items-center px-3 py-1 rounded-xl text-[10px] font-black bg-primary-50 text-primary-600 border border-primary-100">
                           {category.product_count || 0} ÜRÜN
                         </span>
-                        <span className="inline-flex items-center px-3 py-1 rounded-xl text-[10px] font-black bg-emerald-50 text-emerald-600 border border-emerald-100">
+                        <span className="inline-flex items-center px-3 py-1 rounded-xl text-[10px] font-black bg-primary-50 text-primary-600 border border-primary-100">
                           {Number(category.total_stock || 0).toLocaleString('tr-TR')} ADET STOK
                         </span>
                       </div>
@@ -340,7 +340,7 @@ export default function CategoriesPage() {
                                 <span className={`inline-flex items-center px-3 py-1 rounded-xl text-[10px] font-black ${
                                   totalStock <= 0 
                                     ? 'bg-red-50 text-red-700 border border-red-100' 
-                                    : 'bg-emerald-50 text-emerald-700 border border-emerald-100'
+                                    : 'bg-primary-50 text-primary-700 border border-primary-100'
                                 } uppercase`}>
                                   {totalStock} {product.unit}
                                 </span>

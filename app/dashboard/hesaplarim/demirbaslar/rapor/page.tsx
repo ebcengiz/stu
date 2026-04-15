@@ -100,7 +100,7 @@ export default function DemirbaslarRaporPage() {
       head: [['Demirbaş adı', 'Açıklama', 'Seri / plaka', 'Alış tarihi', 'Fiyat']],
       body,
       styles: { fontSize: 8, cellPadding: 2 },
-      headStyles: { fillColor: [30, 58, 95] },
+      headStyles: { fillColor: [61, 88, 71] },
     })
 
     doc.save(`demirbaslar-rapor-${new Date().toISOString().slice(0, 10)}.pdf`)
@@ -112,7 +112,7 @@ export default function DemirbaslarRaporPage() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <Link
           href="/dashboard/hesaplarim/demirbaslar"
-          className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-emerald-700"
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-primary-700"
         >
           <ArrowLeft className="h-4 w-4" />
           Demirbaşlara dön
@@ -129,7 +129,7 @@ export default function DemirbaslarRaporPage() {
           <button
             type="button"
             onClick={exportExcel}
-            className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700"
+            className="inline-flex items-center gap-2 rounded-lg bg-primary-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-700"
           >
             <FileSpreadsheet className="h-4 w-4" />
             Excel
@@ -164,7 +164,7 @@ export default function DemirbaslarRaporPage() {
           <div className="w-full overflow-x-auto">
             <table className="w-full min-w-[900px] table-auto border-collapse text-sm">
               <thead>
-                <tr className="bg-[#1e3a5f] text-left text-xs font-bold uppercase tracking-wide text-white print:bg-gray-100 print:text-white">
+                <tr className="bg-[#3d5847] text-left text-xs font-bold uppercase tracking-wide text-white print:bg-gray-100 print:text-white">
                   <th className="px-3 py-2.5">Demirbaş adı</th>
                   <th className="px-3 py-2.5">Açıklama</th>
                   <th className="px-3 py-2.5">Seri / plaka</th>

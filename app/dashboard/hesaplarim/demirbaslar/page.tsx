@@ -72,7 +72,7 @@ export default function DemirbaslarPage() {
           <button
             type="button"
             onClick={openCreate}
-            className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700"
+            className="inline-flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-primary-700"
           >
             <Plus className="h-4 w-4" />
             Yeni Demirbaş Ekle
@@ -81,7 +81,7 @@ export default function DemirbaslarPage() {
             href="/dashboard/hesaplarim/demirbaslar/rapor"
             className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-800 shadow-sm transition hover:border-gray-200 hover:bg-gray-50"
           >
-            <BarChart3 className="h-4 w-4 text-emerald-600" />
+            <BarChart3 className="h-4 w-4 text-primary-600" />
             Rapor
           </Link>
         </div>
@@ -106,7 +106,7 @@ export default function DemirbaslarPage() {
               <button
                 type="button"
                 onClick={openCreate}
-                className="mr-1 inline-flex align-middle items-center gap-1 rounded-md bg-emerald-600 px-2 py-1 text-xs font-semibold text-white shadow-sm transition hover:bg-emerald-700"
+                className="mr-1 inline-flex align-middle items-center gap-1 rounded-md bg-primary-600 px-2 py-1 text-xs font-semibold text-white shadow-sm transition hover:bg-primary-700"
               >
                 <Plus className="h-3.5 w-3.5" />
                 Yeni Demirbaş Ekle
@@ -125,7 +125,7 @@ export default function DemirbaslarPage() {
           <div className="w-full overflow-x-auto">
             <table className="w-full min-w-[560px] table-auto border-collapse text-sm">
               <thead>
-                <tr className="bg-[#1e3a5f] text-left text-xs font-bold uppercase tracking-wide text-white">
+                <tr className="bg-[#3d5847] text-left text-xs font-bold uppercase tracking-wide text-white">
                   <th className="px-3 py-2.5">Demirbaş adı</th>
                   <th className="px-3 py-2.5">Seri / plaka</th>
                   <th className="px-3 py-2.5">Alış tarihi</th>

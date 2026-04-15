@@ -139,13 +139,13 @@ export default function StockMovementsPage() {
   const getMovementIcon = (type: string) => {
     switch (type) {
       case 'in':
-        return <ArrowDownCircle className="h-5 w-5 text-green-600" />
+        return <ArrowDownCircle className="h-5 w-5 text-primary-600" />
       case 'out':
         return <ArrowUpCircle className="h-5 w-5 text-red-600" />
       case 'transfer':
         return <ArrowRightLeft className="h-5 w-5 text-primary-600" />
       case 'adjustment':
-        return <Settings className="h-5 w-5 text-orange-600" />
+        return <Settings className="h-5 w-5 text-primary-600" />
       default:
         return null
     }

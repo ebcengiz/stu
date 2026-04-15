@@ -7,7 +7,7 @@ import TrNumberInput from '@/components/ui/TrNumberInput'
 import { looseToTrInputString, parseTrNumberInput } from '@/lib/tr-number-input'
 
 const inputClass =
-  'w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20'
+  'w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20'
 
 export type FixedAssetModalValues = {
   id?: string
@@ -105,7 +105,7 @@ export default function FixedAssetModal({
   if (!open) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-3" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/40 p-3" onClick={onClose}>
       <div
         className="flex max-h-[min(90vh,640px)] w-full max-w-lg flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-xl"
         onClick={(e) => e.stopPropagation()}
@@ -115,7 +115,7 @@ export default function FixedAssetModal({
       >
         <div
           className="flex items-center justify-between px-3 py-2.5"
-          style={{ backgroundColor: '#76D7B5' }}
+          style={{ backgroundColor: '#5D866C' }}
         >
           <h2 id="fixed-asset-modal-title" className="text-sm font-bold text-white">
             Demirbaş Tanımı
@@ -133,7 +133,7 @@ export default function FixedAssetModal({
         <form onSubmit={submit} className="flex min-h-0 flex-1 flex-col overflow-y-auto">
           <div className="space-y-3 p-4">
             <div>
-              <label className="mb-1 block text-xs font-semibold text-slate-600">Demirbaş adı</label>
+              <label className="mb-1 block text-xs font-semibold text-gray-600">Demirbaş adı</label>
               <input
                 value={form.name}
                 onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
@@ -142,7 +142,7 @@ export default function FixedAssetModal({
               />
             </div>
             <div>
-              <label className="mb-1 block text-xs font-semibold text-slate-600">Açıklaması</label>
+              <label className="mb-1 block text-xs font-semibold text-gray-600">Açıklaması</label>
               <textarea
                 value={form.description}
                 onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
@@ -151,7 +151,7 @@ export default function FixedAssetModal({
               />
             </div>
             <div>
-              <label className="mb-1 block text-xs font-semibold text-slate-600">Seri No</label>
+              <label className="mb-1 block text-xs font-semibold text-gray-600">Seri No</label>
               <input
                 value={form.serial_no}
                 onChange={(e) => setForm((f) => ({ ...f, serial_no: e.target.value }))}
@@ -160,9 +160,9 @@ export default function FixedAssetModal({
               />
             </div>
             <div>
-              <label className="mb-1 block text-xs font-semibold text-slate-600">
+              <label className="mb-1 block text-xs font-semibold text-gray-600">
                 Alış tarihi{' '}
-                <span className="font-normal text-slate-400">(isteğe bağlı)</span>
+                <span className="font-normal text-gray-400">(isteğe bağlı)</span>
               </label>
               <input
                 type="date"
@@ -172,9 +172,9 @@ export default function FixedAssetModal({
               />
             </div>
             <div>
-              <label className="mb-1 block text-xs font-semibold text-slate-600">
+              <label className="mb-1 block text-xs font-semibold text-gray-600">
                 Fiyatı{' '}
-                <span className="font-normal text-slate-400">(isteğe bağlı)</span>
+                <span className="font-normal text-gray-400">(isteğe bağlı)</span>
               </label>
               <TrNumberInput
                 value={form.price}
@@ -184,7 +184,7 @@ export default function FixedAssetModal({
               />
             </div>
             <div>
-              <label className="mb-1 block text-xs font-semibold text-slate-600">Not</label>
+              <label className="mb-1 block text-xs font-semibold text-gray-600">Not</label>
               <textarea
                 value={form.notes}
                 onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
@@ -195,11 +195,11 @@ export default function FixedAssetModal({
             </div>
           </div>
 
-          <div className="flex justify-end gap-2 border-t border-gray-100 bg-slate-50/80 px-4 py-3">
+          <div className="flex justify-end gap-2 border-t border-gray-100 bg-gray-50/80 px-4 py-3">
             <button
               type="button"
               onClick={onClose}
-              className="inline-flex items-center gap-1.5 rounded-lg bg-orange-500 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-orange-600"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-primary-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-700"
             >
               <X className="h-4 w-4" />
               Vazgeç
@@ -207,7 +207,7 @@ export default function FixedAssetModal({
             <button
               type="submit"
               disabled={saving}
-              className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700 disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-primary-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-700 disabled:opacity-50"
             >
               <Check className="h-4 w-4" />
               Kaydet

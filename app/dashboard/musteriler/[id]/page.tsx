@@ -638,7 +638,7 @@ export default function CustomerDetailPage() {
                   <h1 className="text-xl sm:text-2xl font-black text-gray-900 tracking-tight">{customer.company_name}</h1>
                   <div className="flex gap-2">
                     {customer.category1 && <span className="inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-bold bg-primary-50 text-primary-700 border border-primary-100">{customer.category1}</span>}
-                    {customer.category2 && <span className="inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-bold bg-purple-50 text-purple-700 border border-purple-100">{customer.category2}</span>}
+                    {customer.category2 && <span className="inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-bold bg-primary-50 text-primary-700 border border-primary-100">{customer.category2}</span>}
                   </div>
                 </div>
               </div>
@@ -717,7 +717,7 @@ export default function CustomerDetailPage() {
           <CardBody className="p-4">
             <div className="flex justify-between items-start">
               <h3 className="text-gray-500 font-bold text-xs uppercase tracking-wider">Toplam Ciro (Satış)</h3>
-              <div className="p-1.5 bg-green-50 rounded-xl"><ShoppingCart className="h-4 w-4 text-green-500" /></div>
+              <div className="p-1.5 bg-primary-50 rounded-xl"><ShoppingCart className="h-4 w-4 text-primary-500" /></div>
             </div>
             <div className="mt-3">
               <div className="text-2xl font-black text-gray-900 tracking-tight">{ciro.toLocaleString('tr-TR', { minimumFractionDigits: 2 })}</div>
@@ -743,16 +743,16 @@ export default function CustomerDetailPage() {
 
         {/* Tahsilat/Ödeme (Accordion/Dropdown) */}
         <div className="relative">
-          <button onClick={() => { setShowPaymentMenu(!showPaymentMenu); setShowOtherMenu(false); }} className={`w-full h-full flex flex-col items-center justify-center p-3 bg-white rounded-xl border-2 transition-all group shadow-sm ${showPaymentMenu ? 'border-emerald-300 bg-emerald-50' : 'border-gray-100 hover:border-emerald-300 hover:bg-emerald-50'}`}>
-            <div className={`p-3 rounded-full transition-colors mb-1 ${showPaymentMenu ? 'bg-emerald-200/50' : 'bg-emerald-100/50 group-hover:bg-emerald-200/50'}`}><CreditCard className="h-5 w-5 text-emerald-600" /></div>
-            <div className="flex items-center gap-1 font-bold text-[13px] text-gray-900 group-hover:text-emerald-700">Tahsilat / Ödeme <ChevronDown className="h-3.5 w-3.5" /></div>
+          <button onClick={() => { setShowPaymentMenu(!showPaymentMenu); setShowOtherMenu(false); }} className={`w-full h-full flex flex-col items-center justify-center p-3 bg-white rounded-xl border-2 transition-all group shadow-sm ${showPaymentMenu ? 'border-primary-300 bg-primary-50' : 'border-gray-100 hover:border-primary-300 hover:bg-primary-50'}`}>
+            <div className={`p-3 rounded-full transition-colors mb-1 ${showPaymentMenu ? 'bg-primary-200/50' : 'bg-primary-100/50 group-hover:bg-primary-200/50'}`}><CreditCard className="h-5 w-5 text-primary-600" /></div>
+            <div className="flex items-center gap-1 font-bold text-[13px] text-gray-900 group-hover:text-primary-700">Tahsilat / Ödeme <ChevronDown className="h-3.5 w-3.5" /></div>
           </button>
           
           {showPaymentMenu && (
             <>
               <div className="fixed inset-0 z-40" onClick={() => setShowPaymentMenu(false)} />
               <div className="absolute top-full left-0 w-full mt-2 bg-white rounded-xl shadow-xl border border-gray-100 z-50 overflow-hidden animate-in fade-in slide-in-from-top-2">
-                <button onClick={() => { setShowPaymentMenu(false); setTxForm({...txForm, type: 'payment', payment_method: 'cash', payment_account_id: ''}); setShowPaymentModal(true); }} className="w-full text-left px-4 py-3 font-bold text-sm text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 border-b border-gray-50 flex items-center gap-3"><DollarSign className="h-4 w-4" /> Nakit - Kredi Kartı - Banka</button>
+                <button onClick={() => { setShowPaymentMenu(false); setTxForm({...txForm, type: 'payment', payment_method: 'cash', payment_account_id: ''}); setShowPaymentModal(true); }} className="w-full text-left px-4 py-3 font-bold text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-700 border-b border-gray-50 flex items-center gap-3"><DollarSign className="h-4 w-4" /> Nakit - Kredi Kartı - Banka</button>
                 <button onClick={() => { setShowPaymentMenu(false); setTxForm({...txForm, type: 'payment', payment_method: 'cheque', payment_account_id: ''}); setShowPaymentModal(true); setShowChequeModal(true); }} className="w-full text-left px-4 py-3 font-bold text-sm text-gray-700 hover:bg-amber-50 hover:text-amber-700 border-b border-gray-50 flex items-center gap-3"><FileText className="h-4 w-4" /> Çek Girişi</button>
                 <button onClick={() => { setShowPaymentMenu(false); setShowBalanceFixModal(true); }} className="w-full text-left px-4 py-3 font-bold text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-700 flex items-center gap-3"><Scale className="h-4 w-4" /> Bakiye Düzelt</button>
               </div>
@@ -761,9 +761,9 @@ export default function CustomerDetailPage() {
         </div>
 
         {/* Hesap Ekstresi */}
-        <button onClick={() => setShowLedgerModal(true)} className="flex flex-col items-center justify-center p-3 bg-white rounded-xl border-2 border-gray-100 hover:border-purple-300 hover:bg-purple-50 transition-all group shadow-sm">
-          <div className="p-3 bg-purple-100/50 rounded-full group-hover:bg-purple-200/50 transition-colors mb-1"><History className="h-5 w-5 text-purple-600" /></div>
-          <span className="font-bold text-[13px] text-gray-900 group-hover:text-purple-700">Hesap Ekstresi</span>
+        <button onClick={() => setShowLedgerModal(true)} className="flex flex-col items-center justify-center p-3 bg-white rounded-xl border-2 border-gray-100 hover:border-primary-300 hover:bg-primary-50 transition-all group shadow-sm">
+          <div className="p-3 bg-primary-100/50 rounded-full group-hover:bg-primary-200/50 transition-colors mb-1"><History className="h-5 w-5 text-primary-600" /></div>
+          <span className="font-bold text-[13px] text-gray-900 group-hover:text-primary-700">Hesap Ekstresi</span>
         </button>
 
         {/* Diğer İşlemler (Accordion/Dropdown) */}
@@ -815,7 +815,7 @@ export default function CustomerDetailPage() {
         {/* Önceki Ödemeler */}
         <Card className="shadow-sm border-gray-200">
           <CardHeader className="bg-gray-50/50 border-b py-3">
-            <CardTitle className="text-base font-bold text-gray-900 flex items-center gap-2"><CreditCard className="h-5 w-5 text-emerald-500" /> Önceki Ödemeleri</CardTitle>
+            <CardTitle className="text-base font-bold text-gray-900 flex items-center gap-2"><CreditCard className="h-5 w-5 text-primary-500" /> Önceki Ödemeleri</CardTitle>
           </CardHeader>
           <CardBody className="p-0">
             <div className="max-h-[400px] overflow-y-auto">
@@ -826,7 +826,7 @@ export default function CustomerDetailPage() {
                     <tr key={t.id} onClick={() => { setSelectedTx(t); setShowTxDetailModal(true); }} className="hover:bg-gray-50 cursor-pointer">
                       <td className="px-4 py-2.5 text-sm text-gray-600 font-medium">{new Date(t.transaction_date || t.date || '').toLocaleDateString('tr-TR')}</td>
                       <td className="px-4 py-2.5 text-xs font-bold text-gray-500 uppercase">{t.payment_method === 'cash' ? 'Nakit' : t.payment_method === 'cheque' ? 'Çek' : t.payment_method === 'credit_card' ? 'K.Kartı' : t.payment_method === 'bank_transfer' ? 'Banka' : 'Diğer'}</td>
-                      <td className="px-4 py-2.5 text-sm font-bold text-right text-emerald-600">{Number(t.amount).toLocaleString('tr-TR', { minimumFractionDigits: 2 })} {getCurrencySymbol(t.currency)}</td>
+                      <td className="px-4 py-2.5 text-sm font-bold text-right text-primary-600">{Number(t.amount).toLocaleString('tr-TR', { minimumFractionDigits: 2 })} {getCurrencySymbol(t.currency)}</td>
                     </tr>
                   )) : <tr><td colSpan={3} className="px-4 py-6 text-center text-sm text-gray-500">Kayıt bulunamadı.</td></tr>}
                 </tbody>
@@ -838,7 +838,7 @@ export default function CustomerDetailPage() {
         {/* Alışlar / İadeler */}
         <Card className="shadow-sm border-gray-200">
           <CardHeader className="bg-gray-50/50 border-b py-3">
-            <CardTitle className="text-base font-bold text-gray-900 flex items-center gap-2"><Package className="h-5 w-5 text-purple-500" /> Alışlar / İadeler</CardTitle>
+            <CardTitle className="text-base font-bold text-gray-900 flex items-center gap-2"><Package className="h-5 w-5 text-primary-500" /> Alışlar / İadeler</CardTitle>
           </CardHeader>
           <CardBody className="p-0">
             <div className="max-h-[400px] overflow-y-auto">
@@ -965,10 +965,10 @@ export default function CustomerDetailPage() {
       {showPaymentModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
           <Card className="w-full max-w-2xl shadow-2xl rounded-3xl border-0 animate-in zoom-in duration-300">
-            <CardHeader className="bg-emerald-600 text-white rounded-t-3xl py-6 px-8 flex flex-row items-center justify-between">
+            <CardHeader className="bg-primary-600 text-white rounded-t-3xl py-6 px-8 flex flex-row items-center justify-between">
               <div>
                 <CardTitle className="text-xl font-bold flex items-center gap-3"><CreditCard className="h-6 w-6" /> Tahsilat / Ödeme Girişi</CardTitle>
-                <p className="text-xs text-emerald-100 mt-1">Müşteriden alınan ödemeyi kaydedin</p>
+                <p className="text-xs text-primary-100 mt-1">Müşteriden alınan ödemeyi kaydedin</p>
               </div>
               <button onClick={() => setShowPaymentModal(false)} className="p-2 hover:bg-gray-100 rounded-full transition-all"><X className="h-6 w-6 text-white" /></button>
             </CardHeader>
@@ -984,7 +984,7 @@ export default function CustomerDetailPage() {
                       required
                       value={txForm.payment_account_id}
                       onChange={e => setTxForm({ ...txForm, payment_account_id: e.target.value })}
-                      className="w-full px-4 py-3.5 border-2 border-gray-100 rounded-2xl focus:border-emerald-500 outline-none font-semibold text-gray-900 bg-white"
+                      className="w-full px-4 py-3.5 border-2 border-gray-100 rounded-2xl focus:border-primary-500 outline-none font-semibold text-gray-900 bg-white"
                     >
                       <option value="">Hesap seçin</option>
                       {customerPaymentAccountGroups.map((group) => (
@@ -1006,7 +1006,7 @@ export default function CustomerDetailPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <label className="block text-xs font-black text-gray-400 uppercase tracking-widest px-1">İşlem Tarihi</label>
-                    <input type="date" required value={txForm.transaction_date} onChange={e => setTxForm({...txForm, transaction_date: e.target.value})} className="w-full px-4 py-3.5 border-2 border-gray-100 rounded-2xl focus:border-emerald-500 outline-none font-bold" />
+                    <input type="date" required value={txForm.transaction_date} onChange={e => setTxForm({...txForm, transaction_date: e.target.value})} className="w-full px-4 py-3.5 border-2 border-gray-100 rounded-2xl focus:border-primary-500 outline-none font-bold" />
                   </div>
                   <div className="space-y-2">
                     <label className="block text-xs font-black text-gray-400 uppercase tracking-widest px-1">Tutar ({getCurrencySymbol(customer.currency)}) *</label>
@@ -1014,7 +1014,7 @@ export default function CustomerDetailPage() {
                       required
                       value={txForm.amount}
                       onChange={(v) => setTxForm({ ...txForm, amount: v })}
-                      className="w-full px-4 py-3.5 border-2 border-emerald-100 rounded-2xl bg-emerald-50/30 text-xl font-black text-emerald-900 focus:border-emerald-500 outline-none placeholder-emerald-200"
+                      className="w-full px-4 py-3.5 border-2 border-primary-100 rounded-2xl bg-primary-50/30 text-xl font-black text-primary-900 focus:border-primary-500 outline-none placeholder-primary-200"
                       placeholder="0,00"
                     />
                     {paymentAmountWordsLine ? (
@@ -1043,7 +1043,7 @@ export default function CustomerDetailPage() {
                   <textarea placeholder="Örn: Nisan ayı taksidi..." value={txForm.description} onChange={e => setTxForm({...txForm, description: e.target.value})} className="w-full px-4 py-3 border-2 border-gray-100 rounded-2xl outline-none h-24 resize-none" />
                 </div>
 
-                <div className="flex justify-end gap-3 pt-6 border-t"><Button type="button" variant="outline" onClick={() => setShowPaymentModal(false)} className="h-12 px-6 rounded-xl font-bold">Vazgeç</Button><Button type="submit" disabled={saving || !txForm.amount || (txForm.payment_method !== 'cheque' && !txForm.payment_account_id)} className="h-12 px-8 rounded-xl font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg">{saving ? 'Kaydediliyor...' : 'Ödemeyi Kaydet'}</Button></div>
+                <div className="flex justify-end gap-3 pt-6 border-t"><Button type="button" variant="outline" onClick={() => setShowPaymentModal(false)} className="h-12 px-6 rounded-xl font-bold">Vazgeç</Button><Button type="submit" disabled={saving || !txForm.amount || (txForm.payment_method !== 'cheque' && !txForm.payment_account_id)} className="h-12 px-8 rounded-xl font-bold bg-primary-600 hover:bg-primary-700 text-white shadow-lg">{saving ? 'Kaydediliyor...' : 'Ödemeyi Kaydet'}</Button></div>
               </form>
             </CardBody>
           </Card>
@@ -1068,7 +1068,7 @@ export default function CustomerDetailPage() {
                   <button type="button" onClick={() => setBalanceFixForm({...balanceFixForm, type: 'increase'})} className={`p-4 border-2 rounded-2xl flex flex-col items-center justify-center gap-2 transition-all ${balanceFixForm.type === 'increase' ? 'border-primary-500 bg-primary-50 text-primary-700' : 'border-gray-100 text-gray-500 hover:border-gray-300'}`}>
                     <span className="font-black text-lg">+</span><span className="text-xs font-bold uppercase tracking-wider text-center">Müşteriyi<br/>Borçlandır</span>
                   </button>
-                  <button type="button" onClick={() => setBalanceFixForm({...balanceFixForm, type: 'decrease'})} className={`p-4 border-2 rounded-2xl flex flex-col items-center justify-center gap-2 transition-all ${balanceFixForm.type === 'decrease' ? 'border-emerald-500 bg-emerald-50 text-emerald-700' : 'border-gray-100 text-gray-500 hover:border-gray-300'}`}>
+                  <button type="button" onClick={() => setBalanceFixForm({...balanceFixForm, type: 'decrease'})} className={`p-4 border-2 rounded-2xl flex flex-col items-center justify-center gap-2 transition-all ${balanceFixForm.type === 'decrease' ? 'border-primary-500 bg-primary-50 text-primary-700' : 'border-gray-100 text-gray-500 hover:border-gray-300'}`}>
                     <span className="font-black text-lg">-</span><span className="text-xs font-bold uppercase tracking-wider text-center">Müşteriyi<br/>Alacaklandır</span>
                   </button>
                 </div>
@@ -1117,9 +1117,9 @@ export default function CustomerDetailPage() {
                     <tr key={tx.id} onClick={() => { setSelectedTx(tx); setShowTxDetailModal(true); }} className="hover:bg-gray-50 transition-colors cursor-pointer group">
                       <td className="px-6 py-4 text-sm text-gray-900 whitespace-nowrap font-medium group-hover:text-primary-600">{new Date(tx.transaction_date || tx.date || '').toLocaleDateString('tr-TR')}</td>
                       <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">{tx.document_number || tx.document_no || '-'}</td>
-                      <td className="px-6 py-4 whitespace-nowrap"><span className={`px-3 py-1 rounded-lg text-xs font-bold ${tx.isDebt ? 'bg-primary-50 text-primary-700' : 'bg-emerald-50 text-emerald-700'}`}>{tx.isDebt ? 'Borçlandırma' : 'Alacaklandırma'}</span></td>
+                      <td className="px-6 py-4 whitespace-nowrap"><span className={`px-3 py-1 rounded-lg text-xs font-bold ${tx.isDebt ? 'bg-primary-50 text-primary-700' : 'bg-primary-50 text-primary-700'}`}>{tx.isDebt ? 'Borçlandırma' : 'Alacaklandırma'}</span></td>
                       <td className="px-6 py-4 text-sm text-gray-500 truncate max-w-xs">{tx.description || '-'}</td>
-                      <td className={`px-6 py-4 text-sm font-bold text-right whitespace-nowrap ${tx.isDebt ? 'text-gray-900' : 'text-emerald-600'}`}>{tx.isDebt ? '+' : '-'}{Number(tx.amount).toLocaleString('tr-TR', { minimumFractionDigits: 2 })} {getCurrencySymbol(tx.currency)}</td>
+                      <td className={`px-6 py-4 text-sm font-bold text-right whitespace-nowrap ${tx.isDebt ? 'text-gray-900' : 'text-primary-600'}`}>{tx.isDebt ? '+' : '-'}{Number(tx.amount).toLocaleString('tr-TR', { minimumFractionDigits: 2 })} {getCurrencySymbol(tx.currency)}</td>
                       <td className="px-6 py-4 text-sm font-black text-right text-gray-900 whitespace-nowrap bg-gray-50/50">{tx.balance.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} {getCurrencySymbol(customer.currency)}</td>
                     </tr>
                   ))}
@@ -1187,7 +1187,7 @@ export default function CustomerDetailPage() {
       {showTxDetailModal && selectedTx && (
         <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-[130] p-4 animate-in fade-in duration-300">
           <Card className="w-full max-w-3xl shadow-xl shadow-gray-200/50 animate-in zoom-in duration-300 rounded-2xl overflow-hidden">
-            <CardHeader className={`${selectedTx.type === 'sale' || selectedTx.type === 'invoice' ? 'bg-primary-600' : 'bg-emerald-600'} text-white flex flex-row items-center justify-between py-5 px-8 border-0`}>
+            <CardHeader className={`${selectedTx.type === 'sale' || selectedTx.type === 'invoice' ? 'bg-primary-600' : 'bg-primary-600'} text-white flex flex-row items-center justify-between py-5 px-8 border-0`}>
               <div className="flex items-center gap-4">
                 <div className="p-3 bg-gray-100 rounded-2xl backdrop-blur-md">
                   {selectedTx.type === 'sale' || selectedTx.type === 'invoice' ? <ShoppingCart className="h-6 w-6 text-white" /> : <CreditCard className="h-6 w-6 text-white" />}

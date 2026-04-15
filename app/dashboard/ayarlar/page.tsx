@@ -76,8 +76,8 @@ export default async function AdminPage() {
         <Card>
           <CardBody>
             <div className="flex items-start gap-4">
-              <div className="p-3 bg-green-100 rounded-lg">
-                <Building className="h-6 w-6 text-green-600" />
+              <div className="p-3 bg-primary-100 rounded-lg">
+                <Building className="h-6 w-6 text-primary-600" />
               </div>
               <div className="flex-1">
                 <h3 className="font-semibold text-gray-900">Firma</h3>
@@ -95,8 +95,8 @@ export default async function AdminPage() {
         <Card>
           <CardBody>
             <div className="flex items-start gap-4">
-              <div className="p-3 bg-purple-100 rounded-lg">
-                <SettingsIcon className="h-6 w-6 text-purple-600" />
+              <div className="p-3 bg-primary-100 rounded-lg">
+                <SettingsIcon className="h-6 w-6 text-primary-600" />
               </div>
               <div className="flex-1">
                 <h3 className="font-semibold text-gray-900">Sistem</h3>
@@ -129,8 +129,8 @@ export default async function AdminPage() {
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-green-100 rounded">
-                <Warehouse className="h-5 w-5 text-green-600" />
+              <div className="p-2 bg-primary-100 rounded">
+                <Warehouse className="h-5 w-5 text-primary-600" />
               </div>
               <div>
                 <p className="text-sm text-gray-500">Toplam Depo</p>
@@ -138,8 +138,8 @@ export default async function AdminPage() {
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-purple-100 rounded">
-                <ArrowLeftRight className="h-5 w-5 text-purple-600" />
+              <div className="p-2 bg-primary-100 rounded">
+                <ArrowLeftRight className="h-5 w-5 text-primary-600" />
               </div>
               <div>
                 <p className="text-sm text-gray-500">Toplam Hareket</p>
@@ -175,7 +175,7 @@ export default async function AdminPage() {
               <span className="text-sm font-medium text-gray-500">Durum:</span>
               <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
                 tenant?.is_active
-                  ? 'bg-green-100 text-green-800'
+                  ? 'bg-primary-100 text-primary-800'
                   : 'bg-red-100 text-red-800'
               }`}>
                 {tenant?.is_active ? 'Aktif' : 'Pasif'}

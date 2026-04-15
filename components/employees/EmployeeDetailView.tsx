@@ -176,16 +176,16 @@ export default function EmployeeDetailView({ employeeId }: { employeeId: string 
           role="dialog"
           aria-labelledby={`cari-del-title-${t.id}`}
         >
-          <p id={`cari-del-title-${t.id}`} className="text-sm font-semibold text-slate-900">
+          <p id={`cari-del-title-${t.id}`} className="text-sm font-semibold text-gray-900">
             Bu hareketi silmek istiyor musunuz?
           </p>
-          <p className="mt-1.5 text-xs leading-relaxed text-slate-600">
+          <p className="mt-1.5 text-xs leading-relaxed text-gray-600">
             Kasa veya banka hesabı bağlıysa bakiye otomatik güncellenir.
           </p>
           <div className="mt-4 flex justify-end gap-2">
             <button
               type="button"
-              className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-gray-50"
+              className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 transition hover:bg-gray-50"
               onClick={() => toast.dismiss(t.id)}
             >
               İptal
@@ -533,7 +533,7 @@ export default function EmployeeDetailView({ employeeId }: { employeeId: string 
   if (loading || !emp) {
     return (
       <div className="mx-auto flex w-full min-w-0 max-w-full justify-center overflow-x-hidden py-24">
-        <div className="h-10 w-10 animate-spin rounded-full border-2 border-emerald-600 border-t-transparent" />
+        <div className="h-10 w-10 animate-spin rounded-full border-2 border-primary-600 border-t-transparent" />
       </div>
     )
   }
@@ -547,7 +547,7 @@ export default function EmployeeDetailView({ employeeId }: { employeeId: string 
         className="relative rounded-2xl border border-amber-900/10 shadow-md overflow-hidden"
         style={{
           background:
-            'linear-gradient(135deg, #e9dfd4 0%, #dccfbc 35%, #efe6dc 70%, #d4c4b0 100%)',
+            'linear-gradient(135deg, #eef3f0 0%, #d6e2db 35%, #F5F5F0 70%, #b3ccbe 100%)',
         }}
       >
         <div className="absolute inset-0 opacity-[0.15] pointer-events-none bg-[repeating-linear-gradient(90deg,transparent,transparent_2px,rgba(0,0,0,0.03)_2px,rgba(0,0,0,0.03)_4px)]" />
@@ -574,13 +574,13 @@ export default function EmployeeDetailView({ employeeId }: { employeeId: string 
             <h1 className="text-2xl md:text-3xl font-black text-gray-900 tracking-tight">{emp.name}</h1>
             {emp.phone && (
               <p className="flex items-center gap-2 text-gray-800 font-medium">
-                <Phone className="h-4 w-4 text-emerald-800 shrink-0" />
+                <Phone className="h-4 w-4 text-primary-800 shrink-0" />
                 {emp.phone}
               </p>
             )}
             {emp.email && (
               <p className="flex items-center gap-2 text-gray-800 font-medium break-all">
-                <Mail className="h-4 w-4 text-emerald-800 shrink-0" />
+                <Mail className="h-4 w-4 text-primary-800 shrink-0" />
                 {emp.email}
               </p>
             )}
@@ -597,7 +597,7 @@ export default function EmployeeDetailView({ employeeId }: { employeeId: string 
           <Button
             type="button"
             variant="outline"
-            className="rounded-lg border-sky-300 bg-sky-50 text-sky-800 hover:bg-sky-100 gap-2"
+            className="rounded-lg border-primary-300 bg-primary-50 text-primary-800 hover:bg-primary-100 gap-2"
           >
             <Pencil className="h-4 w-4" />
             Güncelle
@@ -607,7 +607,7 @@ export default function EmployeeDetailView({ employeeId }: { employeeId: string 
         <div className="relative">
           <Button
             type="button"
-            className="bg-emerald-600 hover:bg-emerald-700 text-white gap-1 rounded-lg"
+            className="bg-primary-600 hover:bg-primary-700 text-white gap-1 rounded-lg"
             onClick={() => setPaymentMenuOpen(!paymentMenuOpen)}
           >
             <Banknote className="h-4 w-4" />
@@ -640,13 +640,13 @@ export default function EmployeeDetailView({ employeeId }: { employeeId: string 
                 </button>
                 <button
                   type="button"
-                  className="w-full text-left px-4 py-3 text-sm font-semibold text-gray-800 hover:bg-emerald-50 flex items-center gap-2 border-b border-gray-50"
+                  className="w-full text-left px-4 py-3 text-sm font-semibold text-gray-800 hover:bg-primary-50 flex items-center gap-2 border-b border-gray-50"
                   onClick={() => {
                     setPaymentMenuOpen(false)
                     setModal({ kind: 'payment' })
                   }}
                 >
-                  <Banknote className="h-4 w-4 text-emerald-600" />
+                  <Banknote className="h-4 w-4 text-primary-600" />
                   Maaş/Prim Ödemesi
                 </button>
                 <button
@@ -662,13 +662,13 @@ export default function EmployeeDetailView({ employeeId }: { employeeId: string 
                 </button>
                 <button
                   type="button"
-                  className="w-full text-left px-4 py-3 text-sm font-semibold text-gray-800 hover:bg-emerald-50 flex items-center gap-2 border-b border-gray-50"
+                  className="w-full text-left px-4 py-3 text-sm font-semibold text-gray-800 hover:bg-primary-50 flex items-center gap-2 border-b border-gray-50"
                   onClick={() => {
                     setPaymentMenuOpen(false)
                     setModal({ kind: 'advance' })
                   }}
                 >
-                  <Undo2 className="h-4 w-4 text-emerald-600" />
+                  <Undo2 className="h-4 w-4 text-primary-600" />
                   Avans İadesi Al
                 </button>
                 <button
@@ -689,7 +689,7 @@ export default function EmployeeDetailView({ employeeId }: { employeeId: string 
 
         <Button
           type="button"
-          className="bg-orange-500 hover:bg-orange-600 text-white gap-2 rounded-lg"
+          className="bg-primary-600 hover:bg-primary-700 text-white gap-2 rounded-lg"
           onClick={() => setModal({ kind: 'expense' })}
         >
           <Plus className="h-4 w-4" />
@@ -699,7 +699,7 @@ export default function EmployeeDetailView({ employeeId }: { employeeId: string 
         <Button
           type="button"
           variant="outline"
-          className="rounded-lg bg-slate-800 text-white border-gray-900 hover:bg-gray-900 gap-2"
+          className="rounded-lg bg-gray-800 text-white border-gray-900 hover:bg-gray-900 gap-2"
           onClick={() => router.push(`/dashboard/hesaplarim/calisanlar/${employeeId}/ekstre`)}
         >
           <FileText className="h-4 w-4" />
@@ -709,7 +709,7 @@ export default function EmployeeDetailView({ employeeId }: { employeeId: string 
         <Button
           type="button"
           variant="outline"
-          className="rounded-lg border-violet-300 bg-violet-50 text-violet-900 hover:bg-violet-100 gap-2"
+          className="rounded-lg border-primary-300 bg-primary-50 text-primary-900 hover:bg-primary-100 gap-2"
           onClick={() => toast('SMS gönderimi yakında', { icon: '💬' })}
         >
           <MessageSquare className="h-4 w-4" />
@@ -719,7 +719,7 @@ export default function EmployeeDetailView({ employeeId }: { employeeId: string 
         <Button
           type="button"
           variant="outline"
-          className="rounded-lg border-teal-300 bg-teal-50 text-teal-900 hover:bg-teal-100 gap-2"
+          className="rounded-lg border-primary-300 bg-primary-50 text-primary-900 hover:bg-primary-100 gap-2"
           onClick={() => toast('Dökümanlar yakında', { icon: '📁' })}
         >
           <FolderOpen className="h-4 w-4" />
@@ -732,7 +732,7 @@ export default function EmployeeDetailView({ employeeId }: { employeeId: string 
         <button
           type="button"
           onClick={() => setCariOpen(!cariOpen)}
-          className="w-full flex items-center justify-between px-4 py-3 bg-slate-800 text-white font-black text-sm uppercase tracking-wider"
+          className="w-full flex items-center justify-between px-4 py-3 bg-gray-800 text-white font-black text-sm uppercase tracking-wider"
         >
           <span>Önceki Cari İşlemleri</span>
           <ChevronDown className={`h-5 w-5 transition-transform ${cariOpen ? 'rotate-180' : ''}`} />
@@ -743,7 +743,7 @@ export default function EmployeeDetailView({ employeeId }: { employeeId: string 
               <div className="space-y-1">
                 <p className="text-sm font-bold text-gray-800">
                   Güncel bakiye:{' '}
-                  <span className={balance >= 0 ? 'text-emerald-700' : 'text-red-700'}>
+                  <span className={balance >= 0 ? 'text-primary-700' : 'text-red-700'}>
                     {formatMoney(balance, currency)}
                   </span>
                 </p>
@@ -796,7 +796,7 @@ export default function EmployeeDetailView({ employeeId }: { employeeId: string 
                         </td>
                         <td
                           className={`px-3 py-2 text-right font-semibold tabular-nums ${
-                            balance <= 0 ? 'text-red-700' : 'text-emerald-700'
+                            balance <= 0 ? 'text-red-700' : 'text-primary-700'
                           }`}
                         >
                           {formatMoney(balance, currency)}
@@ -826,7 +826,7 @@ export default function EmployeeDetailView({ employeeId }: { employeeId: string 
       <div className="flex gap-2">
         <Link
           href="/dashboard/hesaplarim/calisanlar"
-          className="text-sm font-semibold text-sky-700 hover:underline"
+          className="text-sm font-semibold text-primary-700 hover:underline"
         >
           ← Çalışanlar listesine dön
         </Link>
@@ -836,7 +836,7 @@ export default function EmployeeDetailView({ employeeId }: { employeeId: string 
       {modal?.kind === 'accrual' && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50">
           <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden border border-gray-100">
-            <div className="flex items-center justify-between px-5 py-4 bg-emerald-600 text-white">
+            <div className="flex items-center justify-between px-5 py-4 bg-primary-600 text-white">
               <h3 className="text-lg font-black tracking-tight">Maaş / Prim Tahakkuku</h3>
               <button
                 type="button"
@@ -879,7 +879,7 @@ export default function EmployeeDetailView({ employeeId }: { employeeId: string 
                 <label className="block text-xs font-bold text-gray-600 mb-1.5">
                   Hakedilen Net Maaş
                 </label>
-                <div className="flex rounded-lg border border-gray-200 overflow-hidden focus-within:ring-2 focus-within:ring-emerald-500 focus-within:border-emerald-500">
+                <div className="flex rounded-lg border border-gray-200 overflow-hidden focus-within:ring-2 focus-within:ring-primary-500 focus-within:border-primary-500">
                   <TrNumberInput
                     className="min-w-0 flex-1 border-0 px-3 py-2.5 font-semibold text-gray-900"
                     value={amountStr}
@@ -943,7 +943,7 @@ export default function EmployeeDetailView({ employeeId }: { employeeId: string 
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50">
           <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden border border-gray-100">
             <div
-              className={`flex items-center justify-between px-5 py-4 text-white ${modal?.kind === 'advance_given' ? 'bg-amber-600' : 'bg-emerald-600'}`}
+              className={`flex items-center justify-between px-5 py-4 text-white ${modal?.kind === 'advance_given' ? 'bg-amber-600' : 'bg-primary-600'}`}
             >
               <h3 className="text-lg font-black tracking-tight">
                 {modal?.kind === 'advance_given' ? 'Avans Ver' : 'Maaş/Prim Ödemesi'}
@@ -962,7 +962,7 @@ export default function EmployeeDetailView({ employeeId }: { employeeId: string 
                 className={`rounded-xl border px-4 py-3 text-sm text-gray-800 leading-relaxed space-y-3 ${
                   modal?.kind === 'advance_given'
                     ? 'border-amber-200/80 bg-amber-50/90'
-                    : 'border-emerald-200/80 bg-emerald-50/90'
+                    : 'border-primary-200/80 bg-primary-50/90'
                 }`}
               >
                 {modal?.kind === 'advance_given' ? (
@@ -1038,7 +1038,7 @@ export default function EmployeeDetailView({ employeeId }: { employeeId: string 
                 <label className="block text-xs font-bold text-gray-600 mb-1.5">
                   {modal?.kind === 'advance_given' ? 'Avans Tutarı' : 'Ödediğiniz Net Tutar'}
                 </label>
-                <div className="flex rounded-lg border border-gray-200 overflow-hidden focus-within:ring-2 focus-within:ring-emerald-500">
+                <div className="flex rounded-lg border border-gray-200 overflow-hidden focus-within:ring-2 focus-within:ring-primary-500">
                   <TrNumberInput
                     className="min-w-0 flex-1 border-0 px-3 py-2.5 font-semibold text-gray-900"
                     value={paymentAmountStr}
@@ -1092,7 +1092,7 @@ export default function EmployeeDetailView({ employeeId }: { employeeId: string 
       {modal?.kind === 'advance' && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50">
           <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden border border-gray-100">
-            <div className="flex items-center justify-between px-5 py-4 bg-teal-500 text-white">
+            <div className="flex items-center justify-between px-5 py-4 bg-primary-500 text-white">
               <h3 className="text-lg font-black tracking-tight">Avans İadesi</h3>
               <button
                 type="button"
@@ -1104,7 +1104,7 @@ export default function EmployeeDetailView({ employeeId }: { employeeId: string 
               </button>
             </div>
             <div className="p-5 space-y-4 max-h-[85vh] overflow-y-auto">
-              <p className="rounded-lg border border-teal-200 bg-teal-50/90 px-4 py-3 text-sm text-gray-800">
+              <p className="rounded-lg border border-primary-200 bg-primary-50/90 px-4 py-3 text-sm text-gray-800">
                 Çalışanın iade ettiği tutar caride <strong>Alacak</strong> tarafında işlenir; çalışanın
                 şirkete borcu azalır. Para seçtiğiniz hesaba girer.
               </p>
@@ -1199,7 +1199,7 @@ export default function EmployeeDetailView({ employeeId }: { employeeId: string 
       {modal?.kind === 'expense' && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50">
           <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden border border-gray-100">
-            <div className="flex items-center justify-between px-5 py-4 bg-emerald-600 text-white">
+            <div className="flex items-center justify-between px-5 py-4 bg-primary-600 text-white">
               <h3 className="text-lg font-black tracking-tight">Masraf Girişi</h3>
               <button
                 type="button"
@@ -1211,7 +1211,7 @@ export default function EmployeeDetailView({ employeeId }: { employeeId: string 
               </button>
             </div>
             <div className="p-5 space-y-4 max-h-[85vh] overflow-y-auto">
-              <div className="rounded-xl border border-emerald-200/80 bg-emerald-50/90 px-4 py-3 text-sm text-emerald-950 leading-relaxed">
+              <div className="rounded-xl border border-primary-200/80 bg-primary-50/90 px-4 py-3 text-sm text-primary-950 leading-relaxed">
                 <p>
                   Çalışanın ödediği masraf, caride <strong>Alacak</strong> sütununa yazılır: şirketin
                   çalışana borcu (çalışanın alacağı) artar; bakiye aşağı iner.
@@ -1263,7 +1263,7 @@ export default function EmployeeDetailView({ employeeId }: { employeeId: string 
                 <label className="block text-xs font-black text-gray-800 mb-1.5">
                   Tutar (KDV Dahil)
                 </label>
-                <div className="flex rounded-lg border border-gray-200 overflow-hidden focus-within:ring-2 focus-within:ring-emerald-500">
+                <div className="flex rounded-lg border border-gray-200 overflow-hidden focus-within:ring-2 focus-within:ring-primary-500">
                   <TrNumberInput
                     className="min-w-0 flex-1 border-0 px-3 py-2.5 font-semibold text-gray-900"
                     value={expenseGrossStr}
@@ -1323,7 +1323,7 @@ export default function EmployeeDetailView({ employeeId }: { employeeId: string 
       {modal?.kind === 'slip' && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50">
           <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden border border-gray-100">
-            <div className="flex items-center justify-between px-5 py-4 bg-emerald-600 text-white">
+            <div className="flex items-center justify-between px-5 py-4 bg-primary-600 text-white">
               <h3 className="text-lg font-black tracking-tight">Borç-Alacak Fişleri</h3>
               <button
                 type="button"
@@ -1367,7 +1367,7 @@ export default function EmployeeDetailView({ employeeId }: { employeeId: string 
 
               <div>
                 <label className="block text-xs font-bold text-gray-600 mb-1.5">Tutar</label>
-                <div className="flex rounded-lg border border-gray-200 overflow-hidden focus-within:ring-2 focus-within:ring-emerald-500">
+                <div className="flex rounded-lg border border-gray-200 overflow-hidden focus-within:ring-2 focus-within:ring-primary-500">
                   <TrNumberInput
                     className="min-w-0 flex-1 border-0 px-3 py-2.5 font-semibold text-gray-900"
                     value={slipAmountStr}
@@ -1396,7 +1396,7 @@ export default function EmployeeDetailView({ employeeId }: { employeeId: string 
                   type="button"
                   disabled={saving}
                   onClick={closeModal}
-                  className="inline-flex items-center gap-2 rounded-lg px-4 py-2.5 font-bold text-white bg-orange-500 hover:bg-orange-600 disabled:opacity-50 shadow-sm"
+                  className="inline-flex items-center gap-2 rounded-lg px-4 py-2.5 font-bold text-white bg-primary-600 hover:bg-primary-700 disabled:opacity-50 shadow-sm"
                 >
                   <X className="h-5 w-5" />
                   Vazgeç
