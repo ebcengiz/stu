@@ -26,7 +26,16 @@ export async function GET() {
         tenant_id,
         created_at,
         updated_at,
+        product_kind,
+        brand,
+        gtip,
+        sale_units,
+        shelf_location_id,
         categories:category_id (
+          id,
+          name
+        ),
+        shelf_locations (
           id,
           name
         ),
@@ -71,15 +80,28 @@ export async function POST(request: Request) {
     // Stok bilgilerini ayır (movement_type da ayır - products tablosunda yok)
     const { initial_quantity, warehouse_id, movement_type: _movement_type, ...productData } = body
 
+    const nullableStringKeys = ['sku', 'barcode', 'description', 'image_url', 'brand', 'gtip']
+
     // Convert empty strings to null for nullable fields
     const cleanData: any = {}
     for (const [key, value] of Object.entries(productData)) {
+      if (key === 'shelf_location_id' && (value === '' || value === undefined)) {
+        cleanData[key] = null
+        continue
+      }
       if (value === '' || value === undefined) {
-        if (['sku', 'barcode', 'description', 'image_url'].includes(key)) {
+        if (nullableStringKeys.includes(key)) {
           cleanData[key] = null
         }
       } else {
         cleanData[key] = value
+      }
+    }
+
+    if (Array.isArray(cleanData.sale_units)) {
+      cleanData.sale_units = cleanData.sale_units.filter(Boolean)
+      if (cleanData.sale_units.length === 0) {
+        cleanData.sale_units = ['adet']
       }
     }
 

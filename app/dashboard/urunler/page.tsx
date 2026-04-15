@@ -1,7 +1,30 @@
 'use client'
 
 import { useState, useEffect, Suspense, useMemo } from 'react'
-import { Plus, Search, Edit2, Trash2, X, ScanBarcode, Filter, ArrowUpDown, ArrowUp, ArrowDown, ImageIcon, UploadCloud, Loader2, Package, Layers, Warehouse as WarehouseIcon, ChevronDown } from 'lucide-react'
+import Link from 'next/link'
+import {
+  Plus,
+  Search,
+  Edit2,
+  Trash2,
+  X,
+  ScanBarcode,
+  Filter,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
+  ImageIcon,
+  UploadCloud,
+  Loader2,
+  Package,
+  Layers,
+  Warehouse as WarehouseIcon,
+  ChevronDown,
+  Banknote,
+  Boxes,
+  FileText,
+  Tag,
+} from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Card, CardHeader, CardBody, CardTitle } from '@/components/ui/Card'
 import { useSearchParams } from 'next/navigation'
@@ -17,6 +40,29 @@ const LocationPicker = dynamic(() => import('@/components/warehouse/LocationPick
   ssr: false,
   loading: () => <div className="h-64 bg-gray-50 rounded-xl flex items-center justify-center text-gray-500">Harita yükleniyor...</div>
 })
+
+/** Satış/alışta kullanılabilecek birim seçenekleri (çoklu seçim) */
+const UNIT_OPTIONS = [
+  'adet',
+  'kg',
+  'g',
+  'ton',
+  'litre',
+  'ml',
+  'metre',
+  'cm',
+  'm²',
+  'm³',
+  'paket',
+  'koli',
+  'kutu',
+  'set',
+  'saat',
+  'gün',
+  'ay',
+  'yıl',
+  'personel-gün',
+]
 
 interface Category {
   id: string
@@ -45,6 +91,12 @@ interface Product {
   is_active: boolean
   category_id: string
   image_url?: string | null
+  product_kind?: string | null
+  brand?: string | null
+  gtip?: string | null
+  sale_units?: string[] | null
+  shelf_location_id?: string | null
+  shelf_locations?: { id: string; name: string } | null
   categories?: Category
   stock?: Array<{
     id: string
@@ -83,6 +135,17 @@ function ProductsPageContent() {
   const [showModal, setShowModal] = useState(false)
   const [showNewCategoryModal, setShowNewCategoryModal] = useState(false)
   const [showNewWarehouseModal, setShowNewWarehouseModal] = useState(false)
+  const [showNewShelfModal, setShowNewShelfModal] = useState(false)
+  const [newShelfName, setNewShelfName] = useState('')
+  const [newShelfLoading, setNewShelfLoading] = useState(false)
+  const [shelfLocations, setShelfLocations] = useState<{ id: string; name: string }[]>([])
+  const [accordionOpen, setAccordionOpen] = useState({
+    def: true,
+    price: false,
+    stock: false,
+    detail: false,
+  })
+  const [customUnitDraft, setCustomUnitDraft] = useState('')
   const [newCategoryLoading, setNewCategoryLoading] = useState(false)
   const [newWarehouseLoading, setNewWarehouseLoading] = useState(false)
   const [newCategoryData, setNewCategoryData] = useState({ name: '', description: '' })
@@ -113,28 +176,44 @@ function ProductsPageContent() {
     initial_quantity: '' as string | number,
     warehouse_id: '',
     movement_type: 'in',
-    image_url: ''
+    image_url: '',
+    product_kind: 'stocked' as 'stocked' | 'service' | 'consulting',
+    brand: '',
+    gtip: '',
+    sale_units: ['adet'] as string[],
+    shelf_location_id: '',
   })
   const searchParams = useSearchParams()
 
   useEffect(() => {
     const fetchAllData = async () => {
       try {
-        const [productsRes, categoriesRes, warehousesRes] = await Promise.all([
+        const [productsRes, categoriesRes, warehousesRes, shelvesRes] = await Promise.all([
           fetch('/api/products'),
           fetch('/api/categories'),
-          fetch('/api/warehouses')
+          fetch('/api/warehouses'),
+          fetch('/api/shelf-locations'),
         ])
 
         const [productsData, categoriesData, warehousesData] = await Promise.all([
           productsRes.json(),
           categoriesRes.json(),
-          warehousesRes.json()
+          warehousesRes.json(),
         ])
+
+        let shelvesData: unknown = []
+        if (shelvesRes.ok) {
+          try {
+            shelvesData = await shelvesRes.json()
+          } catch {
+            shelvesData = []
+          }
+        }
 
         setProducts(Array.isArray(productsData) ? productsData : [])
         setCategories(Array.isArray(categoriesData) ? categoriesData : [])
         setWarehouses(Array.isArray(warehousesData) ? warehousesData.filter((w: Warehouse) => w.is_active) : [])
+        setShelfLocations(Array.isArray(shelvesData) ? shelvesData : [])
       } catch (error) {
         console.error('Error fetching dashboard data:', error)
       } finally {
@@ -180,6 +259,65 @@ function ProductsPageContent() {
       setWarehouses(Array.isArray(data) ? data.filter((w: Warehouse) => w.is_active) : [])
     } catch (error) {
       console.error('Error fetching warehouses:', error)
+    }
+  }
+
+  const fetchShelfLocations = async () => {
+    try {
+      const response = await fetch('/api/shelf-locations')
+      const data = await response.json()
+      setShelfLocations(Array.isArray(data) ? data : [])
+    } catch (error) {
+      console.error('Error fetching shelf locations:', error)
+    }
+  }
+
+  const toggleSaleUnit = (u: string) => {
+    setFormData((prev) => {
+      let next = [...prev.sale_units]
+      if (next.includes(u)) {
+        if (next.length <= 1) return prev
+        next = next.filter((x) => x !== u)
+        const newUnit = prev.unit === u ? next[0] : prev.unit
+        return { ...prev, sale_units: next, unit: newUnit }
+      }
+      return { ...prev, sale_units: [...next, u] }
+    })
+  }
+
+  const addCustomUnit = () => {
+    const u = customUnitDraft.trim().toLowerCase()
+    if (!u) return
+    setFormData((prev) => ({
+      ...prev,
+      sale_units: prev.sale_units.includes(u) ? prev.sale_units : [...prev.sale_units, u],
+      unit: u,
+    }))
+    setCustomUnitDraft('')
+  }
+
+  const handleCreateShelfInModal = async (e: React.FormEvent) => {
+    e.preventDefault()
+    const name = newShelfName.trim()
+    if (!name) return
+    setNewShelfLoading(true)
+    try {
+      const res = await fetch('/api/shelf-locations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Raf eklenemedi')
+      await fetchShelfLocations()
+      setFormData((prev) => ({ ...prev, shelf_location_id: data.id }))
+      setShowNewShelfModal(false)
+      setNewShelfName('')
+      toast.success('Raf yeri eklendi ve seçildi')
+    } catch (err: any) {
+      toast.error(err.message)
+    } finally {
+      setNewShelfLoading(false)
     }
   }
 
@@ -240,12 +378,17 @@ function ProductsPageContent() {
         sku: formData.sku?.trim() || null,
         barcode: formData.barcode?.trim() || null,
         description: formData.description?.trim() || null,
+        brand: formData.brand?.trim() || null,
+        gtip: formData.gtip?.trim() || null,
         price: parseTrNumberInput(String(formData.price)) || 0,
         purchase_price: parseTrNumberInput(String(formData.purchase_price)) || 0,
         tax_rate: parseTrNumberInput(String(formData.tax_rate)) || 0,
         discount_rate: parseTrNumberInput(String(formData.discount_rate)) || 0,
         min_stock_level: parseTrNumberInput(String(formData.min_stock_level)) || 0,
         initial_quantity: parseTrNumberInput(String(formData.initial_quantity)) || 0,
+        product_kind: formData.product_kind,
+        sale_units: formData.sale_units,
+        shelf_location_id: formData.shelf_location_id || null,
       }
 
       const response = await fetch(url, {
@@ -273,6 +416,11 @@ function ProductsPageContent() {
   const handleEdit = (product: Product) => {
     setEditingProduct(product)
     const defaultWarehouse = product.stock?.[0]?.warehouse_id || warehouses[0]?.id || ''
+    const rawSu = product.sale_units
+    const su = Array.isArray(rawSu) ? rawSu : null
+    const saleUnits =
+      su && su.length > 0 ? su : product.unit ? [product.unit] : ['adet']
+    const kind = product.product_kind === 'service' || product.product_kind === 'consulting' ? product.product_kind : 'stocked'
     setFormData({
       name: product.name,
       sku: product.sku || '',
@@ -283,15 +431,26 @@ function ProductsPageContent() {
       tax_rate: looseToTrInputString(product.tax_rate ?? 20, 2),
       discount_rate: looseToTrInputString(product.discount_rate ?? 0, 2),
       currency: product.currency || 'TRY',
-      unit: product.unit,
+      unit: product.unit || saleUnits[0] || 'adet',
       min_stock_level: looseToTrInputString(product.min_stock_level ?? 0),
       category_id: product.category_id || '',
       is_active: product.is_active,
       initial_quantity: '',
       warehouse_id: defaultWarehouse,
       movement_type: 'in',
-      image_url: product.image_url || ''
+      image_url: product.image_url || '',
+      product_kind: kind,
+      brand: product.brand || '',
+      gtip: product.gtip || '',
+      sale_units: saleUnits,
+      shelf_location_id:
+        product.shelf_location_id ||
+        (product.shelf_locations && typeof product.shelf_locations === 'object' && 'id' in product.shelf_locations
+          ? (product.shelf_locations as { id: string }).id
+          : '') ||
+        '',
     })
+    setAccordionOpen({ def: true, price: false, stock: false, detail: false })
     setShowModal(true)
   }
 
@@ -310,10 +469,31 @@ function ProductsPageContent() {
   const openNewModal = () => {
     setEditingProduct(null)
     setFormData({
-      name: '', sku: '', barcode: '', description: '', price: '', purchase_price: '', tax_rate: '20', discount_rate: '0',
-      currency: 'TRY', unit: 'adet', min_stock_level: '', category_id: categories[0]?.id || '', is_active: true,
-      initial_quantity: '', warehouse_id: warehouses[0]?.id || '', movement_type: 'in', image_url: ''
+      name: '',
+      sku: '',
+      barcode: '',
+      description: '',
+      price: '',
+      purchase_price: '',
+      tax_rate: '20',
+      discount_rate: '0',
+      currency: 'TRY',
+      unit: 'adet',
+      min_stock_level: '',
+      category_id: categories[0]?.id || '',
+      is_active: true,
+      initial_quantity: '',
+      warehouse_id: warehouses[0]?.id || '',
+      movement_type: 'in',
+      image_url: '',
+      product_kind: 'stocked',
+      brand: '',
+      gtip: '',
+      sale_units: ['adet'],
+      shelf_location_id: '',
     })
+    setAccordionOpen({ def: true, price: false, stock: false, detail: false })
+    setCustomUnitDraft('')
     setShowModal(true)
   }
 
@@ -514,126 +694,464 @@ function ProductsPageContent() {
       {/* Product Add/Edit Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black/30  flex items-center justify-center z-[9999] p-4 animate-in fade-in duration-300">
-          <div className="bg-white  rounded-2xl shadow-xl shadow-gray-200/50 w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden border border-gray-200 animate-in zoom-in-95 duration-200">
-            <div className="px-8 py-6 border-b border-gray-200 flex justify-between items-center">
+          <div className="bg-[#FAFAF7] rounded-2xl shadow-xl shadow-primary-900/5 w-full max-w-3xl max-h-[92vh] flex flex-col overflow-hidden border border-primary-200/60 animate-in zoom-in-95 duration-200">
+            <div className="px-6 py-5 border-b border-primary-100 bg-white/80 flex justify-between items-center shrink-0">
               <div className="flex items-center gap-4">
-                <div className="p-3 bg-primary-50 rounded-2xl border border-primary-200"><Package className="h-6 w-6 text-primary-600" /></div>
+                <div className="p-3 bg-primary-50 rounded-2xl border border-primary-200/80"><Package className="h-6 w-6 text-primary-600" /></div>
                 <div>
                   <h2 className="text-xl font-bold text-gray-800">{editingProduct ? 'Ürünü Düzenle' : 'Yeni Ürün Ekle'}</h2>
-                  <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mt-0.5">Lütfen ürün detaylarını eksiksiz doldurunuz</p>
+                  <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mt-0.5">Bölümleri açıp bilgileri doldurun</p>
                 </div>
               </div>
-              <button onClick={() => setShowModal(false)} className="p-3 hover:bg-gray-50 rounded-full transition-all active:scale-90"><X className="h-6 w-6 text-gray-500" /></button>
+              <button type="button" onClick={() => setShowModal(false)} className="p-3 hover:bg-primary-50 rounded-full transition-all active:scale-90"><X className="h-6 w-6 text-gray-500" /></button>
             </div>
-            
-            <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-8 space-y-8">
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-                {/* Left Side: Image Upload */}
-                <div className="lg:col-span-1 space-y-4">
-                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Ürün Görseli</label>
-                  {formData.image_url ? (
-                    <div className="relative group rounded-2xl overflow-hidden aspect-square border-2 border-gray-100 bg-gray-50">
-                      <img src={formData.image_url} alt="Ürün" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
-                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                        <button type="button" onClick={removeImage} className="bg-gray-50 backdrop-blur-md text-white p-4 rounded-full hover:bg-gray-100 transition-all active:scale-90"><X className="h-8 w-8" /></button>
+
+            <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
+              <div className="flex-1 overflow-y-auto p-5 md:p-6 space-y-3">
+                {/* 1 — Ürün / hizmet tanımı */}
+                <div className="rounded-2xl border border-primary-200/70 bg-white shadow-sm overflow-hidden">
+                  <button
+                    type="button"
+                    onClick={() => setAccordionOpen((a) => ({ ...a, def: !a.def }))}
+                    className="w-full flex items-center justify-between gap-3 px-4 py-3.5 text-left hover:bg-primary-50/40 transition-colors"
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <Tag className="h-5 w-5 text-primary-600 shrink-0" />
+                      <div className="min-w-0">
+                        <div className="font-bold text-gray-900 text-sm">Ürün / hizmet tanımı</div>
+                        <div className="text-[11px] text-gray-500 truncate">Ad, tip, birimler, kod, barkod, kategori, marka</div>
                       </div>
                     </div>
-                  ) : (
-                    <label className={`flex flex-col items-center justify-center aspect-square border-2 border-dashed border-gray-200 rounded-2xl cursor-pointer hover:border-primary-400 hover:bg-primary-50/30 transition-all text-center p-10 ${uploading ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''}`}>
-                      <input type="file" className="hidden" accept="image/*" onChange={handleImageUpload} disabled={uploading} />
-                      {uploading ? <Loader2 className="h-12 w-12 text-primary-600 animate-spin" /> : (
-                        <>
-                          <div className="p-6 bg-primary-50/50 rounded-2xl mb-4"><UploadCloud className="h-10 w-10 text-primary-600" /></div>
-                          <p className="text-[11px] font-black text-gray-600 uppercase tracking-wider mb-1">Görsel Seç</p>
-                          <p className="text-[9px] font-bold text-gray-400 uppercase">Max 5MB</p>
-                        </>
-                      )}
-                    </label>
-                  )}
-                  <div className="p-4 bg-amber-50/50 rounded-2xl border border-amber-200">
-                    <p className="text-[9px] leading-relaxed text-amber-600 font-bold uppercase text-center">* Profesyonel görünüm için beyaz arka plan önerilir.</p>
-                  </div>
-                </div>
-
-                {/* Right Side: Form Fields */}
-                <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-                  <div className="space-y-1.5 md:col-span-2">
-                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Ürün Adı *</label>
-                    <input type="text" required value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="w-full px-5 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none font-bold text-gray-700 transition-all" placeholder="Örn: iPhone 15 Pro Max" />
-                  </div>
-                  
-                  <div className="space-y-1.5 min-w-0">
-                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Kategori *</label>
-                    <div className="flex gap-2 relative">
-                      <div className="relative flex-1 min-w-0">
-                        <select required value={formData.category_id} onChange={(e) => setFormData({ ...formData, category_id: e.target.value })} className="w-full px-4 pr-10 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none text-sm text-gray-700 transition-all appearance-none truncate">
-                          <option value="">Seçiniz</option>
-                          {categories.map((c) => (<option key={c.id} value={c.id}>{c.name}</option>))}
-                        </select>
-                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
-                      </div>
-                      <button type="button" onClick={() => setShowNewCategoryModal(true)} className="flex-shrink-0 h-[52px] w-[52px] flex items-center justify-center bg-primary-50 text-primary-600 rounded-xl hover:bg-primary-100 transition-all active:scale-95 border border-primary-200" title="Yeni Kategori Ekle"><Plus className="h-5 w-5" /></button>
-                    </div>
-                  </div>
-
-                  <div className="space-y-1.5 min-w-0">
-                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">SKU (Stok Kodu)</label>
-                    <input type="text" value={formData.sku} onChange={(e) => setFormData({ ...formData, sku: e.target.value })} className="w-full px-5 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none font-bold text-gray-700 transition-all uppercase" placeholder="ABC-123" />
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Barkod No</label>
-                    <input type="text" value={formData.barcode} onChange={(e) => setFormData({ ...formData, barcode: e.target.value })} className="w-full px-5 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none font-bold text-gray-700 transition-all" placeholder="8690000000000" />
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Birim</label>
-                    <select required value={formData.unit} onChange={(e) => setFormData({ ...formData, unit: e.target.value })} className="w-full px-5 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none font-bold text-gray-700 transition-all appearance-none"><option value="adet">Adet</option><option value="kg">Kilogram</option><option value="litre">Litre</option><option value="metre">Metre</option><option value="paket">Paket</option></select>
-                  </div>
-                </div>
-              </div>
-
-              {/* Pricing Section */}
-              <div className="pt-8 border-t border-dashed border-gray-100">
-                <h3 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em] mb-6 flex items-center gap-2"><div className="h-1 w-1 rounded-full bg-primary-500"></div> Fiyatlandırma ve Vergi</h3>
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                  <div className="space-y-1.5"><label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Para Birimi</label><select value={formData.currency} onChange={(e) => setFormData({ ...formData, currency: e.target.value })} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:border-primary-500 outline-none font-bold text-gray-700"><option value="TRY">TRY (₺)</option><option value="USD">USD ($)</option><option value="EUR">EUR (€)</option></select></div>
-                  <div className="space-y-1.5"><label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Satış Fiyatı</label><TrNumberInput value={String(formData.price ?? '')} onChange={(v) => setFormData({ ...formData, price: v })} className="w-full px-4 py-3 bg-primary-50/50 border border-primary-200 rounded-xl focus:border-primary-500 outline-none font-black text-primary-600" /></div>
-                  <div className="space-y-1.5"><label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Alış Fiyatı</label><TrNumberInput value={String(formData.purchase_price ?? '')} onChange={(v) => setFormData({ ...formData, purchase_price: v })} className="w-full px-4 py-3 bg-red-50/50 border border-red-200 rounded-xl focus:border-red-500 outline-none font-black text-red-500" /></div>
-                  <div className="space-y-1.5"><label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">KDV (%)</label><TrNumberInput value={String(formData.tax_rate ?? '')} onChange={(v) => setFormData({ ...formData, tax_rate: v })} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:border-primary-500 outline-none font-bold text-gray-700" /></div>
-                </div>
-              </div>
-
-              {/* Stock and Advanced Section */}
-              <div className="pt-8 border-t border-dashed border-gray-100">
-                <h3 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em] mb-6 flex items-center gap-2"><div className="h-1 w-1 rounded-full bg-primary-500"></div> Stok Ayarları</h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="space-y-1.5"><label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Min. Stok Uyarı</label><TrNumberInput value={String(formData.min_stock_level ?? '')} onChange={(v) => setFormData({ ...formData, min_stock_level: v })} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:border-primary-500 outline-none font-bold text-gray-700" /></div>
-                  
-                  {!editingProduct && (
-                    <>
+                    <ChevronDown className={`h-5 w-5 text-primary-500 shrink-0 transition-transform ${accordionOpen.def ? 'rotate-180' : ''}`} />
+                  </button>
+                  {accordionOpen.def && (
+                    <div className="px-4 pb-4 pt-0 space-y-4 border-t border-primary-100/90 bg-[#F5F5F0]/40">
                       <div className="space-y-1.5">
-                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Başlangıç Deposu *</label>
-                        <div className="flex gap-2">
-                          <select required value={formData.warehouse_id} onChange={(e) => setFormData({ ...formData, warehouse_id: e.target.value })} className="flex-1 px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:border-primary-500 outline-none font-bold text-gray-700">
-                            <option value="">Seçiniz</option>
-                            {warehouses.map((w) => (<option key={w.id} value={w.id}>{w.name}</option>))}
-                          </select>
-                          <button type="button" onClick={() => setShowNewWarehouseModal(true)} className="p-3 bg-primary-50 text-primary-600 rounded-xl hover:bg-primary-100 transition-all active:scale-95 border border-primary-200" title="Yeni Depo Ekle"><Plus className="h-5 w-5" /></button>
+                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Ürün adı *</label>
+                        <input
+                          type="text"
+                          required
+                          value={formData.name}
+                          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                          className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:border-primary-500 focus:ring-2 focus:ring-primary-500/15 outline-none font-semibold text-gray-800"
+                          placeholder="Ürün veya hizmet adı"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Ürün tipi</label>
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                          {([
+                            { v: 'stocked' as const, label: 'Stoklu ürün' },
+                            { v: 'service' as const, label: 'Stoksuz (hizmet)' },
+                            { v: 'consulting' as const, label: 'Stoksuz (danışmanlık)' },
+                          ]).map((opt) => (
+                            <label
+                              key={opt.v}
+                              className={`flex items-center gap-2 rounded-xl border px-3 py-2.5 cursor-pointer text-sm font-semibold transition-all ${
+                                formData.product_kind === opt.v
+                                  ? 'border-primary-500 bg-primary-50 text-primary-900 ring-1 ring-primary-200'
+                                  : 'border-gray-200 bg-white text-gray-700 hover:border-primary-200'
+                              }`}
+                            >
+                              <input
+                                type="radio"
+                                name="product_kind"
+                                className="sr-only"
+                                checked={formData.product_kind === opt.v}
+                                onChange={() =>
+                                  setFormData((prev) => ({
+                                    ...prev,
+                                    product_kind: opt.v,
+                                    shelf_location_id: opt.v === 'stocked' ? prev.shelf_location_id : '',
+                                  }))
+                                }
+                              />
+                              {opt.label}
+                            </label>
+                          ))}
                         </div>
                       </div>
-                      <div className="space-y-1.5"><label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Başlangıç Miktarı</label><TrNumberInput value={String(formData.initial_quantity ?? '')} onChange={(v) => setFormData({ ...formData, initial_quantity: v })} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:border-primary-500 outline-none font-bold text-gray-700" /></div>
-                    </>
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Satış / alış birimleri</label>
+                        <p className="text-[11px] text-gray-500">Bu ürünle kullanılabilecek tüm birimleri seçin; varsayılan birim aşağıdan belirlenir.</p>
+                        <div className="flex flex-wrap gap-2">
+                          {UNIT_OPTIONS.map((u) => (
+                            <button
+                              key={u}
+                              type="button"
+                              onClick={() => toggleSaleUnit(u)}
+                              className={`px-2.5 py-1 rounded-lg text-xs font-bold border transition-all ${
+                                formData.sale_units.includes(u)
+                                  ? 'bg-primary-600 text-white border-primary-600'
+                                  : 'bg-white text-gray-600 border-gray-200 hover:border-primary-300'
+                              }`}
+                            >
+                              {u}
+                            </button>
+                          ))}
+                        </div>
+                        <div className="flex flex-wrap gap-2 items-center pt-1">
+                          <input
+                            type="text"
+                            value={customUnitDraft}
+                            onChange={(e) => setCustomUnitDraft(e.target.value)}
+                            placeholder="Özel birim (ör. palet)"
+                            className="flex-1 min-w-[140px] px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white focus:border-primary-500 outline-none"
+                          />
+                          <Button type="button" variant="outline" size="sm" className="shrink-0" onClick={addCustomUnit}>
+                            Ekle
+                          </Button>
+                        </div>
+                        <div className="space-y-1.5">
+                          <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Varsayılan birim *</label>
+                          <select
+                            required
+                            value={formData.unit}
+                            onChange={(e) => {
+                              const v = e.target.value
+                              setFormData((prev) => ({
+                                ...prev,
+                                unit: v,
+                                sale_units: prev.sale_units.includes(v) ? prev.sale_units : [...prev.sale_units, v],
+                              }))
+                            }}
+                            className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl font-semibold text-gray-800"
+                          >
+                            {formData.sale_units.map((u) => (
+                              <option key={u} value={u}>
+                                {u}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-1.5 min-w-0">
+                          <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Kategori *</label>
+                          <div className="flex gap-2">
+                            <div className="relative flex-1 min-w-0">
+                              <select
+                                required
+                                value={formData.category_id}
+                                onChange={(e) => setFormData({ ...formData, category_id: e.target.value })}
+                                className="w-full px-3 pr-9 py-3 bg-white border border-gray-200 rounded-xl text-sm appearance-none truncate"
+                              >
+                                <option value="">Seçiniz</option>
+                                {categories.map((c) => (
+                                  <option key={c.id} value={c.id}>
+                                    {c.name}
+                                  </option>
+                                ))}
+                              </select>
+                              <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => setShowNewCategoryModal(true)}
+                              className="h-[46px] w-[46px] flex items-center justify-center bg-primary-50 text-primary-600 rounded-xl border border-primary-200 shrink-0"
+                              title="Yeni kategori"
+                            >
+                              <Plus className="h-5 w-5" />
+                            </button>
+                          </div>
+                        </div>
+                        <div className="space-y-1.5">
+                          <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Marka</label>
+                          <input
+                            type="text"
+                            value={formData.brand}
+                            onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
+                            className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl font-semibold text-gray-800"
+                            placeholder="Varsa marka adı"
+                          />
+                        </div>
+                        <div className="space-y-1.5">
+                          <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Ürün kodu (SKU)</label>
+                          <input
+                            type="text"
+                            value={formData.sku}
+                            onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
+                            className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl font-mono text-sm uppercase"
+                            placeholder="Opsiyonel"
+                          />
+                        </div>
+                        <div className="space-y-1.5">
+                          <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Barkod</label>
+                          <input
+                            type="text"
+                            value={formData.barcode}
+                            onChange={(e) => setFormData({ ...formData, barcode: e.target.value })}
+                            className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl font-mono text-sm"
+                            placeholder="Opsiyonel"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* 2 — Fiyatlandırma */}
+                <div className="rounded-2xl border border-primary-200/70 bg-white shadow-sm overflow-hidden">
+                  <button
+                    type="button"
+                    onClick={() => setAccordionOpen((a) => ({ ...a, price: !a.price }))}
+                    className="w-full flex items-center justify-between gap-3 px-4 py-3.5 text-left hover:bg-primary-50/40 transition-colors"
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <Banknote className="h-5 w-5 text-primary-600 shrink-0" />
+                      <div className="min-w-0">
+                        <div className="font-bold text-gray-900 text-sm">Fiyatlandırma</div>
+                        <div className="text-[11px] text-gray-500 truncate">Alış, satış, para birimi, KDV</div>
+                      </div>
+                    </div>
+                    <ChevronDown className={`h-5 w-5 text-primary-500 shrink-0 transition-transform ${accordionOpen.price ? 'rotate-180' : ''}`} />
+                  </button>
+                  {accordionOpen.price && (
+                    <div className="px-4 pb-4 pt-0 space-y-4 border-t border-primary-100/90 bg-[#F5F5F0]/40">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                          <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Alış fiyatı</label>
+                          <TrNumberInput
+                            value={String(formData.purchase_price ?? '')}
+                            onChange={(v) => setFormData({ ...formData, purchase_price: v })}
+                            className="w-full px-4 py-3 bg-white border border-primary-200/80 rounded-xl font-bold text-primary-800"
+                          />
+                        </div>
+                        <div className="space-y-1.5">
+                          <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Satış fiyatı</label>
+                          <TrNumberInput
+                            value={String(formData.price ?? '')}
+                            onChange={(v) => setFormData({ ...formData, price: v })}
+                            className="w-full px-4 py-3 bg-primary-50/60 border border-primary-200 rounded-xl font-black text-primary-700"
+                          />
+                        </div>
+                        <div className="space-y-1.5">
+                          <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Para birimi</label>
+                          <select
+                            value={formData.currency}
+                            onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
+                            className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl font-semibold text-gray-800"
+                          >
+                            <option value="TRY">TRY (₺)</option>
+                            <option value="USD">USD ($)</option>
+                            <option value="EUR">EUR (€)</option>
+                          </select>
+                        </div>
+                        <div className="space-y-1.5">
+                          <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">KDV oranı (%)</label>
+                          <TrNumberInput
+                            value={String(formData.tax_rate ?? '')}
+                            onChange={(v) => setFormData({ ...formData, tax_rate: v })}
+                            className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl font-semibold text-gray-800"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* 3 — Stok yönetimi */}
+                <div className="rounded-2xl border border-primary-200/70 bg-white shadow-sm overflow-hidden">
+                  <button
+                    type="button"
+                    onClick={() => setAccordionOpen((a) => ({ ...a, stock: !a.stock }))}
+                    className="w-full flex items-center justify-between gap-3 px-4 py-3.5 text-left hover:bg-primary-50/40 transition-colors"
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <Boxes className="h-5 w-5 text-primary-600 shrink-0" />
+                      <div className="min-w-0">
+                        <div className="font-bold text-gray-900 text-sm">Stok yönetimi</div>
+                        <div className="text-[11px] text-gray-500 truncate">Depo, başlangıç, kritik seviye, raf yeri</div>
+                      </div>
+                    </div>
+                    <ChevronDown className={`h-5 w-5 text-primary-500 shrink-0 transition-transform ${accordionOpen.stock ? 'rotate-180' : ''}`} />
+                  </button>
+                  {accordionOpen.stock && (
+                    <div className="px-4 pb-4 pt-0 space-y-4 border-t border-primary-100/90 bg-[#F5F5F0]/40">
+                      {formData.product_kind !== 'stocked' ? (
+                        <p className="text-sm text-gray-600 py-2">
+                          Hizmet ve danışmanlık kayıtlarında stok ve depo takibi kullanılmaz. Bu bölüm yalnızca stoklu ürünler içindir.
+                        </p>
+                      ) : (
+                        <>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="space-y-1.5">
+                              <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Kritik stok seviyesi</label>
+                              <TrNumberInput
+                                value={String(formData.min_stock_level ?? '')}
+                                onChange={(v) => setFormData({ ...formData, min_stock_level: v })}
+                                className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl font-semibold"
+                              />
+                            </div>
+                            <div className="space-y-1.5 md:col-span-2">
+                              <div className="flex items-center justify-between gap-2 flex-wrap">
+                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Raf yeri</label>
+                                <Link
+                                  href="/dashboard/tanimlar#raf-yerleri"
+                                  className="text-[11px] font-bold text-primary-600 hover:underline"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                >
+                                  Tanımlarda yönet
+                                </Link>
+                              </div>
+                              <div className="flex gap-2">
+                                <select
+                                  value={formData.shelf_location_id}
+                                  onChange={(e) => setFormData({ ...formData, shelf_location_id: e.target.value })}
+                                  className="flex-1 px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-800"
+                                >
+                                  <option value="">Raf seçilmedi</option>
+                                  {shelfLocations.map((s) => (
+                                    <option key={s.id} value={s.id}>
+                                      {s.name}
+                                    </option>
+                                  ))}
+                                </select>
+                                <button
+                                  type="button"
+                                  onClick={() => setShowNewShelfModal(true)}
+                                  className="h-[46px] w-[46px] flex items-center justify-center bg-primary-50 text-primary-600 rounded-xl border border-primary-200 shrink-0"
+                                  title="Hızlı raf ekle"
+                                >
+                                  <Plus className="h-5 w-5" />
+                                </button>
+                              </div>
+                              <p className="text-[10px] text-gray-500">Depo içi özel konum (ör. A-12). Listeyi Tanımlar sayfasından da düzenleyebilirsiniz.</p>
+                            </div>
+                          </div>
+                          {!editingProduct && (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t border-dashed border-primary-100">
+                              <div className="space-y-1.5 md:col-span-2">
+                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Başlangıç deposu *</label>
+                                <div className="flex gap-2">
+                                  <select
+                                    required={formData.product_kind === 'stocked'}
+                                    value={formData.warehouse_id}
+                                    onChange={(e) => setFormData({ ...formData, warehouse_id: e.target.value })}
+                                    className="flex-1 px-4 py-3 bg-white border border-gray-200 rounded-xl font-semibold text-gray-800"
+                                  >
+                                    <option value="">Seçiniz</option>
+                                    {warehouses.map((w) => (
+                                      <option key={w.id} value={w.id}>
+                                        {w.name}
+                                      </option>
+                                    ))}
+                                  </select>
+                                  <button
+                                    type="button"
+                                    onClick={() => setShowNewWarehouseModal(true)}
+                                    className="p-3 bg-primary-50 text-primary-600 rounded-xl border border-primary-200"
+                                    title="Yeni depo"
+                                  >
+                                    <Plus className="h-5 w-5" />
+                                  </button>
+                                </div>
+                              </div>
+                              <div className="space-y-1.5">
+                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Başlangıç stoğu</label>
+                                <TrNumberInput
+                                  value={String(formData.initial_quantity ?? '')}
+                                  onChange={(v) => setFormData({ ...formData, initial_quantity: v })}
+                                  className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl font-semibold"
+                                />
+                              </div>
+                            </div>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* 4 — Detaylı bilgiler */}
+                <div className="rounded-2xl border border-primary-200/70 bg-white shadow-sm overflow-hidden">
+                  <button
+                    type="button"
+                    onClick={() => setAccordionOpen((a) => ({ ...a, detail: !a.detail }))}
+                    className="w-full flex items-center justify-between gap-3 px-4 py-3.5 text-left hover:bg-primary-50/40 transition-colors"
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <FileText className="h-5 w-5 text-primary-600 shrink-0" />
+                      <div className="min-w-0">
+                        <div className="font-bold text-gray-900 text-sm">Detaylı bilgiler</div>
+                        <div className="text-[11px] text-gray-500 truncate">GTIP, açıklama, görsel</div>
+                      </div>
+                    </div>
+                    <ChevronDown className={`h-5 w-5 text-primary-500 shrink-0 transition-transform ${accordionOpen.detail ? 'rotate-180' : ''}`} />
+                  </button>
+                  {accordionOpen.detail && (
+                    <div className="px-4 pb-4 pt-0 space-y-4 border-t border-primary-100/90 bg-[#F5F5F0]/40">
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">GTIP numarası</label>
+                        <input
+                          type="text"
+                          value={formData.gtip}
+                          onChange={(e) => setFormData({ ...formData, gtip: e.target.value })}
+                          className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl font-mono text-sm"
+                          placeholder="Örn. 8517.12.00.00.00"
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Ürün açıklaması</label>
+                        <textarea
+                          rows={3}
+                          value={formData.description}
+                          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                          className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl font-medium text-gray-800"
+                          placeholder="İsteğe bağlı açıklama"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Ürün görseli</label>
+                        {formData.image_url ? (
+                          <div className="relative group rounded-2xl overflow-hidden max-w-xs border-2 border-primary-100 bg-white aspect-square">
+                            <img src={formData.image_url} alt="" className="w-full h-full object-cover" />
+                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                              <button
+                                type="button"
+                                onClick={removeImage}
+                                className="bg-white/90 text-gray-800 p-3 rounded-full shadow-lg"
+                              >
+                                <X className="h-6 w-6" />
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <label
+                            className={`flex flex-col items-center justify-center min-h-[160px] border-2 border-dashed border-primary-200 rounded-2xl cursor-pointer bg-primary-50/30 hover:bg-primary-50/60 transition-all p-6 ${
+                              uploading ? 'opacity-50 pointer-events-none' : ''
+                            }`}
+                          >
+                            <input type="file" className="hidden" accept="image/*" onChange={handleImageUpload} disabled={uploading} />
+                            {uploading ? (
+                              <Loader2 className="h-10 w-10 text-primary-600 animate-spin" />
+                            ) : (
+                              <>
+                                <div className="p-4 bg-primary-100/50 rounded-2xl mb-3">
+                                  <UploadCloud className="h-8 w-8 text-primary-600" />
+                                </div>
+                                <span className="text-xs font-bold text-gray-700">Görsel yükle</span>
+                                <span className="text-[10px] text-gray-500 mt-1">PNG, JPG, WEBP — en fazla 5 MB</span>
+                              </>
+                            )}
+                          </label>
+                        )}
+                        <p className="text-[10px] text-amber-800/90 bg-amber-50/80 border border-amber-100 rounded-lg px-3 py-2 font-medium">
+                          Beyaz veya nötr arka planlı görseller liste görünümünde daha tutarlı görünür.
+                        </p>
+                      </div>
+                    </div>
                   )}
                 </div>
               </div>
 
-              <div className="space-y-1.5 border-t border-dashed border-gray-100 pt-8"><label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Ürün Açıklaması</label><textarea rows={3} value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-xl focus:border-primary-500 outline-none font-bold text-gray-700 transition-all" placeholder="Ürün hakkında kısa bir açıklama..." /></div>
-
-              <div className="flex justify-end gap-4 pt-8 border-t border-gray-200">
-                <Button type="button" variant="outline" onClick={() => setShowModal(false)} className="px-10 h-14 rounded-xl font-bold">Vazgeç</Button>
-                <Button type="submit" disabled={loading} className="px-14 h-14 rounded-xl font-bold text-lg transition-all active:scale-95">
-                  {loading ? <Loader2 className="h-6 w-6 animate-spin" /> : (editingProduct ? 'GÜNCELLE' : 'ÜRÜNÜ KAYDET')}
+              <div className="flex justify-end gap-3 px-5 py-4 border-t border-primary-100 bg-white/90 shrink-0">
+                <Button type="button" variant="outline" onClick={() => setShowModal(false)} className="px-8 h-12 rounded-xl font-bold border-primary-200">
+                  Vazgeç
+                </Button>
+                <Button type="submit" disabled={loading} className="px-10 h-12 rounded-xl font-bold">
+                  {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : editingProduct ? 'Güncelle' : 'Ürünü kaydet'}
                 </Button>
               </div>
             </form>
@@ -721,6 +1239,64 @@ function ProductsPageContent() {
                 <Button type="button" variant="outline" onClick={() => setShowNewWarehouseModal(false)} className="flex-1 h-12 rounded-xl font-bold">İptal</Button>
                 <Button type="submit" disabled={newWarehouseLoading} className="flex-[1.5] h-12 rounded-xl font-bold text-lg transition-all active:scale-95">
                   {newWarehouseLoading ? <Loader2 className="h-6 w-6 animate-spin" /> : 'KAYDET'}
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Hızlı raf yeri modalı */}
+      {showNewShelfModal && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[10002] p-4 animate-in fade-in duration-200">
+          <div className="bg-[#FAFAF7] rounded-2xl shadow-xl border border-primary-200 w-full max-w-md overflow-hidden">
+            <div className="px-6 py-5 border-b border-primary-100 flex justify-between items-center bg-white/90">
+              <h3 className="text-base font-bold text-gray-800">Yeni raf yeri</h3>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowNewShelfModal(false)
+                  setNewShelfName('')
+                }}
+                className="p-2 rounded-full hover:bg-primary-50"
+              >
+                <X className="h-5 w-5 text-gray-500" />
+              </button>
+            </div>
+            <form onSubmit={handleCreateShelfInModal} className="p-6 space-y-4">
+              <p className="text-sm text-gray-600">
+                Rafı kaydettikten sonra bu üründe seçili olur. Tüm rafları{' '}
+                <Link href="/dashboard/tanimlar#raf-yerleri" className="font-bold text-primary-600 hover:underline" target="_blank">
+                  Tanımlar
+                </Link>{' '}
+                sayfasından yönetebilirsiniz.
+              </p>
+              <div className="space-y-2">
+                <label className="text-[11px] font-black text-gray-500 uppercase tracking-wide">Raf adı *</label>
+                <input
+                  type="text"
+                  required
+                  value={newShelfName}
+                  onChange={(e) => setNewShelfName(e.target.value)}
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white focus:border-primary-500 focus:ring-2 focus:ring-primary-500/15 outline-none font-semibold"
+                  placeholder="Örn. A koridor — raf 04"
+                  autoFocus
+                />
+              </div>
+              <div className="flex gap-3 pt-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => {
+                    setShowNewShelfModal(false)
+                    setNewShelfName('')
+                  }}
+                >
+                  İptal
+                </Button>
+                <Button type="submit" disabled={newShelfLoading} className="flex-1">
+                  {newShelfLoading ? <Loader2 className="h-5 w-5 animate-spin mx-auto" /> : 'Kaydet'}
                 </Button>
               </div>
             </form>

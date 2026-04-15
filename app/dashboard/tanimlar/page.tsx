@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Card, CardBody } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
-import { Edit2, Trash2, Search, Users, Warehouse } from 'lucide-react'
+import { Edit2, Trash2, Search, Users, Warehouse, LayoutGrid, Plus, Loader2 } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 
 interface Tag {
@@ -13,8 +13,20 @@ interface Tag {
   entity_type: 'customer' | 'supplier'
 }
 
+interface ShelfLocation {
+  id: string
+  name: string
+  created_at?: string
+}
+
 export default function DefinitionsPage() {
   const [tags, setTags] = useState<Tag[]>([])
+  const [shelves, setShelves] = useState<ShelfLocation[]>([])
+  const [shelvesLoading, setShelvesLoading] = useState(true)
+  const [newShelfName, setNewShelfName] = useState('')
+  const [shelfSaving, setShelfSaving] = useState(false)
+  const [editingShelf, setEditingShelf] = useState<ShelfLocation | null>(null)
+  const [editShelfName, setEditShelfName] = useState('')
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [entityFilter, setEntityFilter] = useState<'all' | 'customer' | 'supplier'>('all')
@@ -26,7 +38,84 @@ export default function DefinitionsPage() {
 
   useEffect(() => {
     fetchTags()
+    fetchShelves()
   }, [])
+
+  const fetchShelves = async () => {
+    try {
+      const res = await fetch('/api/shelf-locations')
+      const data = await res.json()
+      setShelves(Array.isArray(data) ? data : [])
+    } catch (e) {
+      console.error(e)
+      toast.error('Raf yerleri yüklenemedi')
+    } finally {
+      setShelvesLoading(false)
+    }
+  }
+
+  const handleCreateShelf = async (e: React.FormEvent) => {
+    e.preventDefault()
+    const name = newShelfName.trim()
+    if (!name) return
+    setShelfSaving(true)
+    try {
+      const res = await fetch('/api/shelf-locations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Kayıt başarısız')
+      setShelves((prev) => {
+        const exists = prev.some((s) => s.id === data.id)
+        if (exists) return prev.map((s) => (s.id === data.id ? data : s))
+        return [...prev, data].sort((a, b) => a.name.localeCompare(b.name, 'tr'))
+      })
+      setNewShelfName('')
+      toast.success('Raf yeri eklendi')
+    } catch (err: any) {
+      toast.error(err.message)
+    } finally {
+      setShelfSaving(false)
+    }
+  }
+
+  const handleDeleteShelf = async (id: string) => {
+    if (!confirm('Bu raf yerini silmek istediğinize emin misiniz? Ürünlerde kullanılıyorsa bağlantı kaldırılır.')) return
+    try {
+      const res = await fetch(`/api/shelf-locations/${id}`, { method: 'DELETE' })
+      if (!res.ok) {
+        const err = await res.json()
+        throw new Error(err.error || 'Silinemedi')
+      }
+      setShelves((s) => s.filter((x) => x.id !== id))
+      toast.success('Raf yeri silindi')
+    } catch (err: any) {
+      toast.error(err.message)
+    }
+  }
+
+  const handleUpdateShelf = async () => {
+    if (!editingShelf || !editShelfName.trim()) return
+    setShelfSaving(true)
+    try {
+      const res = await fetch(`/api/shelf-locations/${editingShelf.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: editShelfName.trim() }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Güncellenemedi')
+      setShelves((prev) => prev.map((s) => (s.id === data.id ? data : s)))
+      setEditingShelf(null)
+      toast.success('Raf yeri güncellendi')
+    } catch (err: any) {
+      toast.error(err.message)
+    } finally {
+      setShelfSaving(false)
+    }
+  }
 
   const fetchTags = async () => {
     try {
@@ -112,7 +201,120 @@ export default function DefinitionsPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-gray-900">Tanımlar</h1>
-        <p className="mt-2 text-gray-600">Müşteri ve tedarikçi gruplarını, etiketlerini yönetin</p>
+        <p className="mt-2 text-gray-600">Müşteri ve tedarikçi gruplarını, etiketlerini ve depo içi raf yerlerini yönetin</p>
+      </div>
+
+      <div id="raf-yerleri" className="scroll-mt-24">
+      <Card className="border-primary-100/80 bg-[#FAFAF7]/80">
+        <CardBody className="p-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+            <div className="flex items-start gap-3">
+              <div className="p-2.5 rounded-xl bg-primary-50 border border-primary-200">
+                <LayoutGrid className="h-5 w-5 text-primary-600" />
+              </div>
+              <div>
+                <h2 className="text-lg font-bold text-gray-900">Raf yerleri</h2>
+                <p className="text-sm text-gray-600 mt-0.5">
+                  Depo içinde ürünün bulunduğu özel konumu (ör. A-12, Soğuk oda raf 3) tanımlayın. Ürün kartlarında seçilebilir.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <form onSubmit={handleCreateShelf} className="flex flex-col sm:flex-row gap-3 mb-6">
+            <input
+              type="text"
+              value={newShelfName}
+              onChange={(e) => setNewShelfName(e.target.value)}
+              placeholder="Yeni raf yeri adı (örn. A koridor - raf 04)"
+              className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 bg-white focus:ring-2 focus:ring-primary-500/30 focus:border-primary-400 outline-none text-sm"
+            />
+            <Button type="submit" disabled={shelfSaving || !newShelfName.trim()} className="sm:w-auto shrink-0">
+              {shelfSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Plus className="h-4 w-4 mr-2" />Raf ekle</>}
+            </Button>
+          </form>
+
+          <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-primary-50/50">
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wide">Raf adı</th>
+                  <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wide w-32">İşlem</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {shelvesLoading ? (
+                  <tr>
+                    <td colSpan={2} className="px-4 py-8 text-center text-gray-500">Yükleniyor...</td>
+                  </tr>
+                ) : shelves.length > 0 ? (
+                  shelves.map((s) => (
+                    <tr key={s.id} className="hover:bg-gray-50/80">
+                      <td className="px-4 py-3">
+                        {editingShelf?.id === s.id ? (
+                          <input
+                            type="text"
+                            value={editShelfName}
+                            onChange={(e) => setEditShelfName(e.target.value)}
+                            className="w-full px-2 py-1.5 border border-primary-400 rounded-lg text-sm"
+                            autoFocus
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') handleUpdateShelf()
+                              if (e.key === 'Escape') setEditingShelf(null)
+                            }}
+                          />
+                        ) : (
+                          <span className="text-sm font-medium text-gray-900">{s.name}</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-right space-x-1">
+                        {editingShelf?.id === s.id ? (
+                          <>
+                            <Button size="sm" onClick={handleUpdateShelf} disabled={shelfSaving}>
+                              Kaydet
+                            </Button>
+                            <Button size="sm" variant="outline" onClick={() => setEditingShelf(null)}>
+                              Vazgeç
+                            </Button>
+                          </>
+                        ) : (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setEditingShelf(s)
+                                setEditShelfName(s.name)
+                              }}
+                              className="p-1.5 text-primary-600 hover:bg-primary-50 rounded transition-colors"
+                              title="Düzenle"
+                            >
+                              <Edit2 className="h-4 w-4" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteShelf(s.id)}
+                              className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
+                              title="Sil"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </>
+                        )}
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={2} className="px-4 py-8 text-center text-gray-500 italic">
+                      Henüz raf yeri tanımlanmamış. Yukarıdan ekleyebilirsiniz.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </CardBody>
+      </Card>
       </div>
 
       <Card>

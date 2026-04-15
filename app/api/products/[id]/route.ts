@@ -25,15 +25,27 @@ export async function PUT(
     // Stok bilgilerini ayır
     const { initial_quantity, warehouse_id, movement_type, ...productData } = body
 
-    // Convert empty strings to null for nullable fields
+    const nullableStringKeys = ['sku', 'barcode', 'description', 'image_url', 'brand', 'gtip']
+
     const cleanData: any = {}
     for (const [key, value] of Object.entries(productData)) {
+      if (key === 'shelf_location_id' && (value === '' || value === undefined)) {
+        cleanData[key] = null
+        continue
+      }
       if (value === '' || value === undefined) {
-        if (['sku', 'barcode', 'description', 'image_url'].includes(key)) {
+        if (nullableStringKeys.includes(key)) {
           cleanData[key] = null
         }
       } else {
         cleanData[key] = value
+      }
+    }
+
+    if (Array.isArray(cleanData.sale_units)) {
+      cleanData.sale_units = cleanData.sale_units.filter(Boolean)
+      if (cleanData.sale_units.length === 0) {
+        cleanData.sale_units = ['adet']
       }
     }
 
