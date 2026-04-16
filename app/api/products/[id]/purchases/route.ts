@@ -39,6 +39,8 @@ export async function GET(
         document_no: row.purchases?.document_no ?? null,
         created_at: row.purchases?.created_at,
         total_amount: Number(row.purchases?.total_amount ?? 0),
+        quantity: Number(row.quantity ?? 0),
+        unit_price: Number(row.unit_price ?? 0),
         counterparty_name: row.purchases?.suppliers?.company_name ?? 'Hızlı Alış',
       })) ?? []
 

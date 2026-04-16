@@ -40,9 +40,15 @@ export async function POST(request: Request) {
 
     if (!profile) throw new Error('Profile not found')
 
-    const { product_id, warehouse_id, movement_type, quantity, reference_no, notes } = body
+    const { product_id, warehouse_id, movement_type, quantity, reference_no, notes, transaction_date } = body
 
-    // Create the stock movement
+    const txDate =
+      transaction_date != null && String(transaction_date).trim() !== ''
+        ? String(transaction_date).slice(0, 10)
+        : null
+
+    // Stok güncellemesi: DB tetikleyicisi (handle_stock_movement) insert sonrası yapılır; burada tekrar yazmayın.
+
     const { data: movement, error: movementError } = await supabase
       .from('stock_movements')
       .insert({
@@ -53,53 +59,13 @@ export async function POST(request: Request) {
         quantity,
         reference_no: reference_no || null,
         notes: notes || null,
-        created_by: user.id
+        transaction_date: txDate,
+        created_by: user.id,
       })
       .select()
       .single()
 
     if (movementError) throw movementError
-
-    // Update stock table based on movement type
-    const { data: existingStock } = await supabase
-      .from('stock')
-      .select('*')
-      .eq('product_id', product_id)
-      .eq('warehouse_id', warehouse_id)
-      .maybeSingle() // single() yerine maybeSingle() - hata vermez
-
-    let newQuantity = 0
-
-    if (existingStock) {
-      // Update existing stock
-      if (movement_type === 'in') {
-        newQuantity = Number(existingStock.quantity) + Number(quantity)
-      } else if (movement_type === 'out') {
-        newQuantity = Math.max(0, Number(existingStock.quantity) - Number(quantity))
-      } else if (movement_type === 'adjustment') {
-        newQuantity = Number(quantity)
-      }
-    } else {
-      // Create new stock entry
-      if (movement_type === 'in' || movement_type === 'adjustment') {
-        newQuantity = Number(quantity)
-      }
-    }
-
-    // UPSERT kullan - duplicate önler
-    const { error: stockError } = await supabase
-      .from('stock')
-      .upsert({
-        tenant_id: profile.tenant_id,
-        product_id,
-        warehouse_id,
-        quantity: newQuantity,
-        last_updated: new Date().toISOString()
-      }, {
-        onConflict: 'product_id,warehouse_id'
-      })
-
-    if (stockError) throw stockError
 
     return NextResponse.json(movement)
   } catch (error: any) {
