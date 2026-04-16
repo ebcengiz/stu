@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Card, CardBody } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
-import { Edit2, Trash2, Search, Users, Warehouse, LayoutGrid, Plus, Loader2 } from 'lucide-react'
+import { Edit2, Trash2, Search, Users, Warehouse, LayoutGrid, Plus, Loader2, Tag as TagIcon } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 
 interface Tag {
@@ -19,14 +19,26 @@ interface ShelfLocation {
   created_at?: string
 }
 
+interface BrandDefinition {
+  id: string
+  name: string
+  created_at?: string
+}
+
 export default function DefinitionsPage() {
   const [tags, setTags] = useState<Tag[]>([])
   const [shelves, setShelves] = useState<ShelfLocation[]>([])
+  const [brands, setBrands] = useState<BrandDefinition[]>([])
   const [shelvesLoading, setShelvesLoading] = useState(true)
+  const [brandsLoading, setBrandsLoading] = useState(true)
   const [newShelfName, setNewShelfName] = useState('')
+  const [newBrandName, setNewBrandName] = useState('')
   const [shelfSaving, setShelfSaving] = useState(false)
+  const [brandSaving, setBrandSaving] = useState(false)
   const [editingShelf, setEditingShelf] = useState<ShelfLocation | null>(null)
+  const [editingBrand, setEditingBrand] = useState<BrandDefinition | null>(null)
   const [editShelfName, setEditShelfName] = useState('')
+  const [editBrandName, setEditBrandName] = useState('')
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [entityFilter, setEntityFilter] = useState<'all' | 'customer' | 'supplier'>('all')
@@ -39,6 +51,7 @@ export default function DefinitionsPage() {
   useEffect(() => {
     fetchTags()
     fetchShelves()
+    fetchBrands()
   }, [])
 
   const fetchShelves = async () => {
@@ -114,6 +127,82 @@ export default function DefinitionsPage() {
       toast.error(err.message)
     } finally {
       setShelfSaving(false)
+    }
+  }
+
+  const fetchBrands = async () => {
+    try {
+      const res = await fetch('/api/brands')
+      const data = await res.json()
+      setBrands(Array.isArray(data) ? data : [])
+    } catch (e) {
+      console.error(e)
+      toast.error('Markalar yüklenemedi')
+    } finally {
+      setBrandsLoading(false)
+    }
+  }
+
+  const handleCreateBrand = async (e: React.FormEvent) => {
+    e.preventDefault()
+    const name = newBrandName.trim()
+    if (!name) return
+    setBrandSaving(true)
+    try {
+      const res = await fetch('/api/brands', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Kayıt başarısız')
+      setBrands((prev) => {
+        const exists = prev.some((b) => b.id === data.id)
+        if (exists) return prev.map((b) => (b.id === data.id ? data : b))
+        return [...prev, data].sort((a, b) => a.name.localeCompare(b.name, 'tr'))
+      })
+      setNewBrandName('')
+      toast.success('Marka eklendi')
+    } catch (err: any) {
+      toast.error(err.message)
+    } finally {
+      setBrandSaving(false)
+    }
+  }
+
+  const handleDeleteBrand = async (id: string) => {
+    if (!confirm('Bu markayı silmek istediğinize emin misiniz? Bu markayı kullanan ürünlerdeki marka alanı da temizlenir.')) return
+    try {
+      const res = await fetch(`/api/brands/${id}`, { method: 'DELETE' })
+      if (!res.ok) {
+        const err = await res.json()
+        throw new Error(err.error || 'Silinemedi')
+      }
+      setBrands((prev) => prev.filter((x) => x.id !== id))
+      toast.success('Marka silindi')
+    } catch (err: any) {
+      toast.error(err.message)
+    }
+  }
+
+  const handleUpdateBrand = async () => {
+    if (!editingBrand || !editBrandName.trim()) return
+    setBrandSaving(true)
+    try {
+      const res = await fetch(`/api/brands/${editingBrand.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: editBrandName.trim() }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Güncellenemedi')
+      setBrands((prev) => prev.map((b) => (b.id === data.id ? data : b)))
+      setEditingBrand(null)
+      toast.success('Marka güncellendi')
+    } catch (err: any) {
+      toast.error(err.message)
+    } finally {
+      setBrandSaving(false)
     }
   }
 
@@ -201,7 +290,7 @@ export default function DefinitionsPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-gray-900">Tanımlar</h1>
-        <p className="mt-2 text-gray-600">Müşteri ve tedarikçi gruplarını, etiketlerini ve depo içi raf yerlerini yönetin</p>
+        <p className="mt-2 text-gray-600">Müşteri ve tedarikçi gruplarını, etiketlerini, markaları ve depo içi raf yerlerini yönetin</p>
       </div>
 
       <div id="raf-yerleri" className="scroll-mt-24">
@@ -307,6 +396,119 @@ export default function DefinitionsPage() {
                   <tr>
                     <td colSpan={2} className="px-4 py-8 text-center text-gray-500 italic">
                       Henüz raf yeri tanımlanmamış. Yukarıdan ekleyebilirsiniz.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </CardBody>
+      </Card>
+      </div>
+
+      <div id="markalar" className="scroll-mt-24">
+      <Card className="border-primary-100/80 bg-[#FAFAF7]/80">
+        <CardBody className="p-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+            <div className="flex items-start gap-3">
+              <div className="p-2.5 rounded-xl bg-primary-50 border border-primary-200">
+                <TagIcon className="h-5 w-5 text-primary-600" />
+              </div>
+              <div>
+                <h2 className="text-lg font-bold text-gray-900">Markalar</h2>
+                <p className="text-sm text-gray-600 mt-0.5">
+                  Ürün kartlarında seçilebilecek marka tanımlarını yönetin.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <form onSubmit={handleCreateBrand} className="flex flex-col sm:flex-row gap-3 mb-6">
+            <input
+              type="text"
+              value={newBrandName}
+              onChange={(e) => setNewBrandName(e.target.value)}
+              placeholder="Yeni marka adı"
+              className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 bg-white focus:ring-2 focus:ring-primary-500/30 focus:border-primary-400 outline-none text-sm"
+            />
+            <Button type="submit" disabled={brandSaving || !newBrandName.trim()} className="sm:w-auto shrink-0">
+              {brandSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Plus className="h-4 w-4 mr-2" />Marka ekle</>}
+            </Button>
+          </form>
+
+          <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-primary-50/50">
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wide">Marka adı</th>
+                  <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wide w-32">İşlem</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {brandsLoading ? (
+                  <tr>
+                    <td colSpan={2} className="px-4 py-8 text-center text-gray-500">Yükleniyor...</td>
+                  </tr>
+                ) : brands.length > 0 ? (
+                  brands.map((b) => (
+                    <tr key={b.id} className="hover:bg-gray-50/80">
+                      <td className="px-4 py-3">
+                        {editingBrand?.id === b.id ? (
+                          <input
+                            type="text"
+                            value={editBrandName}
+                            onChange={(e) => setEditBrandName(e.target.value)}
+                            className="w-full px-2 py-1.5 border border-primary-400 rounded-lg text-sm"
+                            autoFocus
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') handleUpdateBrand()
+                              if (e.key === 'Escape') setEditingBrand(null)
+                            }}
+                          />
+                        ) : (
+                          <span className="text-sm font-medium text-gray-900">{b.name}</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-right space-x-1">
+                        {editingBrand?.id === b.id ? (
+                          <>
+                            <Button size="sm" onClick={handleUpdateBrand} disabled={brandSaving}>
+                              Kaydet
+                            </Button>
+                            <Button size="sm" variant="outline" onClick={() => setEditingBrand(null)}>
+                              Vazgeç
+                            </Button>
+                          </>
+                        ) : (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setEditingBrand(b)
+                                setEditBrandName(b.name)
+                              }}
+                              className="p-1.5 text-primary-600 hover:bg-primary-50 rounded transition-colors"
+                              title="Düzenle"
+                            >
+                              <Edit2 className="h-4 w-4" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteBrand(b.id)}
+                              className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
+                              title="Sil"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </>
+                        )}
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={2} className="px-4 py-8 text-center text-gray-500 italic">
+                      Henüz marka tanımlanmamış. Yukarıdan ekleyebilirsiniz.
                     </td>
                   </tr>
                 )}

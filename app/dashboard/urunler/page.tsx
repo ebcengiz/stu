@@ -41,7 +41,7 @@ const LocationPicker = dynamic(() => import('@/components/warehouse/LocationPick
   loading: () => <div className="h-64 bg-gray-50 rounded-xl flex items-center justify-center text-gray-500">Harita yükleniyor...</div>
 })
 
-/** Satış/alışta kullanılabilecek birim seçenekleri (çoklu seçim) */
+/** Satış/alışta kullanılabilecek birim seçenekleri */
 const UNIT_OPTIONS = [
   'adet',
   'kg',
@@ -64,7 +64,17 @@ const UNIT_OPTIONS = [
   'personel-gün',
 ]
 
+const formatUnitLabel = (unit: string) => {
+  if (!unit) return unit
+  return unit.charAt(0).toLocaleUpperCase('tr-TR') + unit.slice(1)
+}
+
 interface Category {
+  id: string
+  name: string
+}
+
+interface BrandDefinition {
   id: string
   name: string
 }
@@ -129,11 +139,13 @@ function calculateTotalStock(stockRecords?: Array<{ warehouse_id?: string; quant
 function ProductsPageContent() {
   const [products, setProducts] = useState<Product[]>([])
   const [categories, setCategories] = useState<Category[]>([])
+  const [brands, setBrands] = useState<BrandDefinition[]>([])
   const [warehouses, setWarehouses] = useState<Warehouse[]>([])
   const [loading, setLoading] = useState(true)
   const [uploading, setUploading] = useState(false)
   const [showModal, setShowModal] = useState(false)
   const [showNewCategoryModal, setShowNewCategoryModal] = useState(false)
+  const [showNewBrandModal, setShowNewBrandModal] = useState(false)
   const [showNewWarehouseModal, setShowNewWarehouseModal] = useState(false)
   const [showNewShelfModal, setShowNewShelfModal] = useState(false)
   const [newShelfName, setNewShelfName] = useState('')
@@ -145,10 +157,11 @@ function ProductsPageContent() {
     stock: false,
     detail: false,
   })
-  const [customUnitDraft, setCustomUnitDraft] = useState('')
   const [newCategoryLoading, setNewCategoryLoading] = useState(false)
+  const [newBrandLoading, setNewBrandLoading] = useState(false)
   const [newWarehouseLoading, setNewWarehouseLoading] = useState(false)
   const [newCategoryData, setNewCategoryData] = useState({ name: '', description: '' })
+  const [newBrandData, setNewBrandData] = useState({ name: '' })
   const [newWarehouseData, setNewWarehouseData] = useState({ name: '', location: '', is_active: true })
   const [showBarcodeScanner, setShowBarcodeScanner] = useState(false)
   const [showFilters, setShowFilters] = useState(false)
@@ -188,16 +201,18 @@ function ProductsPageContent() {
   useEffect(() => {
     const fetchAllData = async () => {
       try {
-        const [productsRes, categoriesRes, warehousesRes, shelvesRes] = await Promise.all([
+        const [productsRes, categoriesRes, brandsRes, warehousesRes, shelvesRes] = await Promise.all([
           fetch('/api/products'),
           fetch('/api/categories'),
+          fetch('/api/brands'),
           fetch('/api/warehouses'),
           fetch('/api/shelf-locations'),
         ])
 
-        const [productsData, categoriesData, warehousesData] = await Promise.all([
+        const [productsData, categoriesData, brandsData, warehousesData] = await Promise.all([
           productsRes.json(),
           categoriesRes.json(),
+          brandsRes.json(),
           warehousesRes.json(),
         ])
 
@@ -212,6 +227,7 @@ function ProductsPageContent() {
 
         setProducts(Array.isArray(productsData) ? productsData : [])
         setCategories(Array.isArray(categoriesData) ? categoriesData : [])
+        setBrands(Array.isArray(brandsData) ? brandsData : [])
         setWarehouses(Array.isArray(warehousesData) ? warehousesData.filter((w: Warehouse) => w.is_active) : [])
         setShelfLocations(Array.isArray(shelvesData) ? shelvesData : [])
       } catch (error) {
@@ -252,6 +268,16 @@ function ProductsPageContent() {
     }
   }
 
+  const fetchBrands = async () => {
+    try {
+      const response = await fetch('/api/brands')
+      const data = await response.json()
+      setBrands(Array.isArray(data) ? data : [])
+    } catch (error) {
+      console.error('Error fetching brands:', error)
+    }
+  }
+
   const fetchWarehouses = async () => {
     try {
       const response = await fetch('/api/warehouses')
@@ -272,28 +298,29 @@ function ProductsPageContent() {
     }
   }
 
-  const toggleSaleUnit = (u: string) => {
-    setFormData((prev) => {
-      let next = [...prev.sale_units]
-      if (next.includes(u)) {
-        if (next.length <= 1) return prev
-        next = next.filter((x) => x !== u)
-        const newUnit = prev.unit === u ? next[0] : prev.unit
-        return { ...prev, sale_units: next, unit: newUnit }
-      }
-      return { ...prev, sale_units: [...next, u] }
-    })
-  }
-
-  const addCustomUnit = () => {
-    const u = customUnitDraft.trim().toLowerCase()
-    if (!u) return
-    setFormData((prev) => ({
-      ...prev,
-      sale_units: prev.sale_units.includes(u) ? prev.sale_units : [...prev.sale_units, u],
-      unit: u,
-    }))
-    setCustomUnitDraft('')
+  const handleCreateBrand = async (e: React.FormEvent) => {
+    e.preventDefault()
+    const brand = newBrandData.name.trim()
+    if (!brand) return
+    setNewBrandLoading(true)
+    try {
+      const res = await fetch('/api/brands', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: brand }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Marka eklenemedi')
+      await fetchBrands()
+      setFormData((prev) => ({ ...prev, brand: data.name }))
+      setShowNewBrandModal(false)
+      setNewBrandData({ name: '' })
+      toast.success('Yeni marka eklendi ve seçildi')
+    } catch (err: any) {
+      toast.error(err.message)
+    } finally {
+      setNewBrandLoading(false)
+    }
   }
 
   const handleCreateShelfInModal = async (e: React.FormEvent) => {
@@ -493,7 +520,6 @@ function ProductsPageContent() {
       shelf_location_id: '',
     })
     setAccordionOpen({ def: true, price: false, stock: false, detail: false })
-    setCustomUnitDraft('')
     setShowModal(true)
   }
 
@@ -547,6 +573,23 @@ function ProductsPageContent() {
       setNewWarehouseLoading(false)
     }
   }
+
+  const availableBrands = useMemo(() => {
+    const uniq = new Set<string>()
+    for (const brand of brands) {
+      const name = brand.name?.trim()
+      if (name) uniq.add(name)
+    }
+    for (const product of products) {
+      const name = product.brand?.trim()
+      if (name) uniq.add(name)
+    }
+    return Array.from(uniq).sort((a, b) => a.localeCompare(b, 'tr'))
+  }, [brands, products])
+  const unitSelectOptions = useMemo(() => {
+    if (UNIT_OPTIONS.includes(formData.unit)) return UNIT_OPTIONS
+    return [formData.unit, ...UNIT_OPTIONS.filter((u) => u !== formData.unit)]
+  }, [formData.unit])
 
   const filteredProducts = useMemo(() => {
     if (!Array.isArray(products)) return []
@@ -739,16 +782,17 @@ function ProductsPageContent() {
                       </div>
                       <div className="space-y-2">
                         <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Ürün tipi</label>
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                           {([
                             { v: 'stocked' as const, label: 'Stoklu ürün' },
-                            { v: 'service' as const, label: 'Stoksuz (hizmet)' },
-                            { v: 'consulting' as const, label: 'Stoksuz (danışmanlık)' },
+                            { v: 'service' as const, label: 'Stoksuz ürün (hizmet / danışmanlık)' },
                           ]).map((opt) => (
                             <label
                               key={opt.v}
                               className={`flex items-center gap-2 rounded-xl border px-3 py-2.5 cursor-pointer text-sm font-semibold transition-all ${
-                                formData.product_kind === opt.v
+                                (opt.v === 'service'
+                                  ? formData.product_kind !== 'stocked'
+                                  : formData.product_kind === opt.v)
                                   ? 'border-primary-500 bg-primary-50 text-primary-900 ring-1 ring-primary-200'
                                   : 'border-gray-200 bg-white text-gray-700 hover:border-primary-200'
                               }`}
@@ -757,11 +801,15 @@ function ProductsPageContent() {
                                 type="radio"
                                 name="product_kind"
                                 className="sr-only"
-                                checked={formData.product_kind === opt.v}
+                                checked={
+                                  opt.v === 'service'
+                                    ? formData.product_kind !== 'stocked'
+                                    : formData.product_kind === opt.v
+                                }
                                 onChange={() =>
                                   setFormData((prev) => ({
                                     ...prev,
-                                    product_kind: opt.v,
+                                    product_kind: opt.v === 'service' ? 'service' : 'stocked',
                                     shelf_location_id: opt.v === 'stocked' ? prev.shelf_location_id : '',
                                   }))
                                 }
@@ -771,62 +819,8 @@ function ProductsPageContent() {
                           ))}
                         </div>
                       </div>
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Satış / alış birimleri</label>
-                        <p className="text-[11px] text-gray-500">Bu ürünle kullanılabilecek tüm birimleri seçin; varsayılan birim aşağıdan belirlenir.</p>
-                        <div className="flex flex-wrap gap-2">
-                          {UNIT_OPTIONS.map((u) => (
-                            <button
-                              key={u}
-                              type="button"
-                              onClick={() => toggleSaleUnit(u)}
-                              className={`px-2.5 py-1 rounded-lg text-xs font-bold border transition-all ${
-                                formData.sale_units.includes(u)
-                                  ? 'bg-primary-600 text-white border-primary-600'
-                                  : 'bg-white text-gray-600 border-gray-200 hover:border-primary-300'
-                              }`}
-                            >
-                              {u}
-                            </button>
-                          ))}
-                        </div>
-                        <div className="flex flex-wrap gap-2 items-center pt-1">
-                          <input
-                            type="text"
-                            value={customUnitDraft}
-                            onChange={(e) => setCustomUnitDraft(e.target.value)}
-                            placeholder="Özel birim (ör. palet)"
-                            className="flex-1 min-w-[140px] px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white focus:border-primary-500 outline-none"
-                          />
-                          <Button type="button" variant="outline" size="sm" className="shrink-0" onClick={addCustomUnit}>
-                            Ekle
-                          </Button>
-                        </div>
-                        <div className="space-y-1.5">
-                          <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Varsayılan birim *</label>
-                          <select
-                            required
-                            value={formData.unit}
-                            onChange={(e) => {
-                              const v = e.target.value
-                              setFormData((prev) => ({
-                                ...prev,
-                                unit: v,
-                                sale_units: prev.sale_units.includes(v) ? prev.sale_units : [...prev.sale_units, v],
-                              }))
-                            }}
-                            className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl font-semibold text-gray-800"
-                          >
-                            {formData.sale_units.map((u) => (
-                              <option key={u} value={u}>
-                                {u}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                      </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-1.5 min-w-0">
+                        <div className="space-y-1.5 min-w-0 md:col-span-2">
                           <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Kategori *</label>
                           <div className="flex gap-2">
                             <div className="relative flex-1 min-w-0">
@@ -855,15 +849,55 @@ function ProductsPageContent() {
                             </button>
                           </div>
                         </div>
-                        <div className="space-y-1.5">
-                          <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Marka</label>
-                          <input
-                            type="text"
-                            value={formData.brand}
-                            onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
+                        <div className="space-y-1.5 min-w-0">
+                          <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Marka seçimi</label>
+                          <div className="flex gap-2">
+                            <div className="relative flex-1 min-w-0">
+                              <select
+                                value={formData.brand}
+                                onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
+                                className="w-full px-3 pr-9 py-3 bg-white border border-gray-200 rounded-xl text-sm appearance-none truncate"
+                              >
+                                <option value="">Marka seçin veya ekleyin</option>
+                                {availableBrands.map((brand) => (
+                                  <option key={brand} value={brand}>
+                                    {brand}
+                                  </option>
+                                ))}
+                              </select>
+                              <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => setShowNewBrandModal(true)}
+                              className="h-[46px] w-[46px] flex items-center justify-center bg-primary-50 text-primary-600 rounded-xl border border-primary-200 shrink-0"
+                              title="Yeni marka"
+                            >
+                              <Plus className="h-5 w-5" />
+                            </button>
+                          </div>
+                        </div>
+                        <div className="space-y-1.5 min-w-0">
+                          <label className="text-[9px] font-black text-gray-500 uppercase tracking-[0.12em]">Birim *</label>
+                          <select
+                            required
+                            value={formData.unit}
+                            onChange={(e) => {
+                              const v = e.target.value
+                              setFormData((prev) => ({
+                                ...prev,
+                                unit: v,
+                                sale_units: [v],
+                              }))
+                            }}
                             className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl font-semibold text-gray-800"
-                            placeholder="Varsa marka adı"
-                          />
+                          >
+                            {unitSelectOptions.map((u) => (
+                              <option key={u} value={u}>
+                                {formatUnitLabel(u)}
+                              </option>
+                            ))}
+                          </select>
                         </div>
                         <div className="space-y-1.5">
                           <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Ürün kodu (SKU)</label>
@@ -984,17 +1018,7 @@ function ProductsPageContent() {
                               />
                             </div>
                             <div className="space-y-1.5 md:col-span-2">
-                              <div className="flex items-center justify-between gap-2 flex-wrap">
-                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Raf yeri</label>
-                                <Link
-                                  href="/dashboard/tanimlar#raf-yerleri"
-                                  className="text-[11px] font-bold text-primary-600 hover:underline"
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                >
-                                  Tanımlarda yönet
-                                </Link>
-                              </div>
+                              <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Raf yeri</label>
                               <div className="flex gap-2">
                                 <select
                                   value={formData.shelf_location_id}
@@ -1197,6 +1221,60 @@ function ProductsPageContent() {
                 <Button type="button" variant="outline" onClick={() => setShowNewCategoryModal(false)} className="flex-1 h-12 rounded-xl font-bold">İptal</Button>
                 <Button type="submit" disabled={newCategoryLoading} className="flex-[1.5] h-12 rounded-xl font-bold text-lg transition-all active:scale-95">
                   {newCategoryLoading ? <Loader2 className="h-6 w-6 animate-spin" /> : 'KAYDET'}
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {showNewBrandModal && (
+        <div className="fixed inset-0 bg-black/30  flex items-center justify-center z-[10001] p-4 animate-in fade-in duration-300">
+          <div className="bg-white  rounded-2xl shadow-xl shadow-gray-200/50 w-full max-w-md overflow-hidden border border-gray-200 animate-in zoom-in-95 duration-200">
+            <div className="px-8 py-7 border-b border-gray-200 flex justify-between items-center">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 bg-primary-50 rounded-xl border border-primary-200"><Tag className="h-5 w-5 text-primary-600" /></div>
+                <h3 className="text-base font-bold text-gray-800">Yeni Marka</h3>
+              </div>
+              <button
+                onClick={() => {
+                  setShowNewBrandModal(false)
+                  setNewBrandData({ name: '' })
+                }}
+                className="p-2 hover:bg-gray-50 rounded-full transition-all active:scale-90"
+              >
+                <X className="h-5 w-5 text-gray-500" />
+              </button>
+            </div>
+            <form onSubmit={handleCreateBrand} className="p-8 space-y-6">
+              <div className="space-y-2">
+                <label className="block text-[11px] font-black text-gray-400 uppercase tracking-[0.15em] px-1">Marka İsmi *</label>
+                <input
+                  type="text"
+                  required
+                  value={newBrandData.name}
+                  onFocus={(e) => e.target.select()}
+                  onChange={(e) => setNewBrandData({ name: e.target.value })}
+                  className="w-full px-5 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none font-bold text-gray-700 transition-all"
+                  placeholder="Orn: Bosch"
+                  autoFocus
+                />
+              </div>
+              <div className="flex gap-4 pt-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setShowNewBrandModal(false)
+                    setNewBrandData({ name: '' })
+                  }}
+                  className="flex-1 h-12 rounded-xl font-bold"
+                  disabled={newBrandLoading}
+                >
+                  Iptal
+                </Button>
+                <Button type="submit" disabled={newBrandLoading} className="flex-[1.5] h-12 rounded-xl font-bold text-lg transition-all active:scale-95">
+                  {newBrandLoading ? <Loader2 className="h-6 w-6 animate-spin" /> : 'KAYDET'}
                 </Button>
               </div>
             </form>
