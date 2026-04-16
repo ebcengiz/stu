@@ -31,6 +31,19 @@ function allKindsSelected(): Record<StockMovementSourceKey, boolean> {
   return o
 }
 
+/** Bugünden geriye doğru yaklaşık son 2 takvim ayı (yerel tarih). */
+function getDefaultStokEkstresiRange(): { from: string; to: string } {
+  const to = new Date()
+  const from = new Date(to.getFullYear(), to.getMonth() - 2, to.getDate())
+  const fmt = (d: Date) => {
+    const y = d.getFullYear()
+    const m = String(d.getMonth() + 1).padStart(2, '0')
+    const day = String(d.getDate()).padStart(2, '0')
+    return `${y}-${m}-${day}`
+  }
+  return { from: fmt(from), to: fmt(to) }
+}
+
 function buildMovementsQuery(
   from: string,
   to: string,
@@ -88,8 +101,8 @@ export default function UrunStokEkstresiPage() {
   const [loading, setLoading] = useState(true)
   const [movementsLoading, setMovementsLoading] = useState(false)
 
-  const [from, setFrom] = useState('')
-  const [to, setTo] = useState('')
+  const [from, setFrom] = useState(() => getDefaultStokEkstresiRange().from)
+  const [to, setTo] = useState(() => getDefaultStokEkstresiRange().to)
   const [kindSelected, setKindSelected] = useState<Record<StockMovementSourceKey, boolean>>(allKindsSelected)
 
   const fetchMovements = useCallback(
@@ -141,7 +154,11 @@ export default function UrunStokEkstresiPage() {
           name: String(pJson.name ?? ''),
           unit: String(pJson.unit ?? 'adet'),
         })
-        const mRes = await fetch(`/api/products/${id}/stock-movements`)
+        const range = getDefaultStokEkstresiRange()
+        setFrom(range.from)
+        setTo(range.to)
+        const qs = buildMovementsQuery(range.from, range.to, allKindsSelected())
+        const mRes = await fetch(`/api/products/${id}/stock-movements${qs}`)
         const mJson = await mRes.json().catch(() => ([] as MovementRow[]))
         if (!mRes.ok) {
           throw new Error(
@@ -261,11 +278,12 @@ export default function UrunStokEkstresiPage() {
               type="button"
               disabled={movementsLoading}
               onClick={() => {
-                setFrom('')
-                setTo('')
+                const range = getDefaultStokEkstresiRange()
+                setFrom(range.from)
+                setTo(range.to)
                 const all = allKindsSelected()
                 setKindSelected(all)
-                void fetchMovements('', '', all)
+                void fetchMovements(range.from, range.to, all)
               }}
               className="rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50 disabled:opacity-50"
             >
@@ -306,7 +324,7 @@ export default function UrunStokEkstresiPage() {
                       Miktar
                     </th>
                     <th className="px-4 py-3 text-left text-[10px] font-black uppercase tracking-wider text-gray-500">
-                      Referans
+                      Belge no
                     </th>
                     <th className="px-4 py-3 text-left text-[10px] font-black uppercase tracking-wider text-gray-500">
                       Açıklama
@@ -352,7 +370,8 @@ export default function UrunStokEkstresiPage() {
             </div>
           )}
           <p className="border-t border-gray-100 px-4 py-2 text-[11px] text-gray-400">
-            En fazla 2.500 satır listelenir; daraltmak için tarih aralığı kullanın.
+            İlk açılışta son 2 ay gösterilir. Daha eski kayıtlar için başlangıç tarihini geriye alın. En fazla 2.500 satır
+            listelenir.
           </p>
         </div>
       )}
