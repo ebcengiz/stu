@@ -1,6 +1,71 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 
+export async function GET(
+  _request: Request,
+  context: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await context.params
+    const supabase = await createClient()
+
+    const { data: product, error } = await supabase
+      .from('products')
+      .select(
+        `
+        id,
+        name,
+        sku,
+        barcode,
+        description,
+        price,
+        purchase_price,
+        tax_rate,
+        discount_rate,
+        currency,
+        unit,
+        min_stock_level,
+        image_url,
+        is_active,
+        category_id,
+        product_kind,
+        brand,
+        gtip,
+        sale_units,
+        shelf_location_id,
+        created_at,
+        categories:category_id (
+          id,
+          name
+        ),
+        shelf_locations (
+          id,
+          name
+        ),
+        stock:stock (
+          id,
+          quantity,
+          warehouse_id,
+          last_updated,
+          warehouses:warehouse_id (
+            id,
+            name
+          )
+        )
+      `
+      )
+      .eq('id', id)
+      .single()
+
+    if (error) throw error
+
+    return NextResponse.json(product)
+  } catch (error: any) {
+    console.error('Product detail GET error:', error)
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+}
+
 export async function PUT(
   request: Request,
   context: { params: Promise<{ id: string }> }

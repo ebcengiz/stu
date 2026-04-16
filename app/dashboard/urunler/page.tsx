@@ -27,7 +27,7 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Card, CardHeader, CardBody, CardTitle } from '@/components/ui/Card'
-import { useSearchParams } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import dynamic from 'next/dynamic'
 import BarcodeScanner from '@/components/barcode/BarcodeScanner'
 import { CURRENCY_SYMBOLS } from '@/lib/currency'
@@ -137,6 +137,7 @@ function calculateTotalStock(stockRecords?: Array<{ warehouse_id?: string; quant
 }
 
 function ProductsPageContent() {
+  const router = useRouter()
   const [products, setProducts] = useState<Product[]>([])
   const [categories, setCategories] = useState<Category[]>([])
   const [brands, setBrands] = useState<BrandDefinition[]>([])
@@ -171,6 +172,7 @@ function ProductsPageContent() {
   const [categoryFilter, setCategoryFilter] = useState('')
   const [warehouseFilter, setWarehouseFilter] = useState('')
   const [sortConfig, setSortConfig] = useState<{ key: keyof Product; direction: 'asc' | 'desc' } | null>(null)
+  const [autoEditHandledId, setAutoEditHandledId] = useState<string | null>(null)
   
   const [formData, setFormData] = useState({
     name: '',
@@ -493,6 +495,21 @@ function ProductsPageContent() {
     }
   }
 
+  useEffect(() => {
+    const editFlag = searchParams.get('edit')
+    const productId = searchParams.get('id')
+
+    if (editFlag !== '1' || !productId) return
+    if (autoEditHandledId === productId) return
+
+    const targetProduct = products.find((p) => p.id === productId)
+    if (!targetProduct) return
+
+    handleEdit(targetProduct)
+    setAutoEditHandledId(productId)
+    router.replace('/dashboard/urunler', { scroll: false })
+  }, [searchParams, products, autoEditHandledId, router])
+
   const openNewModal = () => {
     setEditingProduct(null)
     setFormData({
@@ -692,16 +709,23 @@ function ProductsPageContent() {
                       <tr key={product.id} className={`group transition-colors ${isLow ? 'bg-red-50/30 hover:bg-red-50/50' : 'hover:bg-gray-50'}`}>
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-4 min-w-[200px]">
-                            <div className="h-12 w-12 rounded-xl bg-gray-50 flex-shrink-0 overflow-hidden border border-gray-100 group-hover:border-primary-300 transition-all">
-                              {product.image_url ? (
-                                <img src={product.image_url} alt={product.name} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" />
-                              ) : (
-                                <div className="h-full w-full flex items-center justify-center text-gray-500">
-                                  <ImageIcon className="h-6 w-6" />
-                                </div>
-                              )}
+                            <div
+                              onClick={() => (window.location.href = `/dashboard/urunler/${product.id}`)}
+                              className="flex items-center gap-4 min-w-[200px] cursor-pointer"
+                            >
+                              <div className="h-12 w-12 rounded-xl bg-gray-50 flex-shrink-0 overflow-hidden border border-gray-100 group-hover:border-primary-300 transition-all">
+                                {product.image_url ? (
+                                  <img src={product.image_url} alt={product.name} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                                ) : (
+                                  <div className="h-full w-full flex items-center justify-center text-gray-500">
+                                    <ImageIcon className="h-6 w-6" />
+                                  </div>
+                                )}
+                              </div>
+                              <div className="text-sm font-bold text-gray-700 group-hover:text-primary-700 transition-colors leading-tight hover:underline">
+                                {product.name}
+                              </div>
                             </div>
-                            <div className="text-sm font-bold text-gray-700 group-hover:text-primary-700 transition-colors leading-tight">{product.name}</div>
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-400">{product.sku || '---'}</td>
