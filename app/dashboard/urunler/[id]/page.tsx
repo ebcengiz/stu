@@ -419,15 +419,17 @@ export default function ProductDetailPage() {
                 </button>
                 <button
                   type="button"
-                  className="flex w-full cursor-not-allowed items-center justify-between gap-2 px-3 py-2 text-left text-xs font-semibold text-gray-400"
-                  disabled
+                  onClick={() => {
+                    setAccordionOpen({ stockActions: false, otherActions: false })
+                    router.push(`/dashboard/urunler/${product.id}/stok-sayimi`)
+                  }}
+                  className="flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-xs font-semibold text-gray-800 hover:bg-gray-50"
                   role="menuitem"
                 >
                   <span className="flex min-w-0 items-center gap-2">
-                    <Warehouse className="h-3.5 w-3.5 shrink-0" />
+                    <Warehouse className="h-3.5 w-3.5 shrink-0 text-primary-600" />
                     <span className="truncate">Stok sayımı</span>
                   </span>
-                  <span className="shrink-0 text-[9px] font-black uppercase tracking-wider text-gray-300">Yakında</span>
                 </button>
               </div>
             )}
