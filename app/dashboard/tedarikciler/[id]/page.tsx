@@ -492,6 +492,20 @@ export default function SupplierDetailPage() {
           setSaving(false)
           return
         }
+      } else if (
+        txForm.type === 'payment' &&
+        txForm.payment_method === 'cheque' &&
+        chequeOutMode === 'own'
+      ) {
+        const bank = chequeData.bank?.trim()
+        const serial = chequeData.serial_number?.trim()
+        const dueDate = chequeData.due_date?.trim()
+        if (!bank || !serial || !dueDate) {
+          toast.error('Kendi çekiniz için banka adı, seri no ve vade tarihi zorunludur')
+          setShowChequeModal(true)
+          setSaving(false)
+          return
+        }
       } else if (txForm.type === 'payment' && txForm.payment_method !== 'cheque' && !txForm.payment_account_id) {
         toast.error('Ödemenin çekileceği kasa, banka veya kredi kartı hesabını seçin')
         setSaving(false)
@@ -1110,21 +1124,24 @@ export default function SupplierDetailPage() {
                         </p>
                       )}
                     </div>
-                  ) : (
-                    <div className="flex items-center justify-between gap-3">
-                      <div>
-                        <h5 className="text-sm font-semibold text-gray-800">Çek detayları</h5>
-                        <p className="text-xs text-gray-500 mt-0.5">
-                          {chequeData.bank
-                            ? `${chequeData.bank} — vade ${new Date(chequeData.due_date).toLocaleDateString('tr-TR')}`
-                            : 'Çek bilgisi girilmedi'}
-                        </p>
+                  ) : (() => {
+                    const missing = !chequeData.bank?.trim() || !chequeData.serial_number?.trim() || !chequeData.due_date?.trim()
+                    return (
+                      <div className={`flex items-center justify-between gap-3 rounded-md border px-3 py-2 ${missing ? 'border-amber-200 bg-amber-50' : 'border-gray-200 bg-white'}`}>
+                        <div>
+                          <h5 className={`text-sm font-semibold ${missing ? 'text-amber-900' : 'text-gray-800'}`}>Çek detayları {missing && <span className="text-xs font-normal">(zorunlu)</span>}</h5>
+                          <p className={`text-xs mt-0.5 ${missing ? 'text-amber-800' : 'text-gray-500'}`}>
+                            {!missing
+                              ? `${chequeData.bank} · Seri: ${chequeData.serial_number} · Vade: ${new Date(chequeData.due_date).toLocaleDateString('tr-TR')}`
+                              : 'Banka adı, seri no ve vade tarihi girilmeden kaydedilemez.'}
+                          </p>
+                        </div>
+                        <Button type="button" onClick={() => setShowChequeModal(true)} variant="outline" className={missing ? 'border-amber-300 bg-white text-amber-800 hover:bg-amber-100' : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50'}>
+                          {missing ? 'Bilgileri Gir' : 'Düzenle'}
+                        </Button>
                       </div>
-                      <Button type="button" onClick={() => setShowChequeModal(true)} variant="outline" className="border-gray-200 bg-white text-gray-700 hover:bg-gray-50">
-                        Düzenle
-                      </Button>
-                    </div>
-                  )}
+                    )
+                  })()}
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1154,7 +1171,7 @@ export default function SupplierDetailPage() {
                   <textarea placeholder="Örn: Nisan ayı çek ödemesi..." value={txForm.description} onChange={e => setTxForm({...txForm, description: e.target.value})} className="w-full px-3 py-2.5 border border-gray-200 rounded-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none h-24 resize-none text-sm text-gray-900" />
                 </div>
 
-                <div className="flex justify-end gap-2 pt-4 border-t border-gray-200"><Button type="button" variant="outline" onClick={() => setShowChequePaymentModal(false)} className="h-10 px-4 rounded-lg font-semibold border-gray-200 bg-white text-gray-700 hover:bg-gray-50">Vazgeç</Button><Button type="submit" disabled={saving || !txForm.amount || (chequeOutMode === 'portfolio' && !selectedPortfolioCheckId)} className="h-10 px-5 rounded-lg font-semibold bg-primary-600 hover:bg-primary-700 text-white">{saving ? 'Kaydediliyor...' : 'Çek Ödemesini Kaydet'}</Button></div>
+                <div className="flex justify-end gap-2 pt-4 border-t border-gray-200"><Button type="button" variant="outline" onClick={() => setShowChequePaymentModal(false)} className="h-10 px-4 rounded-lg font-semibold border-gray-200 bg-white text-gray-700 hover:bg-gray-50">Vazgeç</Button><Button type="submit" disabled={saving || !txForm.amount || (chequeOutMode === 'portfolio' && !selectedPortfolioCheckId) || (chequeOutMode === 'own' && (!chequeData.bank?.trim() || !chequeData.serial_number?.trim() || !chequeData.due_date?.trim()))} className="h-10 px-5 rounded-lg font-semibold bg-primary-600 hover:bg-primary-700 text-white disabled:opacity-50 disabled:cursor-not-allowed">{saving ? 'Kaydediliyor...' : 'Çek Ödemesini Kaydet'}</Button></div>
               </form>
             </CardBody>
           </Card>

@@ -84,6 +84,21 @@ export default function HesaplarimPage() {
     fetchAccounts()
   }, [])
 
+  useEffect(() => {
+    const refetchIfVisible = () => {
+      if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
+        fetchAccounts()
+      }
+    }
+    const onFocus = () => fetchAccounts()
+    window.addEventListener('focus', onFocus)
+    document.addEventListener('visibilitychange', refetchIfVisible)
+    return () => {
+      window.removeEventListener('focus', onFocus)
+      document.removeEventListener('visibilitychange', refetchIfVisible)
+    }
+  }, [])
+
   const filteredAccounts = useMemo(() => {
     const q = searchTerm.trim().toLowerCase()
     if (!q) return accounts

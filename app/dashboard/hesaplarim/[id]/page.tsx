@@ -143,6 +143,28 @@ export default function AccountDetailPage() {
   }, [accountId])
 
   useEffect(() => {
+    if (!accountId) return
+    const refresh = () => {
+      if (typeof document !== 'undefined' && document.visibilityState !== 'visible') return
+      fetchAccountData()
+      fetchTransactions()
+      fetchAllAccounts()
+    }
+    const onFocus = () => {
+      fetchAccountData()
+      fetchTransactions()
+      fetchAllAccounts()
+    }
+    window.addEventListener('focus', onFocus)
+    document.addEventListener('visibilitychange', refresh)
+    return () => {
+      window.removeEventListener('focus', onFocus)
+      document.removeEventListener('visibilitychange', refresh)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [accountId])
+
+  useEffect(() => {
     if (!printPayload) return
     const timer = window.setTimeout(() => window.print(), 450)
     const onAfter = () => setPrintPayload(null)
@@ -255,6 +277,8 @@ export default function AccountDetailPage() {
       resetTxForm()
       fetchTransactions()
       fetchAccountData()
+      fetchAllAccounts()
+      router.refresh()
     } catch (err: any) { 
       toast.error(err?.message || 'İşlem kaydedilemedi')
     } finally { 
