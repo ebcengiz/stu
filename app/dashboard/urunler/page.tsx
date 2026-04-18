@@ -617,7 +617,10 @@ function ProductsPageContent() {
       const matchesCategory = categoryFilter ? product.category_id === categoryFilter : true
       const matchesWarehouse = warehouseFilter ? product.stock?.some(s => s.warehouse_id === warehouseFilter && Number(s.quantity) > 0) : true
       const totalStock = calculateTotalStock(product.stock)
-      const isLowStock = stockFilter === 'low-stock' ? totalStock <= product.min_stock_level : true
+      const isStocked = (product.product_kind ?? 'stocked') === 'stocked'
+      const isLowStock = stockFilter === 'low-stock'
+        ? isStocked && totalStock <= product.min_stock_level
+        : true
       return matchesSearch && matchesCategory && matchesWarehouse && isLowStock
     })
   }, [products, searchTerm, categoryFilter, warehouseFilter, stockFilter])
@@ -703,7 +706,8 @@ function ProductsPageContent() {
                 {sortedProducts.length > 0 ? (
                   sortedProducts.map((product) => {
                     const totalStock = calculateTotalStock(product.stock)
-                    const isLow = totalStock <= product.min_stock_level
+                    const isStocked = (product.product_kind ?? 'stocked') === 'stocked'
+                    const isLow = isStocked && totalStock <= product.min_stock_level
                     const symbol = CURRENCY_SYMBOLS[product.currency || 'TRY'] || product.currency || '₺'
                     return (
                       <tr key={product.id} className={`group transition-colors ${isLow ? 'bg-red-50/30 hover:bg-red-50/50' : 'hover:bg-gray-50'}`}>
@@ -743,7 +747,7 @@ function ProductsPageContent() {
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-center"><div className="flex flex-col gap-1"><span className="text-[10px] font-black text-primary-600 bg-primary-50 px-2 py-0.5 rounded-md">% {product.tax_rate || 0} KDV</span><span className="text-[10px] font-black text-amber-600 bg-amber-50 px-2 py-0.5 rounded-md">% {product.discount_rate || 0} İSK</span></div></td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right"><span className={`text-sm font-black ${isLow ? 'text-red-500' : 'text-gray-700'}`}>{totalStock.toFixed(2)} <span className="text-[10px] text-gray-400 uppercase ml-0.5">{product.unit}</span></span></td>
+                        <td className="px-6 py-4 whitespace-nowrap text-right">{isStocked ? (<span className={`text-sm font-black ${isLow ? 'text-red-500' : 'text-gray-700'}`}>{totalStock.toFixed(2)} <span className="text-[10px] text-gray-400 uppercase ml-0.5">{product.unit}</span></span>) : (<span className="text-xs font-semibold text-gray-400">Stoksuz</span>)}</td>
                         <td className="px-6 py-4 whitespace-nowrap">{product.is_active ? (<span className={`px-3 py-1 inline-flex text-[10px] font-black uppercase tracking-widest rounded-full ${isLow ? 'bg-red-50 text-red-500 animate-pulse' : 'bg-primary-50 text-primary-600'}`}>{isLow ? 'Düşük Stok' : 'Aktif'}</span>) : (<span className="px-3 py-1 inline-flex text-[10px] font-black uppercase tracking-widest rounded-full bg-gray-50 text-gray-400">Pasif</span>)}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium"><div className="flex justify-end gap-2"><button onClick={() => handleEdit(product)} className="p-2 text-primary-600 hover:bg-primary-50/50 rounded-xl transition-all active:scale-90"><Edit2 className="h-4 w-4" /></button><button onClick={() => handleDelete(product.id)} className="p-2 text-red-500 hover:bg-red-50/50 rounded-xl transition-all active:scale-90"><Trash2 className="h-4 w-4" /></button></div></td>
                       </tr>
