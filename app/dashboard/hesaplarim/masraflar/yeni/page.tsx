@@ -3,7 +3,7 @@
 import { useRef, useState, useEffect, useMemo, Suspense } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Check, Undo2, Plus, CircleHelp, X, Pencil } from 'lucide-react'
+import { Check, Undo2, Plus, CircleHelp, X } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 import { Button } from '@/components/ui/Button'
 import type { MasrafGroup } from '@/lib/masraf-kalemleri'
@@ -406,6 +406,8 @@ function YeniMasrafForm() {
             </div>
           </div>
 
+          {/* SAĞ SÜTUN */}
+          <div className="space-y-4">
           {/* TUTAR */}
           <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-md">
             <div className="bg-primary-600 px-3 py-2 text-xs font-black uppercase tracking-wide text-white">
@@ -503,51 +505,56 @@ function YeniMasrafForm() {
                 </select>
                 <p className="mt-0.5 text-xs text-gray-500">isteğe bağlı</p>
               </div>
-
-              <div className="rounded-lg border border-gray-200 bg-gray-50/80 px-3 py-3">
-                <div className="flex flex-wrap items-center gap-2">
-                  <label className="inline-flex cursor-pointer items-center gap-2 text-sm font-medium text-gray-800">
-                    <input
-                      type="checkbox"
-                      checked={recurring}
-                      onChange={(e) => {
-                        const checked = e.target.checked
-                        setRecurring(checked)
-                        if (checked) setRecurrenceModalOpen(true)
-                      }}
-                      className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
-                    />
-                    Tekrarlayan masraf kaydı oluştur
-                  </label>
-                  <span
-                    className="inline-flex text-gray-400"
-                    title="Belirli aralıklarla otomatik oluşacak masraf için kullanılır."
-                  >
-                    <CircleHelp className="h-4 w-4" aria-hidden />
-                  </span>
-                </div>
-                {recurring && (
-                  <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-gray-600">
-                    <span>
-                      {formatRecurrenceSummary({
-                        start: recurrenceStart,
-                        end: recurrenceEnd,
-                        frequency: recurrenceFrequency,
-                        day: recurrenceDay,
-                      })}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => setRecurrenceModalOpen(true)}
-                      className="inline-flex items-center gap-1 rounded-md border border-gray-200 bg-white px-2 py-1 text-[11px] font-semibold text-gray-700 hover:bg-gray-50"
-                    >
-                      <Pencil className="h-3 w-3" />
-                      Düzenle
-                    </button>
-                  </div>
-                )}
-              </div>
             </div>
+          </div>
+
+          {/* TEKRARLAYAN MASRAF */}
+          <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-md">
+            <div className="bg-gray-700 px-3 py-2 text-xs font-black uppercase tracking-wide text-white">
+              Tekrarlayan masraf
+            </div>
+            <div className="p-4">
+              <div className="flex flex-wrap items-center gap-2">
+                <label className="inline-flex cursor-pointer items-center gap-2 text-sm font-medium text-gray-800">
+                  <input
+                    type="checkbox"
+                    checked={recurring}
+                    onChange={(e) => {
+                      const checked = e.target.checked
+                      setRecurring(checked)
+                      if (checked) setRecurrenceModalOpen(true)
+                    }}
+                    className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                  />
+                  Tekrarlayan masraf kaydı oluştur
+                </label>
+                <span
+                  className="inline-flex text-gray-400"
+                  title="Belirli aralıklarla otomatik oluşacak masraf için kullanılır."
+                >
+                  <CircleHelp className="h-4 w-4" aria-hidden />
+                </span>
+              </div>
+              {recurring && (
+                <button
+                  type="button"
+                  onClick={() => setRecurrenceModalOpen(true)}
+                  className="mt-3 block w-full rounded-lg border border-dashed border-gray-200 bg-gray-50 px-3 py-2 text-left text-sm leading-relaxed text-gray-700 transition hover:border-primary-300 hover:bg-primary-50/40"
+                  title="Tekrar ayarlarını değiştir"
+                >
+                  {renderRecurrenceDetail({
+                    start: recurrenceStart,
+                    end: recurrenceEnd,
+                    frequency: recurrenceFrequency,
+                    day: recurrenceDay,
+                  })}{' '}
+                  <span className="text-xs font-medium text-primary-700 underline underline-offset-2">
+                    Ayarlamak için tıklayın
+                  </span>
+                </button>
+              )}
+            </div>
+          </div>
           </div>
         </div>
       </form>
@@ -706,6 +713,51 @@ function formatRecurrenceSummary(opts: {
   const fmt = (d: string) =>
     d ? new Date(d + 'T00:00:00').toLocaleDateString('tr-TR') : '—'
   return `${freqLabel} · ${fmt(opts.start)} – ${fmt(opts.end)}`
+}
+
+function renderRecurrenceDetail(opts: {
+  start: string
+  end: string
+  frequency: 'daily' | 'weekly' | 'monthly' | 'yearly'
+  day: string
+}) {
+  const endFmt = opts.end
+    ? new Date(opts.end + 'T00:00:00').toLocaleDateString('tr-TR')
+    : '—'
+  const endEl = (
+    <span className="font-semibold text-red-600">{endFmt}</span>
+  )
+  const tekrarla = <span className="font-medium text-gray-700">tekrarla.</span>
+
+  let freqEl: React.ReactNode
+  if (opts.frequency === 'daily') {
+    freqEl = <span className="font-semibold text-primary-700">her gün</span>
+  } else if (opts.frequency === 'weekly') {
+    const dayName = WEEK_DAYS.find((d) => d.value === opts.day)?.label ?? ''
+    freqEl = (
+      <span className="font-semibold text-primary-700">
+        her hafta{dayName ? ` ${dayName}` : ''}
+      </span>
+    )
+  } else if (opts.frequency === 'monthly') {
+    freqEl = (
+      <span className="font-semibold text-primary-700">
+        her ayın{opts.day ? ` ${opts.day}.` : ''} gününde
+      </span>
+    )
+  } else {
+    freqEl = (
+      <span className="font-semibold text-primary-700">
+        her yılın{opts.day ? ` ${opts.day}.` : ''} gününde
+      </span>
+    )
+  }
+
+  return (
+    <>
+      Yukarıdaki kaydı {endEl} tarihine kadar {freqEl} {tekrarla}
+    </>
+  )
 }
 
 export default function YeniMasrafPage() {
