@@ -82,6 +82,7 @@ interface Transaction {
   cheque_due_date?: string | null
   cheque_bank?: string | null
   cheque_serial_number?: string | null
+  account_id?: string | null
   created_at: string
   customer_transaction_items?: TransactionItem[]
 }
@@ -1206,6 +1207,10 @@ export default function CustomerDetailPage() {
           : selectedTx.payment_method === 'credit_card' ? 'Kredi Kartı'
           : selectedTx.payment_method === 'cheque' ? 'Çek / Senet'
           : selectedTx.payment_method === 'bank_transfer' ? 'Banka' : '—'
+        // Tahsilatın yatırıldığı hesabı bul (varsa)
+        const collectionAccount = selectedTx.account_id
+          ? cashAccounts.find((a) => a.id === selectedTx.account_id) || null
+          : null
         return (
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[130] p-4 overflow-y-auto animate-in fade-in duration-200">
             <Card className="w-full max-w-3xl max-h-[90vh] flex flex-col shadow-lg animate-in zoom-in duration-200 rounded-xl overflow-hidden border border-gray-200 my-auto">
@@ -1253,6 +1258,21 @@ export default function CustomerDetailPage() {
                         <span className="flex items-center gap-1.5">
                           <CreditCard className="h-3.5 w-3.5 text-primary-600" />
                           {paymentLabel}
+                        </span>
+                      ),
+                    })
+                  }
+                  if (
+                    selectedTx.type === 'payment' &&
+                    selectedTx.payment_method !== 'cheque' &&
+                    (collectionAccount || selectedTx.account_id)
+                  ) {
+                    metaCells.push({
+                      label: 'Yatırılan Hesap',
+                      value: (
+                        <span className="flex items-center gap-1.5">
+                          <Building className="h-3.5 w-3.5 text-primary-600" />
+                          {collectionAccount?.name || 'Bilinmiyor'}
                         </span>
                       ),
                     })
