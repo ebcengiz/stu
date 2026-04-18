@@ -34,6 +34,7 @@ type DialogState =
   | { kind: 'addMain' }
   | { kind: 'addSub'; groupName: string }
   | { kind: 'edit'; row: ExpenseItemDefinitionRow }
+  | { kind: 'editGroup'; groupName: string; subCount: number }
 
 export default function MasrafKalemleriPage() {
   const [items, setItems] = useState<ExpenseItemDefinitionRow[]>([])
@@ -48,6 +49,7 @@ export default function MasrafKalemleriPage() {
   const [editGroup, setEditGroup] = useState('')
   const [editLabel, setEditLabel] = useState('')
   const [editSort, setEditSort] = useState('0')
+  const [editGroupName, setEditGroupName] = useState('')
   const [saving, setSaving] = useState(false)
 
   const load = useCallback(async () => {
@@ -81,6 +83,7 @@ export default function MasrafKalemleriPage() {
     setEditGroup('')
     setEditLabel('')
     setEditSort('0')
+    setEditGroupName('')
   }
 
   const performDelete = async (row: ExpenseItemDefinitionRow) => {
@@ -190,6 +193,101 @@ export default function MasrafKalemleriPage() {
     }
   }
 
+  const openEditGroup = (groupName: string, subCount: number) => {
+    setEditGroupName(groupName)
+    setDialog({ kind: 'editGroup', groupName, subCount })
+  }
+
+  const submitEditGroup = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (dialog?.kind !== 'editGroup') return
+    const newName = editGroupName.trim()
+    if (!newName) {
+      toast.error('Ana kalem adı zorunludur')
+      return
+    }
+    if (newName === dialog.groupName) {
+      closeDialog()
+      return
+    }
+    setSaving(true)
+    try {
+      const res = await fetch('/api/expense-items/group', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ oldName: dialog.groupName, newName }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(data.error || 'Kaydedilemedi')
+      toast.success('Ana kalem güncellendi')
+      closeDialog()
+      await load()
+    } catch (e: any) {
+      toast.error(e.message || 'Kaydedilemedi')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const performDeleteGroup = async (groupName: string) => {
+    try {
+      const res = await fetch(
+        `/api/expense-items/group?name=${encodeURIComponent(groupName)}`,
+        { method: 'DELETE' }
+      )
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(data.error || 'Silinemedi')
+      toast.success('Ana kalem ve alt hesaplar silindi')
+      closeDialog()
+      await load()
+    } catch (e: any) {
+      toast.error(e.message || 'Silinemedi')
+    }
+  }
+
+  const confirmDeleteGroup = (groupName: string, subCount: number) => {
+    toast.custom(
+      (t) => (
+        <div
+          className="pointer-events-auto max-w-sm rounded-lg border border-gray-200 bg-white px-3 py-2.5 shadow-lg"
+          role="dialog"
+          aria-labelledby={`grup-del-${t.id}`}
+        >
+          <p id={`grup-del-${t.id}`} className="text-sm font-medium text-gray-900">
+            Bu ana kalemi silmek istiyor musunuz?
+          </p>
+          <p className="mt-1 text-xs text-gray-500">
+            <span className="font-medium text-gray-700">{groupName}</span> ve altındaki{' '}
+            <span className="font-medium text-gray-700">{subCount}</span> alt hesap silinecek.
+          </p>
+          <p className="mt-1 text-xs text-gray-400">
+            Alt hesaplardan herhangi biri masraf kayıtlarında kullanılıyorsa silinemez.
+          </p>
+          <div className="mt-3 flex justify-end gap-2">
+            <button
+              type="button"
+              className="rounded-md border border-gray-200 bg-white px-2.5 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50"
+              onClick={() => toast.dismiss(t.id)}
+            >
+              İptal
+            </button>
+            <button
+              type="button"
+              className="rounded-md bg-red-600 px-2.5 py-1.5 text-xs font-medium text-white hover:bg-red-700"
+              onClick={() => {
+                toast.dismiss(t.id)
+                void performDeleteGroup(groupName)
+              }}
+            >
+              Sil
+            </button>
+          </div>
+        </div>
+      ),
+      { duration: Infinity, position: 'top-center' }
+    )
+  }
+
   const openEdit = (row: ExpenseItemDefinitionRow) => {
     setEditGroup(row.group_name)
     setEditLabel(row.label)
@@ -257,14 +355,14 @@ export default function MasrafKalemleriPage() {
             className="inline-flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-primary-700"
           >
             <Plus className="h-4 w-4" />
-            Yeni ana kalem
+            Yeni Ana Masraf Kalemi Gir
           </button>
           <Link
             href="/dashboard/hesaplarim/masraflar/yeni"
             className="inline-flex items-center gap-2 rounded-lg border border-primary-600 bg-white px-4 py-2.5 text-sm font-semibold text-primary-700 shadow-sm transition hover:bg-primary-50"
           >
             <Plus className="h-4 w-4" />
-            Yeni masraf
+            Yeni Masraf Gir
           </Link>
         </div>
       </div>
@@ -287,9 +385,14 @@ export default function MasrafKalemleriPage() {
               className="flex flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-md"
             >
               <div className="flex items-center justify-between gap-2 border-b border-gray-100 bg-gray-50/90 px-3 py-2">
-                <h2 className="min-w-0 truncate text-xs font-semibold uppercase tracking-wide text-gray-800">
+                <button
+                  type="button"
+                  onClick={() => openEditGroup(groupName, rows.length)}
+                  title="Ana kalemi düzenle"
+                  className="min-w-0 truncate rounded text-left text-xs font-semibold uppercase tracking-wide text-gray-800 transition hover:text-primary-700 hover:underline focus:outline-none focus:ring-2 focus:ring-primary-500/30"
+                >
                   {groupName}
-                </h2>
+                </button>
                 <button
                   type="button"
                   onClick={() => {
@@ -468,6 +571,61 @@ export default function MasrafKalemleriPage() {
                 <button
                   type="button"
                   onClick={() => confirmDelete(dialog.row)}
+                  className="rounded-md border border-red-200 bg-red-50 px-2.5 py-1.5 text-xs font-medium text-red-700 hover:bg-red-100"
+                >
+                  Sil
+                </button>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={closeDialog}
+                    className="rounded-md border border-gray-200 px-2.5 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50"
+                  >
+                    İptal
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={saving}
+                    className="rounded-md bg-primary-600 px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-primary-700 disabled:opacity-50"
+                  >
+                    Kaydet
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {dialog?.kind === 'editGroup' && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-[#F5F5F0]/30 p-3"
+          onClick={closeDialog}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            className="w-full max-w-sm rounded-lg border border-gray-200 bg-white p-4 shadow-lg"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-sm font-semibold text-gray-900">Ana masraf kalemi</h3>
+            <p className="mt-0.5 text-xs text-gray-400">
+              Altında <span className="font-medium text-gray-600">{dialog.subCount}</span> alt hesap var.
+            </p>
+            <form onSubmit={submitEditGroup} className="mt-3 space-y-2">
+              <div>
+                <label className="mb-0.5 block text-[11px] font-medium text-gray-500">Ad</label>
+                <input
+                  autoFocus
+                  value={editGroupName}
+                  onChange={(e) => setEditGroupName(e.target.value)}
+                  className={inputClass}
+                />
+              </div>
+              <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={() => confirmDeleteGroup(dialog.groupName, dialog.subCount)}
                   className="rounded-md border border-red-200 bg-red-50 px-2.5 py-1.5 text-xs font-medium text-red-700 hover:bg-red-100"
                 >
                   Sil
