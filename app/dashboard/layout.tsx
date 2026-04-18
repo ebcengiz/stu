@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import DashboardSidebar from '@/components/dashboard/DashboardSidebar'
+import GlobalModalCloser from '@/components/dashboard/GlobalModalCloser'
 import { useEffect, useState } from 'react'
 
 export default function DashboardLayout({
@@ -57,6 +58,7 @@ export default function DashboardLayout({
 
   return (
     <div className="flex min-h-screen flex-col overflow-x-hidden bg-[#F5F5F0] lg:flex-row">
+      <GlobalModalCloser />
       <DashboardSidebar profile={profile} />
       <div
         className={`flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden transition-all duration-300 ${marginClass}`}
