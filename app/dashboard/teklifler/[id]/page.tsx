@@ -112,7 +112,7 @@ export default function OfferDetailPage() {
   if (!offer) return null
 
   return (
-    <div className="space-y-6 max-w-5xl mx-auto pb-12">
+    <div className="mx-auto w-full min-w-0 max-w-full space-y-4 overflow-x-hidden pb-4">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <button onClick={() => router.push('/dashboard/teklifler')} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
@@ -143,7 +143,7 @@ export default function OfferDetailPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card className="md:col-span-2">
           <CardHeader className="border-b">
             <CardTitle>Teklif İçeriği</CardTitle>
@@ -200,7 +200,7 @@ export default function OfferDetailPage() {
           </CardBody>
         </Card>
 
-        <div className="space-y-6">
+        <div className="space-y-4">
           <Card>
             <CardHeader className="border-b">
               <CardTitle>Müşteri Bilgileri</CardTitle>
