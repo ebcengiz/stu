@@ -1049,18 +1049,18 @@ export default function SupplierDetailPage() {
 
       {/* Çek Çıkışı Modal */}
       {showChequePaymentModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
-          <Card className="w-full max-w-2xl shadow-2xl rounded-3xl border-0 animate-in zoom-in duration-300">
-            <CardHeader className="bg-amber-600 text-white rounded-t-3xl py-6 px-8 flex flex-row items-center justify-between">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
+          <Card className="w-full max-w-2xl shadow-lg rounded-xl border border-gray-200 animate-in zoom-in duration-200">
+            <CardHeader className="bg-white border-b border-gray-200 rounded-t-xl py-4 px-6 flex flex-row items-center justify-between">
               <div>
-                <CardTitle className="text-xl font-bold flex items-center gap-3"><FileText className="h-6 w-6" /> Çek Çıkışı</CardTitle>
-                <p className="text-xs text-amber-100 mt-1">Tedarikçiye çek ile ödeme kaydı</p>
+                <CardTitle className="text-base font-semibold text-gray-900 flex items-center gap-2"><FileText className="h-5 w-5 text-primary-600" /> Çek Çıkışı</CardTitle>
+                <p className="text-xs text-gray-500 mt-0.5">Tedarikçiye çek ile ödeme kaydı</p>
               </div>
-              <button onClick={() => setShowChequePaymentModal(false)} className="p-2 hover:bg-gray-100 rounded-full transition-all"><X className="h-6 w-6 text-white" /></button>
+              <button onClick={() => setShowChequePaymentModal(false)} className="p-1.5 hover:bg-gray-100 rounded-lg transition-all"><X className="h-5 w-5 text-gray-400" /></button>
             </CardHeader>
-            <CardBody className="p-8">
-              <form onSubmit={handleAddTransaction} className="space-y-6">
-                <div className="space-y-4 rounded-2xl border border-amber-200 bg-amber-50/90 p-4">
+            <CardBody className="p-6">
+              <form onSubmit={handleAddTransaction} className="space-y-5">
+                <div className="space-y-3 rounded-lg border border-gray-200 bg-gray-50 p-4">
                   <div className="flex flex-wrap gap-2">
                     <button
                       type="button"
@@ -1068,7 +1068,7 @@ export default function SupplierDetailPage() {
                         setChequeOutMode('portfolio')
                         setSelectedPortfolioCheckId('')
                       }}
-                      className={`rounded-lg px-3 py-2 text-xs font-bold ${chequeOutMode === 'portfolio' ? 'bg-amber-600 text-white' : 'bg-white text-amber-900 border border-amber-200'}`}
+                      className={`rounded-md px-3 py-1.5 text-xs font-semibold transition-colors ${chequeOutMode === 'portfolio' ? 'bg-primary-600 text-white' : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50'}`}
                     >
                       Portföyden ciro
                     </button>
@@ -1078,14 +1078,14 @@ export default function SupplierDetailPage() {
                         setChequeOutMode('own')
                         setSelectedPortfolioCheckId('')
                       }}
-                      className={`rounded-lg px-3 py-2 text-xs font-bold ${chequeOutMode === 'own' ? 'bg-amber-600 text-white' : 'bg-white text-amber-900 border border-amber-200'}`}
+                      className={`rounded-md px-3 py-1.5 text-xs font-semibold transition-colors ${chequeOutMode === 'own' ? 'bg-primary-600 text-white' : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50'}`}
                     >
                       Kendi çekimiz
                     </button>
                   </div>
                   {chequeOutMode === 'portfolio' ? (
                     <div className="space-y-2">
-                      <label className="block text-xs font-black text-amber-900 uppercase tracking-widest">Portföydeki çek *</label>
+                      <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide">Portföydeki çek *</label>
                       <select
                         value={selectedPortfolioCheckId}
                         onChange={(e) => {
@@ -1094,7 +1094,7 @@ export default function SupplierDetailPage() {
                           const c = portfolioChecks.find((x) => x.id === id)
                           if (c) setTxForm((prev) => ({ ...prev, amount: looseToTrInputString(c.amount, 2) }))
                         }}
-                        className="w-full rounded-xl border-2 border-amber-200 bg-white px-3 py-3 text-sm font-semibold text-amber-950"
+                        className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none"
                       >
                         <option value="">— Çek seçin —</option>
                         {portfolioChecks.map((c) => (
@@ -1105,7 +1105,7 @@ export default function SupplierDetailPage() {
                         ))}
                       </select>
                       {portfolioChecks.length === 0 && (
-                        <p className="text-xs text-amber-800">
+                        <p className="text-xs text-gray-500">
                           Bu para biriminde portföyde çek yok. Müşteriden çek girişi yapın veya «Kendi çekimiz» seçin.
                         </p>
                       )}
@@ -1113,32 +1113,32 @@ export default function SupplierDetailPage() {
                   ) : (
                     <div className="flex items-center justify-between gap-3">
                       <div>
-                        <h5 className="font-bold text-amber-900">Çek detayları</h5>
-                        <p className="text-xs text-amber-700 mt-1">
+                        <h5 className="text-sm font-semibold text-gray-800">Çek detayları</h5>
+                        <p className="text-xs text-gray-500 mt-0.5">
                           {chequeData.bank
                             ? `${chequeData.bank} — vade ${new Date(chequeData.due_date).toLocaleDateString('tr-TR')}`
                             : 'Çek bilgisi girilmedi'}
                         </p>
                       </div>
-                      <Button type="button" onClick={() => setShowChequeModal(true)} variant="outline" className="border-amber-300 text-amber-800">
+                      <Button type="button" onClick={() => setShowChequeModal(true)} variant="outline" className="border-gray-200 bg-white text-gray-700 hover:bg-gray-50">
                         Düzenle
                       </Button>
                     </div>
                   )}
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <label className="block text-xs font-black text-gray-400 uppercase tracking-widest px-1">İşlem Tarihi</label>
-                    <input type="date" required value={txForm.transaction_date} onChange={e => setTxForm({...txForm, transaction_date: e.target.value})} className="w-full px-4 py-3.5 border-2 border-gray-100 rounded-2xl focus:border-amber-500 outline-none font-bold" />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide">İşlem Tarihi</label>
+                    <input type="date" required value={txForm.transaction_date} onChange={e => setTxForm({...txForm, transaction_date: e.target.value})} className="w-full px-3 py-2.5 border border-gray-200 rounded-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none text-sm text-gray-900" />
                   </div>
-                  <div className="space-y-2">
-                    <label className="block text-xs font-black text-gray-400 uppercase tracking-widest px-1">Tutar ({getCurrencySymbol(supplier.currency || 'TRY')}) *</label>
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide">Tutar ({getCurrencySymbol(supplier.currency || 'TRY')}) *</label>
                     <TrNumberInput
                       required
                       value={txForm.amount}
                       onChange={(v) => setTxForm({ ...txForm, amount: v })}
-                      className="w-full px-4 py-3.5 border-2 border-amber-100 rounded-2xl bg-amber-50/30 text-xl font-black text-amber-900 focus:border-amber-500 outline-none placeholder-amber-300"
+                      className="w-full px-3 py-2.5 border border-gray-200 rounded-lg bg-white text-lg font-semibold text-gray-900 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none placeholder-gray-300"
                       placeholder="0,00"
                     />
                   </div>
@@ -1149,12 +1149,12 @@ export default function SupplierDetailPage() {
                   onChange={(pid) => setTxForm({ ...txForm, project_id: pid })}
                 />
 
-                <div className="space-y-2">
-                  <label className="block text-xs font-black text-gray-400 uppercase tracking-widest px-1">Açıklama</label>
-                  <textarea placeholder="Örn: Nisan ayı çek ödemesi..." value={txForm.description} onChange={e => setTxForm({...txForm, description: e.target.value})} className="w-full px-4 py-3 border-2 border-gray-100 rounded-2xl outline-none h-24 resize-none" />
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide">Açıklama</label>
+                  <textarea placeholder="Örn: Nisan ayı çek ödemesi..." value={txForm.description} onChange={e => setTxForm({...txForm, description: e.target.value})} className="w-full px-3 py-2.5 border border-gray-200 rounded-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none h-24 resize-none text-sm text-gray-900" />
                 </div>
 
-                <div className="flex justify-end gap-3 pt-6 border-t"><Button type="button" variant="outline" onClick={() => setShowChequePaymentModal(false)} className="h-12 px-6 rounded-xl font-bold">Vazgeç</Button><Button type="submit" disabled={saving || !txForm.amount || (chequeOutMode === 'portfolio' && !selectedPortfolioCheckId)} className="h-12 px-8 rounded-xl font-bold bg-amber-600 hover:bg-amber-700 text-white shadow-lg">{saving ? 'Kaydediliyor...' : 'Çek Ödemesini Kaydet'}</Button></div>
+                <div className="flex justify-end gap-2 pt-4 border-t border-gray-200"><Button type="button" variant="outline" onClick={() => setShowChequePaymentModal(false)} className="h-10 px-4 rounded-lg font-semibold border-gray-200 bg-white text-gray-700 hover:bg-gray-50">Vazgeç</Button><Button type="submit" disabled={saving || !txForm.amount || (chequeOutMode === 'portfolio' && !selectedPortfolioCheckId)} className="h-10 px-5 rounded-lg font-semibold bg-primary-600 hover:bg-primary-700 text-white">{saving ? 'Kaydediliyor...' : 'Çek Ödemesini Kaydet'}</Button></div>
               </form>
             </CardBody>
           </Card>

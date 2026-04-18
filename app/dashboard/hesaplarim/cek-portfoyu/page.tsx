@@ -600,31 +600,31 @@ export default function CekPortfoyuPage() {
       </div>
 
       <div className="grid gap-3 sm:grid-cols-3">
-        <div className="flex items-center gap-3 rounded-xl border border-rose-200 bg-rose-50 px-4 py-4 shadow-sm">
-          <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-rose-500 text-white">
+        <div className="flex items-center gap-3 rounded-xl border border-gray-200 bg-white px-4 py-4 shadow-sm">
+          <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-gray-100 text-gray-600">
             <Tag className="h-5 w-5" />
           </div>
           <div>
-            <p className="text-xs font-semibold uppercase text-rose-900/80">Çek sayısı</p>
-            <p className="text-xl font-bold text-rose-950">{stats.n}</p>
+            <p className="text-xs font-semibold uppercase text-gray-500">Çek sayısı</p>
+            <p className="text-xl font-bold text-gray-900">{stats.n}</p>
           </div>
         </div>
-        <div className="flex items-center gap-3 rounded-xl border border-primary-200 bg-primary-50 px-4 py-4 shadow-sm">
-          <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-primary-500 text-white">
+        <div className="flex items-center gap-3 rounded-xl border border-gray-200 bg-white px-4 py-4 shadow-sm">
+          <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-gray-100 text-gray-600">
             <Banknote className="h-5 w-5" />
           </div>
           <div className="min-w-0">
-            <p className="text-xs font-semibold uppercase text-primary-900/80">Toplam tutar</p>
-            <p className="truncate text-lg font-bold text-primary-950">{formatMoney(stats.total)}</p>
+            <p className="text-xs font-semibold uppercase text-gray-500">Toplam tutar</p>
+            <p className="truncate text-lg font-bold text-gray-900">{formatMoney(stats.total)}</p>
           </div>
         </div>
-        <div className="flex items-center gap-3 rounded-xl border border-primary-200 bg-primary-50 px-4 py-4 shadow-sm">
-          <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-primary-600 text-white">
+        <div className="flex items-center gap-3 rounded-xl border border-gray-200 bg-white px-4 py-4 shadow-sm">
+          <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-gray-100 text-gray-600">
             <CalendarDays className="h-5 w-5" />
           </div>
           <div className="min-w-0">
-            <p className="text-xs font-semibold uppercase text-primary-900/80">Ortalama vade</p>
-            <p className="text-sm font-bold text-primary-950">
+            <p className="text-xs font-semibold uppercase text-gray-500">Ortalama vade</p>
+            <p className="text-sm font-bold text-gray-900">
               {stats.avgDue ? stats.avgDue.toLocaleDateString('tr-TR') : '—'}
             </p>
           </div>
