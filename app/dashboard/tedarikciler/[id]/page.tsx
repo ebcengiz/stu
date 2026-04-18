@@ -1357,14 +1357,20 @@ export default function SupplierDetailPage() {
 
       {/* Cheque Modal */}
       {showChequeModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[140] p-4 animate-in fade-in duration-300">
-          <Card className="w-full max-w-md shadow-2xl animate-in zoom-in duration-300 rounded-3xl overflow-hidden border-0">
-            <CardHeader className="bg-amber-600 text-white py-3 px-6"><CardTitle className="text-xl font-bold">Çek Bilgileri</CardTitle></CardHeader>
-            <CardBody className="p-8 space-y-4">
-               <div className="space-y-2"><label className="block text-xs font-black text-gray-400 uppercase tracking-widest px-1">Banka Adı</label><input type="text" value={chequeData.bank} onChange={e => setChequeData({...chequeData, bank: e.target.value})} className="w-full px-4 py-3 border-2 border-gray-100 rounded-2xl outline-none" /></div>
-               <div className="space-y-2"><label className="block text-xs font-black text-gray-400 uppercase tracking-widest px-1">Seri No</label><input type="text" value={chequeData.serial_number} onChange={e => setChequeData({...chequeData, serial_number: e.target.value})} className="w-full px-4 py-3 border-2 border-gray-100 rounded-2xl outline-none" /></div>
-               <div className="space-y-2"><label className="block text-xs font-black text-gray-400 uppercase tracking-widest px-1">Vade Tarihi</label><input type="date" value={chequeData.due_date} onChange={e => setChequeData({...chequeData, due_date: e.target.value})} className="w-full px-4 py-3 border-2 border-gray-100 rounded-2xl outline-none" /></div>
-               <div className="pt-4"><Button onClick={() => setShowChequeModal(false)} className="w-full h-12 bg-amber-600 hover:bg-amber-700 text-white rounded-xl">Kaydet</Button></div>
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[140] p-4 animate-in fade-in duration-200">
+          <Card className="w-full max-w-md shadow-lg animate-in zoom-in duration-200 rounded-xl overflow-hidden border border-gray-200">
+            <CardHeader className="bg-white border-b border-gray-200 py-4 px-6 flex flex-row items-center justify-between">
+              <CardTitle className="text-base font-semibold text-gray-900 flex items-center gap-2"><FileText className="h-5 w-5 text-primary-600" /> Çek Bilgileri</CardTitle>
+              <button onClick={() => setShowChequeModal(false)} className="p-1.5 hover:bg-gray-100 rounded-lg transition-all"><X className="h-5 w-5 text-gray-400" /></button>
+            </CardHeader>
+            <CardBody className="p-6 space-y-4">
+               <div className="space-y-1.5"><label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide">Banka Adı</label><input type="text" value={chequeData.bank} onChange={e => setChequeData({...chequeData, bank: e.target.value})} className="w-full px-3 py-2.5 border border-gray-200 rounded-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none text-sm text-gray-900" /></div>
+               <div className="space-y-1.5"><label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide">Seri No</label><input type="text" value={chequeData.serial_number} onChange={e => setChequeData({...chequeData, serial_number: e.target.value})} className="w-full px-3 py-2.5 border border-gray-200 rounded-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none text-sm text-gray-900" /></div>
+               <div className="space-y-1.5"><label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide">Vade Tarihi</label><input type="date" value={chequeData.due_date} onChange={e => setChequeData({...chequeData, due_date: e.target.value})} className="w-full px-3 py-2.5 border border-gray-200 rounded-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none text-sm text-gray-900" /></div>
+               <div className="flex justify-end gap-2 pt-2 border-t border-gray-200">
+                 <Button type="button" variant="outline" onClick={() => setShowChequeModal(false)} className="h-10 px-4 rounded-lg font-semibold border-gray-200 bg-white text-gray-700 hover:bg-gray-50">Vazgeç</Button>
+                 <Button onClick={() => setShowChequeModal(false)} className="h-10 px-5 rounded-lg font-semibold bg-primary-600 hover:bg-primary-700 text-white">Kaydet</Button>
+               </div>
             </CardBody>
           </Card>
         </div>
