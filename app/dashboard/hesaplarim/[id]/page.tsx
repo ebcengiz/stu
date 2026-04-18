@@ -411,8 +411,7 @@ export default function AccountDetailPage() {
     }
   }
 
-  const handleDeleteAccount = async () => {
-    if (!confirm('Bu hesabı silmek istediğinize emin misiniz?')) return
+  const performDeleteAccount = async () => {
     try {
       const response = await fetch(`/api/accounts/${accountId}`, { method: 'DELETE' })
       const data = await response.json().catch(() => ({}))
@@ -423,6 +422,52 @@ export default function AccountDetailPage() {
       const msg = error instanceof Error ? error.message : 'Silinemedi'
       toast.error(msg)
     }
+  }
+
+  const handleDeleteAccount = () => {
+    toast.custom(
+      (t) => (
+        <div
+          className={`${
+            t.visible ? 'animate-in fade-in zoom-in-95' : 'animate-out fade-out zoom-out-95'
+          } pointer-events-auto w-full max-w-sm rounded-xl border border-gray-200 bg-white p-4 shadow-lg`}
+        >
+          <div className="flex items-start gap-3">
+            <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-red-50 text-red-600">
+              <Trash2 className="h-5 w-5" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold text-gray-900">Hesabı sil?</p>
+              <p className="mt-0.5 text-xs text-gray-500">
+                {account?.name
+                  ? `"${account.name}" hesabını silmek üzeresiniz. Bu işlem geri alınamaz.`
+                  : 'Bu hesabı silmek üzeresiniz. Bu işlem geri alınamaz.'}
+              </p>
+              <div className="mt-3 flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => toast.dismiss(t.id)}
+                  className="h-8 rounded-md border border-gray-200 bg-white px-3 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+                >
+                  Vazgeç
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    toast.dismiss(t.id)
+                    void performDeleteAccount()
+                  }}
+                  className="h-8 rounded-md bg-red-600 px-3 text-xs font-semibold text-white hover:bg-red-700"
+                >
+                  Evet, sil
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      ),
+      { duration: 10000 }
+    )
   }
 
   if (loading) {

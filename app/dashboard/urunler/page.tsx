@@ -1308,36 +1308,38 @@ function ProductsPageContent() {
 
       {/* New Warehouse Modal */}
       {showNewWarehouseModal && (
-        <div className="fixed inset-0 bg-black/30  flex items-center justify-center z-[10001] p-4 animate-in fade-in duration-300">
-          <div className="bg-white  rounded-2xl shadow-xl shadow-gray-200/50 w-full max-w-md overflow-hidden border border-gray-200 animate-in zoom-in-95 duration-200">
-            <div className="px-8 py-7 border-b border-gray-200 flex justify-between items-center">
+        <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-[10001] p-4 overflow-y-auto animate-in fade-in duration-300">
+          <div className="bg-white rounded-2xl shadow-xl shadow-gray-200/50 w-full max-w-md max-h-[90vh] flex flex-col overflow-hidden border border-gray-200 animate-in zoom-in-95 duration-200 my-auto">
+            <div className="px-8 py-5 border-b border-gray-200 flex justify-between items-center shrink-0">
               <div className="flex items-center gap-3">
                 <div className="p-2.5 bg-primary-50 rounded-xl border border-primary-200"><WarehouseIcon className="h-5 w-5 text-primary-600" /></div>
                 <h3 className="text-base font-bold text-gray-800">Yeni Depo</h3>
               </div>
               <button onClick={() => setShowNewWarehouseModal(false)} className="p-2 hover:bg-gray-50 rounded-full transition-all active:scale-90"><X className="h-5 w-5 text-gray-500" /></button>
             </div>
-            <form onSubmit={handleCreateWarehouse} className="p-8 space-y-6">
-              <div className="space-y-2">
-                <label className="block text-[11px] font-black text-gray-400 uppercase tracking-[0.15em] px-1">Depo İsmi *</label>
-                <input 
-                  type="text" 
-                  required 
-                  value={newWarehouseData.name} 
-                  onFocus={(e) => e.target.select()}
-                  onChange={(e) => setNewWarehouseData({...newWarehouseData, name: e.target.value})} 
-                  className="w-full px-5 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none font-bold text-gray-700 transition-all" 
-                  placeholder="Örn: Kuzey Lojistik Merkezi" 
-                />
+            <form onSubmit={handleCreateWarehouse} className="flex flex-col flex-1 min-h-0">
+              <div className="flex-1 overflow-y-auto p-8 space-y-6">
+                <div className="space-y-2">
+                  <label className="block text-[11px] font-black text-gray-400 uppercase tracking-[0.15em] px-1">Depo İsmi *</label>
+                  <input 
+                    type="text" 
+                    required 
+                    value={newWarehouseData.name} 
+                    onFocus={(e) => e.target.select()}
+                    onChange={(e) => setNewWarehouseData({...newWarehouseData, name: e.target.value})} 
+                    className="w-full px-5 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none font-bold text-gray-700 transition-all" 
+                    placeholder="Örn: Kuzey Lojistik Merkezi" 
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="block text-[11px] font-black text-gray-400 uppercase tracking-[0.15em] px-1">Depo Konumu</label>
+                  <LocationPicker 
+                    value={newWarehouseData.location} 
+                    onChange={(location) => setNewWarehouseData({...newWarehouseData, location})} 
+                  />
+                </div>
               </div>
-              <div className="space-y-2">
-                <label className="block text-[11px] font-black text-gray-400 uppercase tracking-[0.15em] px-1">Depo Konumu</label>
-                <LocationPicker 
-                  value={newWarehouseData.location} 
-                  onChange={(location) => setNewWarehouseData({...newWarehouseData, location})} 
-                />
-              </div>
-              <div className="flex gap-4 pt-4">
+              <div className="flex gap-4 px-8 py-4 border-t border-gray-200 bg-white shrink-0">
                 <Button type="button" variant="outline" onClick={() => setShowNewWarehouseModal(false)} className="flex-1 h-12 rounded-xl font-bold">İptal</Button>
                 <Button type="submit" disabled={newWarehouseLoading} className="flex-[1.5] h-12 rounded-xl font-bold text-lg transition-all active:scale-95">
                   {newWarehouseLoading ? <Loader2 className="h-6 w-6 animate-spin" /> : 'KAYDET'}
