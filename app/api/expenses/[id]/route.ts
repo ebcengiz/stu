@@ -7,6 +7,7 @@ import {
   expenseCurrencyStr,
   undoPaidExpenseMovements,
 } from '@/lib/general-expense-payment-effects'
+import { attachRecurrence, normalizeRecurrenceInput } from '../route'
 
 function currencyStr(c: unknown) {
   return expenseCurrencyStr(c)
@@ -55,7 +56,7 @@ async function enrichOne(
     if (e) payment_employee = { id: e.id, name: e.name }
   }
 
-  return { ...row, payment_account, payment_employee }
+  return attachRecurrence({ ...row, payment_account, payment_employee })
 }
 
 export async function GET(_request: Request, context: { params: Promise<{ id: string }> }) {
@@ -212,6 +213,9 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
       resolvedProjectId = projectId
     }
 
+    const recurringFlag = Boolean(body.recurring)
+    const recurrenceCols = normalizeRecurrenceInput(body.recurrence, recurringFlag)
+
     const updateRow = {
       expense_item_key,
       transaction_date: body.transaction_date || new Date().toISOString().slice(0, 10),
@@ -221,11 +225,12 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
       payment_date: body.payment_date || null,
       amount_gross: num,
       vat_rate: body.vat_rate != null && String(body.vat_rate) !== '' ? String(body.vat_rate) : null,
-      recurring: Boolean(body.recurring),
+      recurring: recurringFlag,
       currency: rowCurrency,
       payment_account_id,
       payment_employee_id,
       attachment_url,
+      ...recurrenceCols,
       ...(resolvedProjectId !== undefined ? { project_id: resolvedProjectId } : {}),
     }
 
@@ -279,6 +284,10 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
           payment_account_id: oldSnap.payment_account_id,
           payment_employee_id: oldSnap.payment_employee_id,
           attachment_url: oldSnap.attachment_url ?? null,
+          recurrence_start_date: oldSnap.recurrence_start_date ?? null,
+          recurrence_end_date: oldSnap.recurrence_end_date ?? null,
+          recurrence_frequency: oldSnap.recurrence_frequency ?? null,
+          recurrence_day: oldSnap.recurrence_day ?? null,
         })
         .eq('id', id)
         .eq('tenant_id', tenantId)

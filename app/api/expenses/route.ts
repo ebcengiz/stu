@@ -8,9 +8,79 @@ function currencyStr(c: unknown) {
   return c == null ? 'TRY' : String(c)
 }
 
+type RecurrenceFrequency = 'daily' | 'weekly' | 'monthly' | 'yearly'
+
+type RecurrencePayload = {
+  start_date: string | null
+  end_date: string | null
+  frequency: RecurrenceFrequency
+  day: string | null
+}
+
 export type ExpenseWithRelations = Record<string, unknown> & {
   payment_account?: { id: string; name: string; type: string; currency?: string; balance?: number } | null
   payment_employee?: { id: string; name: string } | null
+  recurrence?: RecurrencePayload | null
+}
+
+export function normalizeRecurrenceInput(
+  input: unknown,
+  recurring: boolean
+): {
+  recurrence_start_date: string | null
+  recurrence_end_date: string | null
+  recurrence_frequency: RecurrenceFrequency | null
+  recurrence_day: string | null
+} {
+  if (!recurring || !input || typeof input !== 'object') {
+    return {
+      recurrence_start_date: null,
+      recurrence_end_date: null,
+      recurrence_frequency: null,
+      recurrence_day: null,
+    }
+  }
+  const obj = input as Record<string, unknown>
+  const freqRaw = typeof obj.frequency === 'string' ? obj.frequency : 'monthly'
+  const freq = (['daily', 'weekly', 'monthly', 'yearly'] as const).includes(
+    freqRaw as RecurrenceFrequency
+  )
+    ? (freqRaw as RecurrenceFrequency)
+    : 'monthly'
+  const pickDate = (v: unknown) => {
+    const s = typeof v === 'string' ? v.trim() : ''
+    return /^\d{4}-\d{2}-\d{2}$/.test(s) ? s : null
+  }
+  const dayRaw = obj.day
+  const day =
+    freq === 'daily'
+      ? null
+      : dayRaw == null || dayRaw === ''
+        ? null
+        : String(dayRaw).trim() || null
+  return {
+    recurrence_start_date: pickDate(obj.start_date),
+    recurrence_end_date: pickDate(obj.end_date),
+    recurrence_frequency: freq,
+    recurrence_day: day,
+  }
+}
+
+export function attachRecurrence<T extends Record<string, unknown>>(row: T): T & { recurrence: RecurrencePayload | null } {
+  const recurring = Boolean(row.recurring)
+  const freq = row.recurrence_frequency as RecurrenceFrequency | null | undefined
+  if (!recurring || !freq) {
+    return { ...row, recurrence: null }
+  }
+  return {
+    ...row,
+    recurrence: {
+      start_date: (row.recurrence_start_date as string | null) ?? null,
+      end_date: (row.recurrence_end_date as string | null) ?? null,
+      frequency: freq,
+      day: (row.recurrence_day as string | null) ?? null,
+    },
+  }
 }
 
 async function enrichExpenses(
@@ -55,11 +125,11 @@ async function enrichExpenses(
   return rows.map((r) => {
     const aid = r.payment_account_id as string | null | undefined
     const eid = r.payment_employee_id as string | null | undefined
-    return {
+    return attachRecurrence({
       ...r,
       payment_account: aid ? accMap.get(aid) ?? null : null,
       payment_employee: eid ? empMap.get(eid) ?? null : null,
-    }
+    })
   })
 }
 
@@ -191,6 +261,9 @@ export async function POST(request: Request) {
       }
     }
 
+    const recurringFlag = Boolean(body.recurring)
+    const recurrenceCols = normalizeRecurrenceInput(body.recurrence, recurringFlag)
+
     const row = {
       tenant_id: profile.tenant_id,
       expense_item_key,
@@ -201,11 +274,12 @@ export async function POST(request: Request) {
       payment_date: body.payment_date || null,
       amount_gross: num,
       vat_rate: body.vat_rate != null && String(body.vat_rate) !== '' ? String(body.vat_rate) : null,
-      recurring: Boolean(body.recurring),
+      recurring: recurringFlag,
       currency: rowCurrency,
       payment_account_id,
       payment_employee_id,
       project_id: projectId,
+      ...recurrenceCols,
     }
 
     const { data, error } = await supabase.from('general_expenses').insert(row).select().single()
