@@ -83,6 +83,7 @@ interface Transaction {
   cheque_due_date?: string | null
   cheque_bank?: string | null
   cheque_serial_number?: string | null
+  account_id?: string | null
   created_at: string
   supplier_transaction_items?: TransactionItem[]
 }
@@ -1316,66 +1317,254 @@ export default function SupplierDetailPage() {
       )}
 
       {/* Tx Detail Modal */}
-      {showTxDetailModal && selectedTx && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center z-[130] p-4 animate-in fade-in duration-300">
-          <Card className="w-full max-w-3xl shadow-2xl animate-in zoom-in duration-300 rounded-3xl overflow-hidden border-0">
-            <CardHeader className={`${selectedTx.type === 'purchase' ? 'bg-gradient-to-r from-primary-600 to-primary-700' : 'bg-gradient-to-r from-primary-600 to-primary-700'} text-white flex flex-row items-center justify-between py-6 px-8 border-0`}>
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-gray-100 rounded-2xl backdrop-blur-md">
-                  {selectedTx.type === 'purchase' ? <ShoppingCart className="h-6 w-6 text-white" /> : <CreditCard className="h-6 w-6 text-white" />}
-                </div>
-                <div>
-                  <CardTitle className="text-2xl text-white font-black">{selectedTx.type === 'purchase' ? 'Alış İşlemi' : selectedTx.type === 'balance_fix' ? 'Bakiye Düzeltme' : 'Ödeme İşlemi'}</CardTitle>
-                  <p className="text-xs text-white/80 font-bold tracking-widest uppercase mt-1">İşlem ID: #{selectedTx.id.slice(0,8)}</p>
-                </div>
-              </div>
-              <button onClick={() => setShowTxDetailModal(false)} className="p-2 hover:bg-gray-50 rounded-full transition-all"><X className="h-7 w-7 text-white" /></button>
-            </CardHeader>
-            <CardBody className="p-0 bg-white">
-              <div className="grid grid-cols-3 divide-x divide-gray-100 bg-gray-50/50 border-b">
-                <div className="p-6 text-center"><p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">İşlem Tarihi</p><p className="text-sm font-bold text-gray-900 flex items-center justify-center gap-2"><Calendar className="h-4 w-4 text-primary-500" /> {new Date(selectedTx.transaction_date || selectedTx.date || '').toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}</p></div>
-                <div className="p-6 text-center"><p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Açıklama</p><p className="text-sm font-bold text-gray-900 truncate px-2">{selectedTx.description || '-'}</p></div>
-                <div className="p-6 text-center"><p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Ödeme Yöntemi</p><p className="text-sm font-bold text-gray-900 flex items-center justify-center gap-2"><CreditCard className="h-4 w-4 text-primary-500" /> {selectedTx.payment_method === 'cash' ? 'Nakit' : selectedTx.payment_method === 'credit_card' ? 'Kredi Kartı' : selectedTx.payment_method === 'cheque' ? 'Çek / Senet' : selectedTx.payment_method === 'bank_transfer' ? 'Banka' : 'Tanımsız'}</p></div>
-              </div>
-              <div className="p-8">
-                {selectedTx.type === 'payment' && selectedTx.payment_method === 'cheque' && (selectedTx.cheque_bank || selectedTx.cheque_serial_number) && (
-                  <div className="mb-8 grid grid-cols-3 gap-4 bg-amber-50 p-6 rounded-2xl border border-amber-100 shadow-sm">
-                    {selectedTx.cheque_bank && <div><p className="text-[10px] font-black text-amber-500 uppercase tracking-widest mb-1">Banka Adı</p><p className="text-sm font-bold text-amber-900">{selectedTx.cheque_bank}</p></div>}
-                    {selectedTx.cheque_serial_number && <div><p className="text-[10px] font-black text-amber-500 uppercase tracking-widest mb-1">Seri Numarası</p><p className="text-sm font-bold text-amber-900 uppercase">{selectedTx.cheque_serial_number}</p></div>}
-                    {selectedTx.cheque_due_date && <div><p className="text-[10px] font-black text-amber-500 uppercase tracking-widest mb-1">Vade Tarihi</p><p className="text-sm font-bold text-amber-900">{new Date(selectedTx.cheque_due_date).toLocaleDateString('tr-TR')}</p></div>}
+      {showTxDetailModal && selectedTx && (() => {
+        const isPurchase = selectedTx.type === 'purchase'
+        const isBalanceFix = selectedTx.type === 'balance_fix' || (selectedTx.description?.startsWith('BAKİYE DÜZELTME') ?? false)
+        const isPayment = selectedTx.type === 'payment'
+        const title = isBalanceFix ? 'Bakiye Düzeltme' : isPurchase ? 'Alış Detayı' : 'Ödeme Detayı'
+        const TitleIcon = isBalanceFix ? Scale : isPurchase ? ShoppingCart : CreditCard
+        const items = selectedTx.supplier_transaction_items ?? []
+        const itemsSubtotal = items.reduce((s, it) => s + Number(it.quantity) * Number(it.unit_price), 0)
+        const itemsDiscount = items.reduce((s, it) => {
+          const sub = Number(it.quantity) * Number(it.unit_price)
+          return s + sub * (Number(it.discount_rate) || 0) / 100
+        }, 0)
+        const itemsVat = items.reduce((s, it) => {
+          const sub = Number(it.quantity) * Number(it.unit_price)
+          const afterDisc = sub - sub * (Number(it.discount_rate) || 0) / 100
+          return s + afterDisc * (Number(it.tax_rate) || 0) / 100
+        }, 0)
+        const paymentLabel = selectedTx.payment_method === 'cash' ? 'Nakit'
+          : selectedTx.payment_method === 'credit_card' ? 'Kredi Kartı'
+          : selectedTx.payment_method === 'cheque' ? 'Çek / Senet'
+          : selectedTx.payment_method === 'bank_transfer' ? 'Banka' : '—'
+        const paymentAccount = selectedTx.account_id
+          ? cashAccounts.find((a) => a.id === selectedTx.account_id) || null
+          : null
+        const txCurrency = selectedTx.currency || supplier?.currency || 'TRY'
+        return (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[130] p-4 overflow-y-auto animate-in fade-in duration-200">
+            <Card className="w-full max-w-3xl max-h-[90vh] flex flex-col shadow-lg animate-in zoom-in duration-200 rounded-xl overflow-hidden border border-gray-200 my-auto">
+              <CardHeader className="bg-white border-b border-gray-200 flex flex-row items-center justify-between py-4 px-6 shrink-0">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-primary-50 rounded-lg border border-primary-100">
+                    <TitleIcon className="h-5 w-5 text-primary-600" />
                   </div>
-                )}
-                {selectedTx.type === 'purchase' && selectedTx.supplier_transaction_items && selectedTx.supplier_transaction_items.length > 0 && (
-                  <div className="mb-8 border rounded-2xl overflow-hidden shadow-sm">
-                    <table className="min-w-full divide-y divide-gray-100">
-                      <thead className="bg-gray-50/80">
-                        <tr><th className="px-4 py-2 text-left text-[10px] font-bold text-gray-500 uppercase">Ürün</th><th className="px-4 py-2 text-center text-[10px] font-bold text-gray-500 uppercase">Miktar</th><th className="px-4 py-2 text-right text-[10px] font-bold text-gray-500 uppercase">B.Fiyat</th><th className="px-4 py-2 text-right text-[10px] font-bold text-gray-500 uppercase">Toplam</th></tr>
-                      </thead>
-                      <tbody className="divide-y divide-gray-50">
-                        {selectedTx.supplier_transaction_items.map((item, idx) => (
-                          <tr key={idx} className="hover:bg-gray-50/50">
-                            <td className="px-4 py-2.5 text-sm font-medium text-gray-900">{item.product_name}</td>
-                            <td className="px-4 py-2.5 text-sm text-center text-gray-600">{item.quantity}</td>
-                            <td className="px-4 py-2.5 text-sm text-right text-gray-600">{item.unit_price.toLocaleString('tr-TR')} {getCurrencySymbol(selectedTx.currency || supplier.currency || 'TRY')}</td>
-                            <td className="px-4 py-2.5 text-sm font-bold text-right text-gray-900">{item.total_price.toLocaleString('tr-TR')} {getCurrencySymbol(selectedTx.currency || supplier.currency || 'TRY')}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                  <div>
+                    <CardTitle className="text-base font-semibold text-gray-900">{title}</CardTitle>
+                    <p className="text-[11px] text-gray-500 mt-0.5">İşlem ID: #{selectedTx.id.slice(0, 8)}</p>
                   </div>
-                )}
-                <div className="mt-4 flex items-center justify-between p-8 bg-gradient-to-br from-primary-800 to-primary-950 rounded-[2.5rem] text-white shadow-xl">
-                  <div className="flex items-center gap-4">
-                    <div className="p-4 bg-gray-50 rounded-3xl"><DollarSign className="h-8 w-8 text-primary-300" /></div>
-                    <div><p className="text-[10px] font-black text-white/50 uppercase tracking-[0.2em] mb-1">İşlem Toplamı</p><p className="text-3xl font-black tracking-tight">{Number(selectedTx.amount).toLocaleString('tr-TR', { minimumFractionDigits: 2 })} {getCurrencySymbol(selectedTx.currency || supplier.currency || 'TRY')}</p></div>
-                  </div>
-                  <Button onClick={() => setShowTxDetailModal(false)} className="h-14 px-10 rounded-2xl font-black bg-white text-primary-800 hover:bg-primary-50 transition-all shadow-lg active:scale-95 border-0">KAPAT</Button>
                 </div>
+                <button onClick={() => setShowTxDetailModal(false)} className="p-1.5 hover:bg-gray-100 rounded-lg transition-all">
+                  <X className="h-5 w-5 text-gray-400" />
+                </button>
+              </CardHeader>
+
+              <CardBody className="p-0 bg-white overflow-y-auto flex-1">
+                {/* Üst meta bilgileri — yalnızca dolu olanlar render ediliyor */}
+                {(() => {
+                  const metaCells: Array<{ label: string; value: React.ReactNode }> = [
+                    {
+                      label: 'İşlem Tarihi',
+                      value: (
+                        <span className="flex items-center gap-1.5">
+                          <Calendar className="h-3.5 w-3.5 text-primary-600" />
+                          {new Date(selectedTx.transaction_date || selectedTx.date || '').toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                        </span>
+                      ),
+                    },
+                    {
+                      label: 'Tip',
+                      value: (
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold ${isPurchase ? 'bg-primary-50 text-primary-700' : isBalanceFix ? 'bg-amber-50 text-amber-700' : 'bg-emerald-50 text-emerald-700'}`}>
+                          {isPurchase ? 'Alış (Borç)' : isBalanceFix ? 'Bakiye düzeltme' : 'Ödeme (Borç Azaldı)'}
+                        </span>
+                      ),
+                    },
+                  ]
+                  if (isPayment) {
+                    metaCells.push({
+                      label: 'Ödeme Yöntemi',
+                      value: (
+                        <span className="flex items-center gap-1.5">
+                          <CreditCard className="h-3.5 w-3.5 text-primary-600" />
+                          {paymentLabel}
+                        </span>
+                      ),
+                    })
+                  }
+                  if (
+                    isPayment &&
+                    selectedTx.payment_method !== 'cheque' &&
+                    (paymentAccount || selectedTx.account_id)
+                  ) {
+                    metaCells.push({
+                      label: 'Çekilen Hesap',
+                      value: (
+                        <span className="flex items-center gap-1.5">
+                          <Building className="h-3.5 w-3.5 text-primary-600" />
+                          {paymentAccount?.name || 'Bilinmiyor'}
+                        </span>
+                      ),
+                    })
+                  }
+                  if (selectedTx.document_number || selectedTx.document_no) {
+                    metaCells.push({ label: 'Belge No', value: selectedTx.document_number || selectedTx.document_no })
+                  }
+                  if (selectedTx.waybill_number) {
+                    metaCells.push({ label: 'İrsaliye No', value: selectedTx.waybill_number })
+                  }
+                  if (selectedTx.shipment_date) {
+                    metaCells.push({ label: 'Sevk Tarihi', value: new Date(selectedTx.shipment_date).toLocaleDateString('tr-TR') })
+                  }
+                  return (
+                    <div className="flex flex-wrap border-b border-gray-200 bg-white">
+                      {metaCells.map((cell, idx) => (
+                        <div
+                          key={cell.label}
+                          className={`min-w-[180px] flex-1 p-4 ${idx > 0 ? 'border-l border-gray-200' : ''}`}
+                        >
+                          <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wide mb-1">{cell.label}</p>
+                          <p className="text-sm font-medium text-gray-900">{cell.value}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )
+                })()}
+
+                <div className="p-6 space-y-5">
+                  {/* Açıklama */}
+                  {selectedTx.description && (
+                    <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
+                      <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wide mb-1">Açıklama</p>
+                      <p className="text-sm text-gray-800 whitespace-pre-wrap">{selectedTx.description}</p>
+                    </div>
+                  )}
+
+                  {/* Çek bilgileri */}
+                  {isPayment && selectedTx.payment_method === 'cheque' && (selectedTx.cheque_bank || selectedTx.cheque_serial_number || selectedTx.cheque_due_date) && (
+                    <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
+                      <p className="text-[10px] font-semibold text-amber-700 uppercase tracking-wide mb-2">Çek Bilgileri</p>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        {selectedTx.cheque_bank && (
+                          <div>
+                            <p className="text-[10px] font-semibold text-amber-700/80 uppercase tracking-wide mb-0.5">Banka</p>
+                            <p className="text-sm font-medium text-amber-900">{selectedTx.cheque_bank}</p>
+                          </div>
+                        )}
+                        {selectedTx.cheque_serial_number && (
+                          <div>
+                            <p className="text-[10px] font-semibold text-amber-700/80 uppercase tracking-wide mb-0.5">Seri No</p>
+                            <p className="text-sm font-medium text-amber-900 uppercase">{selectedTx.cheque_serial_number}</p>
+                          </div>
+                        )}
+                        {selectedTx.cheque_due_date && (
+                          <div>
+                            <p className="text-[10px] font-semibold text-amber-700/80 uppercase tracking-wide mb-0.5">Vade</p>
+                            <p className="text-sm font-medium text-amber-900">
+                              {new Date(selectedTx.cheque_due_date).toLocaleDateString('tr-TR')}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Ürün kalemleri */}
+                  {isPurchase && (
+                    items.length > 0 ? (
+                      <div className="rounded-lg border border-gray-200 overflow-hidden">
+                        <div className="bg-gray-50 border-b border-gray-200 px-4 py-2.5 flex items-center justify-between">
+                          <p className="text-xs font-semibold text-gray-700 uppercase tracking-wide flex items-center gap-1.5">
+                            <Package className="h-3.5 w-3.5 text-primary-600" /> Alınan Ürünler
+                          </p>
+                          <span className="text-[11px] text-gray-500">{items.length} kalem</span>
+                        </div>
+                        <div className="overflow-x-auto">
+                          <table className="min-w-full text-sm">
+                            <thead className="bg-gray-50 border-b border-gray-200">
+                              <tr>
+                                <th className="px-4 py-2 text-left text-[10px] font-semibold text-gray-500 uppercase tracking-wide">Ürün</th>
+                                <th className="px-4 py-2 text-right text-[10px] font-semibold text-gray-500 uppercase tracking-wide">Miktar</th>
+                                <th className="px-4 py-2 text-right text-[10px] font-semibold text-gray-500 uppercase tracking-wide">B.Fiyat</th>
+                                <th className="px-4 py-2 text-right text-[10px] font-semibold text-gray-500 uppercase tracking-wide">İsk%</th>
+                                <th className="px-4 py-2 text-right text-[10px] font-semibold text-gray-500 uppercase tracking-wide">KDV%</th>
+                                <th className="px-4 py-2 text-right text-[10px] font-semibold text-gray-500 uppercase tracking-wide">Toplam</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-100 bg-white">
+                              {items.map((it, idx) => (
+                                <tr key={it.id || idx}>
+                                  <td className="px-4 py-2.5 text-sm text-gray-800 font-medium">{it.product_name || '—'}</td>
+                                  <td className="px-4 py-2.5 text-right text-sm text-gray-700">{Number(it.quantity).toLocaleString('tr-TR')}</td>
+                                  <td className="px-4 py-2.5 text-right text-sm text-gray-700">{Number(it.unit_price).toLocaleString('tr-TR', { minimumFractionDigits: 2 })} {getCurrencySymbol(txCurrency)}</td>
+                                  <td className="px-4 py-2.5 text-right text-sm text-gray-500">{Number(it.discount_rate || 0).toFixed(0)}%</td>
+                                  <td className="px-4 py-2.5 text-right text-sm text-gray-500">{Number(it.tax_rate || 0).toFixed(0)}%</td>
+                                  <td className="px-4 py-2.5 text-right text-sm font-semibold text-gray-900">{Number(it.total_price).toLocaleString('tr-TR', { minimumFractionDigits: 2 })} {getCurrencySymbol(txCurrency)}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                            <tfoot className="bg-gray-50 border-t border-gray-200">
+                              <tr>
+                                <td colSpan={5} className="px-4 py-2 text-right text-[11px] font-semibold text-gray-500 uppercase tracking-wide">Ara Toplam</td>
+                                <td className="px-4 py-2 text-right text-sm font-medium text-gray-700">{itemsSubtotal.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} {getCurrencySymbol(txCurrency)}</td>
+                              </tr>
+                              {itemsDiscount > 0 && (
+                                <tr>
+                                  <td colSpan={5} className="px-4 py-2 text-right text-[11px] font-semibold text-gray-500 uppercase tracking-wide">İskonto</td>
+                                  <td className="px-4 py-2 text-right text-sm font-medium text-gray-700">-{itemsDiscount.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} {getCurrencySymbol(txCurrency)}</td>
+                                </tr>
+                              )}
+                              {itemsVat > 0 && (
+                                <tr>
+                                  <td colSpan={5} className="px-4 py-2 text-right text-[11px] font-semibold text-gray-500 uppercase tracking-wide">KDV</td>
+                                  <td className="px-4 py-2 text-right text-sm font-medium text-gray-700">{itemsVat.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} {getCurrencySymbol(txCurrency)}</td>
+                                </tr>
+                              )}
+                            </tfoot>
+                          </table>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="rounded-lg border border-dashed border-gray-200 bg-gray-50 px-4 py-6 text-center">
+                        <Package className="h-6 w-6 text-gray-300 mx-auto mb-2" />
+                        <p className="text-sm text-gray-500">Bu işlemde ürün kalemi kaydedilmemiş.</p>
+                        <p className="text-[11px] text-gray-400 mt-0.5">Kalem detayı olmadan tutar üzerinden kaydedilmiş bir alış / borçlandırma.</p>
+                      </div>
+                    )
+                  )}
+
+                  {/* Toplam */}
+                  <div className="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 px-5 py-4">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-primary-50 rounded-lg border border-primary-100">
+                        <DollarSign className="h-5 w-5 text-primary-600" />
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wide">İşlem Toplamı</p>
+                        <p className="text-2xl font-bold text-gray-900 tracking-tight">
+                          {Number(selectedTx.amount).toLocaleString('tr-TR', { minimumFractionDigits: 2 })} {getCurrencySymbol(txCurrency)}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardBody>
+
+              <div className="flex justify-end gap-2 px-6 py-3 border-t border-gray-200 bg-white shrink-0">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowTxDetailModal(false)}
+                  className="h-10 px-4 rounded-lg font-semibold border-gray-200 bg-white text-gray-700 hover:bg-gray-50"
+                >
+                  Kapat
+                </Button>
               </div>
-            </CardBody>
-          </Card>
-        </div>
-      )}
+            </Card>
+          </div>
+        )
+      })()}
 
       {/* Cheque Modal */}
       {showChequeModal && (
