@@ -535,7 +535,10 @@ export default function CustomerDetailPage() {
       const res = await fetch('/api/customer-transactions', {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
       })
-      if (!res.ok) throw new Error('Bakiye düzeltilemedi')
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        throw new Error(data?.error || 'Bakiye düzeltilemedi')
+      }
       toast.success('Bakiye başarıyla düzeltildi!')
       setBalanceFixForm({ amount: '', type: 'increase', description: '', date: new Date().toISOString().split('T')[0] })
       fetchTransactions(); fetchCustomerData();
