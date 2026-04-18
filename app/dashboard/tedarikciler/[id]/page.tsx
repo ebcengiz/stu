@@ -24,6 +24,7 @@ interface Product {
   sku: string | null
   unit: string
   price: number | null
+  purchase_price: number | null
   tax_rate: number | null
   discount_rate: number | null
   stock?: Array<{
@@ -352,9 +353,13 @@ export default function SupplierDetailPage() {
     if (!product) return
     
     setCurrentItem(product)
+    const defaultPurchasePrice =
+      product.purchase_price && product.purchase_price > 0
+        ? product.purchase_price
+        : product.price || 0
     setItemFormData({
       quantity: '1',
-      unit_price: looseToTrInputString(product.price || 0),
+      unit_price: looseToTrInputString(defaultPurchasePrice),
       tax_rate: looseToTrInputString(product.tax_rate ?? 20, 2),
       discount_rate: looseToTrInputString(product.discount_rate ?? 0, 2),
       warehouse_id: warehouses[0]?.id || ''
