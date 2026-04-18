@@ -66,19 +66,25 @@ export async function POST(request: Request) {
 
     if (!profile) return NextResponse.json({ error: 'Profile not found' }, { status: 400 })
 
+    const payload: Record<string, unknown> = {
+      tenant_id: profile.tenant_id,
+      name: name?.trim(),
+      type: type || 'bank',
+      currency: currency || 'TRY',
+      balance: Number(balance) || 0,
+      is_active: true,
+    }
+    const trimmedBank = typeof bank_name === 'string' ? bank_name.trim() : ''
+    const trimmedIban = typeof iban === 'string' ? iban.trim() : ''
+    if (trimmedBank) payload.bank_name = trimmedBank
+    if (trimmedIban) payload.iban = trimmedIban
+    if (credit_limit != null && credit_limit !== '') {
+      payload.credit_limit = Number(credit_limit)
+    }
+
     const { data: row, error } = await supabase
       .from('accounts')
-      .insert({
-        tenant_id: profile.tenant_id,
-        name: name?.trim(),
-        type: type || 'bank',
-        currency: currency || 'TRY',
-        bank_name: bank_name || null,
-        iban: iban || null,
-        balance: Number(balance) || 0,
-        credit_limit: credit_limit != null ? Number(credit_limit) : null,
-        is_active: true,
-      })
+      .insert(payload)
       .select()
       .single()
 
