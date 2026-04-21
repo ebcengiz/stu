@@ -47,7 +47,7 @@ export async function POST(
         document_no: offer.document_no || `TKF-${offer.id.substring(0,8)}`,
         order_no: `TKF-${offer.id.substring(0,8)}`,
         total_amount: offer.total_amount,
-        status: 'Bekliyor',
+        status: 'Faturalaşmış',
         description: `Tekliften dönüştürüldü: ${offer.id}\n${offer.description || ''}`
       })
       .select()
@@ -115,11 +115,10 @@ export async function POST(
           customer_id: offer.customer_id,
           type: 'invoice',
           amount: offer.total_amount,
-          currency: String(offer.currency || 'TRY'), // Güvenli dönüşüm
-          date: new Date().toISOString(),
-          document_no: sale.document_no,
+          currency: String(offer.currency || 'TRY'),
+          transaction_date: new Date().toISOString(),
+          document_number: sale.document_no,
           description: `Tekliften dönüştürülen satış - Sipariş No: ${sale.order_no}`,
-          is_debt: true
         })
       
       if (transError) {
