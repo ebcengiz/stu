@@ -165,6 +165,7 @@ function ProductsPageContent() {
   const [newBrandData, setNewBrandData] = useState({ name: '' })
   const [newWarehouseData, setNewWarehouseData] = useState({ name: '', location: '', is_active: true })
   const [showBarcodeScanner, setShowBarcodeScanner] = useState(false)
+  const [showBarcodeGeneratorModal, setShowBarcodeGeneratorModal] = useState(false)
   const [showFilters, setShowFilters] = useState(false)
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
@@ -608,6 +609,36 @@ function ProductsPageContent() {
     return [formData.unit, ...UNIT_OPTIONS.filter((u) => u !== formData.unit)]
   }, [formData.unit])
 
+  // EAN-13 barkod üretici
+  const generateUniqueBarcode = () => {
+    const existingBarcodes = new Set(
+      products.map((p) => p.barcode).filter(Boolean)
+    )
+
+    const calcCheckDigit = (digits12: string): string => {
+      let sum = 0
+      for (let i = 0; i < 12; i++) {
+        const d = parseInt(digits12[i], 10)
+        sum += i % 2 === 0 ? d : d * 3
+      }
+      const remainder = sum % 10
+      return String(remainder === 0 ? 0 : 10 - remainder)
+    }
+
+    let barcode = ''
+    let attempts = 0
+    do {
+      const random9 = Math.floor(Math.random() * 1_000_000_000)
+        .toString()
+        .padStart(9, '0')
+      const base = '200' + random9
+      barcode = base + calcCheckDigit(base)
+      attempts++
+    } while (existingBarcodes.has(barcode) && attempts < 100)
+
+    return barcode
+  }
+
   const filteredProducts = useMemo(() => {
     if (!Array.isArray(products)) return []
     return products.filter(product => {
@@ -938,14 +969,22 @@ function ProductsPageContent() {
                           />
                         </div>
                         <div className="space-y-1.5">
-                          <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Barkod</label>
+                          <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Barkod numarası</label>
                           <input
                             type="text"
                             value={formData.barcode}
                             onChange={(e) => setFormData({ ...formData, barcode: e.target.value })}
                             className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl font-mono text-sm"
-                            placeholder="Opsiyonel"
+                            placeholder="Barkod numarası girin veya otomatik oluşturun"
                           />
+                          <button
+                            type="button"
+                            onClick={() => setShowBarcodeGeneratorModal(true)}
+                            className="inline-flex items-center gap-1.5 text-[11px] font-bold text-primary-600 hover:text-primary-700 hover:underline transition-colors mt-0.5 group"
+                          >
+                            <ScanBarcode className="h-3.5 w-3.5 group-hover:scale-110 transition-transform" />
+                            Barkod oluşturmak için tıklayınız
+                          </button>
                         </div>
                       </div>
                     </div>
@@ -1427,6 +1466,71 @@ function ProductsPageContent() {
                   toast.success('Barkod tarandı: ' + barcode);
                 }} 
               />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Barkod Üretimi Modalı */}
+      {showBarcodeGeneratorModal && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[10003] p-4 animate-in fade-in duration-300">
+          <div className="bg-[#FAFAF7] rounded-2xl shadow-2xl shadow-primary-900/10 w-full max-w-md overflow-hidden border border-primary-200/80 animate-in zoom-in-95 duration-200">
+            {/* Header */}
+            <div className="px-6 py-5 border-b border-primary-100 bg-gradient-to-r from-primary-600 to-primary-700 flex justify-between items-center">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-white/20 rounded-xl backdrop-blur-sm">
+                  <ScanBarcode className="h-5 w-5 text-white" />
+                </div>
+                <h3 className="text-base font-bold text-white">Barkod Üretimi</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowBarcodeGeneratorModal(false)}
+                className="p-2 hover:bg-white/20 rounded-full transition-all active:scale-90"
+              >
+                <X className="h-5 w-5 text-white/80" />
+              </button>
+            </div>
+
+            {/* Body */}
+            <div className="p-6 space-y-6">
+              {/* Bilgi kutusu */}
+              <div className="bg-primary-50/60 border border-primary-200/60 rounded-xl p-4 space-y-2">
+                <p className="text-sm text-gray-700 leading-relaxed">
+                  Eğer ürünlerinizde tedarikçi tarafından verilmiş barkod yoksa sistem sizin için otomatik olarak bir barkod oluşturabilir.
+                </p>
+                <p className="text-sm text-gray-600 leading-relaxed">
+                  Daha sonra dilerseniz barkod etiketi bastırabilir ve barkod okuyucu ile kolayca satış yapabilirsiniz.
+                </p>
+              </div>
+
+              {/* Soru */}
+              <p className="text-base font-semibold text-gray-800 text-center px-2">
+                Barkod numarası almak istiyor musunuz?
+              </p>
+
+              {/* Butonlar */}
+              <div className="flex justify-center gap-3 pt-1">
+                <button
+                  type="button"
+                  onClick={() => setShowBarcodeGeneratorModal(false)}
+                  className="px-8 py-2.5 rounded-xl text-sm font-bold border-2 border-gray-300 text-gray-600 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all active:scale-95"
+                >
+                  Hayır
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const newBarcode = generateUniqueBarcode()
+                    setFormData((prev) => ({ ...prev, barcode: newBarcode }))
+                    setShowBarcodeGeneratorModal(false)
+                    toast.success(`Barkod oluşturuldu: ${newBarcode}`)
+                  }}
+                  className="px-8 py-2.5 rounded-xl text-sm font-bold bg-primary-600 text-white hover:bg-primary-700 shadow-md shadow-primary-600/25 transition-all active:scale-95"
+                >
+                  Evet
+                </button>
+              </div>
             </div>
           </div>
         </div>

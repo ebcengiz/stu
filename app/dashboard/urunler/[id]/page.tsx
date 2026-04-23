@@ -17,12 +17,18 @@ import {
   PlusCircle,
   History,
   ScrollText,
+  Printer,
+  ScanBarcode,
+  X,
 } from 'lucide-react'
 import { Card, CardBody, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { toast } from 'react-hot-toast'
 import { CURRENCY_SYMBOLS } from '@/lib/currency'
 import { ManuelStockMovementModal } from '@/components/products/ManuelStockMovementModal'
+import { jsPDF } from 'jspdf'
+import Barcode from 'react-barcode'
+import JsBarcode from 'jsbarcode'
 
 interface ProductDetail {
   id: string
@@ -100,6 +106,10 @@ export default function ProductDetailPage() {
     purchases: true,
   })
   const actionMenusRef = useRef<HTMLDivElement>(null)
+  const [printModalOpen, setPrintModalOpen] = useState(false)
+  const [labelTemplates, setLabelTemplates] = useState<any[]>([])
+  const [selectedTemplateId, setSelectedTemplateId] = useState('')
+  const [printQty, setPrintQty] = useState(1)
 
   useEffect(() => {
     const fetchAll = async () => {
@@ -201,7 +211,6 @@ export default function ProductDetailPage() {
     { label: 'Kategori', value: product.categories?.name },
     { label: 'Marka', value: product.brand },
     { label: 'KDV oranı', value: `%${product.tax_rate ?? 0}` },
-    { label: 'Barkod', value: product.barcode },
     { label: 'Raf yeri', value: product.shelf_locations?.name },
   ].filter((item) => {
     const raw = item.value
@@ -237,7 +246,7 @@ export default function ProductDetailPage() {
       <Card className="rounded-2xl overflow-hidden border border-gray-200/80 shadow-sm">
         <CardBody className="p-4 md:p-5">
           <div className="flex flex-col md:flex-row gap-4 md:gap-5 items-start">
-            <div className="w-full md:w-[168px] shrink-0">
+            <div className="w-full md:w-[168px] shrink-0 space-y-3">
               <div className="w-full aspect-square rounded-2xl bg-gray-50 border border-gray-100 overflow-hidden flex items-center justify-center">
                 {product.image_url ? (
                   <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
@@ -245,50 +254,84 @@ export default function ProductDetailPage() {
                   <Package className="h-14 w-14 text-gray-300" />
                 )}
               </div>
+              {product.barcode && (
+                <div className="rounded-xl border border-gray-200 bg-white p-2 flex flex-col items-center">
+                  <Barcode
+                    value={product.barcode}
+                    width={1.1}
+                    height={36}
+                    fontSize={9}
+                    margin={1}
+                    displayValue={true}
+                    background="#ffffff"
+                    lineColor="#1a1a1a"
+                  />
+                </div>
+              )}
             </div>
 
-            <div className="flex-1 min-w-0 space-y-4">
-              <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-3">
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <h2 className="text-xl md:text-2xl font-bold text-gray-900 leading-tight">
-                      {product.name}
-                    </h2>
-                    {product.is_active ? (
-                      <span className="px-2.5 py-1 text-[10px] font-black uppercase tracking-widest rounded-full bg-primary-50 text-primary-600">
-                        Aktif
-                      </span>
-                    ) : (
-                      <span className="px-2.5 py-1 text-[10px] font-black uppercase tracking-widest rounded-full bg-gray-100 text-gray-500">
-                        Pasif
-                      </span>
-                    )}
-                  </div>
-                  {product.description && (
-                    <p className="mt-1.5 text-sm text-gray-500 leading-relaxed max-w-3xl">
-                      {product.description}
-                    </p>
+            <div className="flex-1 min-w-0 space-y-3">
+              {/* Title row */}
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                <div className="flex items-center gap-2 flex-wrap min-w-0">
+                  <h2 className="text-xl md:text-2xl font-bold text-gray-900 leading-tight">
+                    {product.name}
+                  </h2>
+                  {product.is_active ? (
+                    <span className="px-2.5 py-1 text-[10px] font-black uppercase tracking-widest rounded-full bg-primary-50 text-primary-600">
+                      Aktif
+                    </span>
+                  ) : (
+                    <span className="px-2.5 py-1 text-[10px] font-black uppercase tracking-widest rounded-full bg-gray-100 text-gray-500">
+                      Pasif
+                    </span>
                   )}
                 </div>
-                <div className="px-3 py-2 rounded-xl bg-primary-50/70 border border-primary-100 text-right shrink-0">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-primary-500">
-                    Ürün türü
-                  </p>
-                  <p className="text-sm font-bold text-primary-700">
-                    {product.product_kind === 'stocked'
-                      ? 'Stoklu ürün'
-                      : 'Stoksuz ürün / hizmet'}
-                  </p>
+                <div className="px-3 py-1.5 rounded-lg bg-primary-50/70 border border-primary-100 shrink-0">
+                  <span className="text-xs font-bold text-primary-700">
+                    {product.product_kind === 'stocked' ? 'Stoklu ürün' : 'Stoksuz ürün / hizmet'}
+                  </span>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+              {product.description && (
+                <p className="text-sm text-gray-500 leading-relaxed max-w-3xl">
+                  {product.description}
+                </p>
+              )}
+
+              {/* Info grid — compact 2-col layout */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
                 {infoItems.map((item) => (
-                  <div key={item.label} className="rounded-xl border border-gray-200 bg-gray-50/70 px-3 py-2.5">
+                  <div key={item.label} className="rounded-lg border border-gray-200 bg-gray-50/70 px-3 py-2">
                     <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">{item.label}</p>
-                    <p className="mt-1 text-sm font-bold text-gray-800 break-all">{item.value}</p>
+                    <p className="mt-0.5 text-sm font-bold text-gray-800 break-all">{item.value}</p>
                   </div>
                 ))}
+                {/* Birim */}
+                <div className="rounded-lg border border-gray-200 bg-gray-50/70 px-3 py-2">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">Birim</p>
+                  <p className="mt-0.5 text-sm font-bold text-gray-800">{product.unit}</p>
+                </div>
+                {/* İskonto */}
+                {(product.discount_rate ?? 0) > 0 && (
+                  <div className="rounded-lg border border-gray-200 bg-gray-50/70 px-3 py-2">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">İskonto</p>
+                    <p className="mt-0.5 text-sm font-bold text-gray-800">%{product.discount_rate}</p>
+                  </div>
+                )}
+                {/* GTIP */}
+                {product.gtip && (
+                  <div className="rounded-lg border border-gray-200 bg-gray-50/70 px-3 py-2">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">GTİP</p>
+                    <p className="mt-0.5 text-sm font-bold text-gray-800">{product.gtip}</p>
+                  </div>
+                )}
+                {/* Para birimi */}
+                <div className="rounded-lg border border-gray-200 bg-gray-50/70 px-3 py-2">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">Para birimi</p>
+                  <p className="mt-0.5 text-sm font-bold text-gray-800">{product.currency || 'TRY'}</p>
+                </div>
               </div>
             </div>
           </div>
@@ -479,6 +522,19 @@ export default function ProductDetailPage() {
                 </button>
                 <button
                   type="button"
+                  onClick={() => {
+                    setAccordionOpen({ stockActions: false, otherActions: false })
+                    // Load templates from localStorage
+                    try {
+                      const raw = localStorage.getItem('label_templates')
+                      const templates = raw ? JSON.parse(raw) : []
+                      setLabelTemplates(templates)
+                      if (templates.length > 0 && !selectedTemplateId) {
+                        setSelectedTemplateId(templates[0].id)
+                      }
+                    } catch { setLabelTemplates([]) }
+                    setPrintModalOpen(true)
+                  }}
                   className="flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-xs font-semibold text-gray-800 hover:bg-gray-50"
                   role="menuitem"
                 >
@@ -486,7 +542,7 @@ export default function ProductDetailPage() {
                     <Tag className="h-3.5 w-3.5 shrink-0 text-primary-600" />
                     <span className="truncate">Etiket yazdır</span>
                   </span>
-                  <span className="shrink-0 text-[9px] font-black uppercase tracking-wider text-gray-400">Yakında</span>
+                  <Printer className="h-3.5 w-3.5 text-gray-400" />
                 </button>
                 <div className="my-1 border-t border-gray-100" />
                 <button
@@ -674,6 +730,251 @@ export default function ProductDetailPage() {
                     </li>
                   ))}
                 </ul>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Etiket Yazdırma Modalı */}
+      {printModalOpen && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[10001] p-4 animate-in fade-in duration-300">
+          <div className="bg-[#FAFAF7] rounded-2xl shadow-2xl shadow-primary-900/10 w-full max-w-lg overflow-hidden border border-primary-200/80 animate-in zoom-in-95 duration-200">
+            {/* Header */}
+            <div className="px-6 py-5 border-b border-primary-100 bg-gradient-to-r from-primary-600 to-primary-700 flex justify-between items-center">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-white/20 rounded-xl backdrop-blur-sm">
+                  <Printer className="h-5 w-5 text-white" />
+                </div>
+                <h3 className="text-base font-bold text-white">Etiket Yazdırma</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setPrintModalOpen(false)}
+                className="p-2 hover:bg-white/20 rounded-full transition-all active:scale-90"
+              >
+                <X className="h-5 w-5 text-white/80" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-5">
+              {labelTemplates.length === 0 ? (
+                <div className="text-center py-6">
+                  <Tag className="h-10 w-10 text-gray-300 mx-auto mb-3" />
+                  <p className="text-sm text-gray-600 font-semibold">Henüz etiket şablonu oluşturmadınız</p>
+                  <p className="text-xs text-gray-500 mt-1">Ayarlar → Etiket Şablonları sayfasından şablon oluşturabilirsiniz</p>
+                  <Button
+                    className="mt-4 h-9 px-5 rounded-xl text-sm"
+                    onClick={() => {
+                      setPrintModalOpen(false)
+                      window.location.href = '/dashboard/ayarlar/etiket-sablonlari'
+                    }}
+                  >
+                    Şablon Oluştur
+                  </Button>
+                </div>
+              ) : (
+                <>
+                  {/* Template selection */}
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Etiket Şablonu</label>
+                    <select
+                      value={selectedTemplateId}
+                      onChange={(e) => setSelectedTemplateId(e.target.value)}
+                      className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm font-semibold text-gray-700 focus:ring-2 focus:ring-primary-500/20 outline-none"
+                    >
+                      {labelTemplates.map((t: any) => (
+                        <option key={t.id} value={t.id}>{t.name}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Quantity */}
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Adet</label>
+                    <input
+                      type="number"
+                      min={1}
+                      max={100}
+                      value={printQty}
+                      onChange={(e) => setPrintQty(Math.max(1, Number(e.target.value) || 1))}
+                      className="w-24 px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm font-bold text-gray-700 focus:ring-2 focus:ring-primary-500/20 outline-none"
+                    />
+                  </div>
+
+                  {/* Preview */}
+                  {(() => {
+                    const tpl = labelTemplates.find((t: any) => t.id === selectedTemplateId)
+                    if (!tpl) return null
+                    const w = tpl.orientation === 'horizontal' ? tpl.width : tpl.height
+                    const h = tpl.orientation === 'horizontal' ? tpl.height : tpl.width
+                    const sc = Math.min(400 / w, 200 / h, 5)
+                    const pxW = w * sc
+                    const pxH = h * sc
+
+                    const fieldValues: Record<string, string> = {
+                      productName: product.name,
+                      productCode: product.sku || '',
+                      salePrice: `${symbol}${Number(product.price || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2 })}`,
+                      barcode: product.barcode || '',
+                      tags: product.categories?.name || '',
+                      description: product.unit?.toUpperCase() || 'ADET',
+                      shelfLocation: product.shelf_locations?.name || '',
+                    }
+
+                    const activeFields = Object.entries(tpl.fields).filter(([, v]: [string, any]) => v).map(([k]: [string, any]) => k)
+
+                    return (
+                      <div>
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Önizleme</p>
+                        <div className="flex justify-center py-3">
+                          <div
+                            className="relative bg-white border-2 border-gray-200 rounded-lg shadow-sm"
+                            style={{ width: pxW, height: pxH }}
+                          >
+                            {activeFields.map((field) => {
+                              const pos = tpl.positions?.[field] || { x: 10, y: 10 }
+                              const val = fieldValues[field]
+                              if (!val) return null
+                              const style = field === 'productName' ? 'text-xs font-bold text-gray-900'
+                                : field === 'salePrice' ? 'text-sm font-black text-primary-700'
+                                : field === 'productCode' ? 'text-[10px] font-mono text-gray-500'
+                                : 'text-[10px] font-semibold text-gray-500'
+                              return (
+                                <div
+                                  key={field}
+                                  className={`absolute whitespace-nowrap ${field !== 'barcode' ? style : ''}`}
+                                  style={{ left: `${pos.x}%`, top: `${pos.y}%` }}
+                                >
+                                  {field === 'barcode' ? (
+                                    <Barcode
+                                      value={val}
+                                      width={1.2}
+                                      height={35}
+                                      fontSize={9}
+                                      margin={0}
+                                      displayValue={true}
+                                    />
+                                  ) : (
+                                    val
+                                  )}
+                                </div>
+                              )
+                            })}
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })()}
+
+                  {/* Buttons */}
+                  <div className="flex justify-end gap-3 pt-2">
+                    <button
+                      type="button"
+                      onClick={() => setPrintModalOpen(false)}
+                      className="px-6 py-2.5 rounded-xl text-sm font-bold border-2 border-gray-300 text-gray-600 bg-white hover:bg-gray-50 transition-all active:scale-95"
+                    >
+                      Vazgeç
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const tpl = labelTemplates.find((t: any) => t.id === selectedTemplateId)
+                        if (!tpl || !product) return
+
+                        const w = tpl.width
+                        const h = tpl.height
+                        const orientation = tpl.orientation === 'horizontal' ? 'landscape' : 'portrait'
+                        const doc = new jsPDF({
+                          orientation: w > h ? 'landscape' : 'portrait',
+                          unit: 'mm',
+                          format: [w, h],
+                        })
+
+                        const fieldValues: Record<string, string> = {
+                          productName: product.name,
+                          productCode: product.sku || '',
+                          salePrice: `${symbol}${Number(product.price || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2 })}`,
+                          barcode: product.barcode || '',
+                          tags: product.categories?.name || '',
+                          description: product.unit?.toUpperCase() || 'ADET',
+                          shelfLocation: product.shelf_locations?.name || '',
+                        }
+
+                        const activeFields = Object.entries(tpl.fields).filter(([, v]: [string, any]) => v).map(([k]: [string, any]) => k)
+
+                        for (let i = 0; i < printQty; i++) {
+                          if (i > 0) doc.addPage([w, h])
+
+                          // Draw border
+                          doc.setDrawColor(200)
+                          doc.rect(1, 1, w - 2, h - 2)
+
+                          activeFields.forEach((field) => {
+                            const pos = tpl.positions?.[field] || { x: 10, y: 10 }
+                            const val = fieldValues[field]
+                            if (!val) return
+
+                            const x = (pos.x / 100) * w
+                            const y = (pos.y / 100) * h
+
+                            if (field === 'barcode') {
+                              // Render barcode as image in PDF
+                              try {
+                                const canvas = document.createElement('canvas')
+                                JsBarcode(canvas, val, {
+                                  format: 'EAN13',
+                                  width: 2,
+                                  height: 40,
+                                  displayValue: true,
+                                  fontSize: 12,
+                                  margin: 2,
+                                })
+                                const imgData = canvas.toDataURL('image/png')
+                                const barcodeW = Math.min(w * 0.6, 40)
+                                const barcodeH = barcodeW * (canvas.height / canvas.width)
+                                doc.addImage(imgData, 'PNG', x, y, barcodeW, barcodeH)
+                              } catch {
+                                doc.setFontSize(8)
+                                doc.setFont('courier', 'normal')
+                                doc.setTextColor(40)
+                                doc.text(val, x, y + 3)
+                              }
+                            } else {
+                              if (field === 'productName') {
+                                doc.setFontSize(10)
+                                doc.setFont('helvetica', 'bold')
+                              } else if (field === 'salePrice') {
+                                doc.setFontSize(12)
+                                doc.setFont('helvetica', 'bold')
+                              } else {
+                                doc.setFontSize(8)
+                                doc.setFont('helvetica', 'normal')
+                              }
+
+                              doc.setTextColor(40)
+                              doc.text(val, x, y + 3)
+                            }
+                          })
+                        }
+
+                        doc.autoPrint()
+                        const blob = doc.output('blob')
+                        const url = URL.createObjectURL(blob)
+                        const win = window.open(url)
+                        if (win) {
+                          win.onafterprint = () => URL.revokeObjectURL(url)
+                        }
+                        setPrintModalOpen(false)
+                        toast.success('Etiket yazdırma penceresi açıldı')
+                      }}
+                      className="px-6 py-2.5 rounded-xl text-sm font-bold bg-primary-600 text-white hover:bg-primary-700 shadow-md shadow-primary-600/25 transition-all active:scale-95 flex items-center gap-2"
+                    >
+                      <Printer className="h-4 w-4" />
+                      Yazdır
+                    </button>
+                  </div>
+                </>
               )}
             </div>
           </div>

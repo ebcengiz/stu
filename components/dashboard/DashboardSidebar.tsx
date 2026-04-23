@@ -28,6 +28,7 @@ import {
   Armchair,
   FolderKanban,
   ScrollText,
+  StickyNote,
   type LucideIcon,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
@@ -313,6 +314,15 @@ function SidebarContent({
                   <Tags className="h-4 w-4 mr-2" />
                   Tanımlar
                 </Link>
+                <Link
+                  href="/dashboard/ayarlar/etiket-sablonlari"
+                  className={`flex items-center py-2 text-sm font-medium rounded-lg transition-colors ${
+                    pathname === '/dashboard/ayarlar/etiket-sablonlari' ? 'text-primary-700 bg-primary-50' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                  } px-3`}
+                >
+                  <StickyNote className="h-4 w-4 mr-2" />
+                  Etiket Şablonları
+                </Link>
               </div>
             )}
           </div>
@@ -362,7 +372,7 @@ export default function DashboardSidebar({ profile }: { profile: Profile | null 
         setIsCollapsed(savedState === 'true')
       }
 
-      if (pathname.includes('/dashboard/ayarlar') || pathname.includes('/dashboard/tanimlar')) {
+      if (pathname.includes('/dashboard/ayarlar') || pathname.includes('/dashboard/tanimlar') || pathname.includes('/dashboard/ayarlar/etiket-sablonlari')) {
         setIsSettingsOpen(true)
       }
       if (pathname.includes('/dashboard/hesaplarim')) {
