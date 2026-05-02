@@ -19,7 +19,9 @@ export async function GET(
           company_name,
           phone,
           email,
-          address
+          address,
+          tax_office,
+          tax_number
         ),
         sale_items (
           *,

@@ -1,6 +1,39 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 
+export async function GET() {
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      return NextResponse.json({ error: 'Oturum gerekli' }, { status: 401 })
+    }
+
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('tenant_id')
+      .eq('id', user.id)
+      .single()
+
+    if (!profile?.tenant_id) {
+      return NextResponse.json({ error: 'Kiracı bulunamadı' }, { status: 404 })
+    }
+
+    const { data: tenant, error } = await supabase
+      .from('tenants')
+      .select('*')
+      .eq('id', profile.tenant_id)
+      .single()
+
+    if (error) throw error
+    return NextResponse.json(tenant)
+  } catch (e: unknown) {
+    const message = e instanceof Error ? e.message : 'Yüklenemedi'
+    console.error('GET /api/tenant:', e)
+    return NextResponse.json({ error: message }, { status: 500 })
+  }
+}
+
 const PATCHABLE = [
   'name',
   'tax_office',

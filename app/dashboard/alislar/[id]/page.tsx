@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button'
 import { Card, CardBody, CardHeader, CardTitle } from '@/components/ui/Card'
 import { toast } from 'react-hot-toast'
 import { documentKdvBreakdown } from '@/lib/vat-breakdown'
+import { openTradeDocumentPdf } from '@/lib/tradeDocumentPdf'
 
 interface PurchaseItem {
   id: string
@@ -14,6 +15,7 @@ interface PurchaseItem {
   quantity: number
   unit_price: number
   total_price: number
+  vat_rate?: number | null
   products: {
     name: string
     sku: string
@@ -38,6 +40,8 @@ interface Purchase {
     phone: string
     email: string
     address: string
+    tax_office?: string | null
+    tax_number?: string | null
   } | null
   purchase_items: PurchaseItem[]
 }
@@ -65,6 +69,71 @@ export default function PurchaseDetailPage() {
 
     if (params.id) fetchPurchase()
   }, [params.id, router])
+
+  const handlePrintPdf = async () => {
+    if (!purchase) return
+    const vatTotals = documentKdvBreakdown(purchase.purchase_items, purchase.total_amount)
+    try {
+      const tRes = await fetch('/api/tenant')
+      if (!tRes.ok) throw new Error('Firma bilgileri alınamadı')
+      const tenant = await tRes.json()
+
+      const supplierBlock = purchase.suppliers
+        ? {
+            company_name: purchase.suppliers.company_name,
+            address: purchase.suppliers.address,
+            phone: purchase.suppliers.phone,
+            email: purchase.suppliers.email,
+            tax_office: purchase.suppliers.tax_office,
+            tax_number: purchase.suppliers.tax_number,
+          }
+        : {
+            company_name: 'Hızlı Alış / Tedarikçi seçilmedi',
+            address: null,
+            phone: null,
+            email: null,
+            tax_office: null,
+            tax_number: null,
+          }
+
+      const tenantBlock = {
+        name: tenant.name ?? '',
+        address: tenant.address,
+        phone: tenant.phone,
+        email: tenant.email,
+        website: tenant.website,
+        tax_office: tenant.tax_office,
+        tax_number: tenant.tax_number,
+        mersis_no: tenant.mersis_no,
+        trade_registry_no: tenant.trade_registry_no,
+      }
+
+      await openTradeDocumentPdf(
+        {
+          kind: 'purchase',
+          documentNo: purchase.document_no || purchase.id.substring(0, 8).toUpperCase(),
+          orderNo: purchase.order_no,
+          dateISO: purchase.purchase_date,
+          description: purchase.description,
+        },
+        supplierBlock,
+        tenantBlock,
+        purchase.purchase_items.map((item) => ({
+          sku: item.products?.sku,
+          name: item.products?.name ?? '—',
+          unit: item.products?.unit,
+          quantity: Number(item.quantity),
+          unit_price: Number(item.unit_price),
+          total_price: Number(item.total_price),
+          vat_rate: item.vat_rate,
+        })),
+        vatTotals
+      )
+      toast.success('PDF açıldı — yazdırabilirsiniz')
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : 'PDF oluşturulamadı')
+    }
+  }
 
   const handleDelete = async () => {
     if (!confirm('Bu alış işlemini silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.')) return
@@ -101,8 +170,8 @@ export default function PurchaseDetailPage() {
           </div>
         </div>
         <div className="flex items-center gap-2 w-full sm:w-auto">
-          <Button variant="outline" onClick={() => window.print()} className="flex-1 sm:flex-none">
-            <Printer className="h-4 w-4 mr-2" /> Yazdır
+          <Button variant="outline" onClick={handlePrintPdf} className="flex-1 sm:flex-none">
+            <Printer className="h-4 w-4 mr-2" /> Yazdır (PDF)
           </Button>
           <Button variant="outline" onClick={handleDelete} className="flex-1 sm:flex-none text-red-600 border-red-200 hover:bg-red-50">
             <Trash2 className="h-4 w-4 mr-2" /> Sil

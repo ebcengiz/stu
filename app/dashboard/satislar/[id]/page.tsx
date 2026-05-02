@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button'
 import { Card, CardBody, CardHeader, CardTitle } from '@/components/ui/Card'
 import { toast } from 'react-hot-toast'
 import { documentKdvBreakdown } from '@/lib/vat-breakdown'
+import { openTradeDocumentPdf } from '@/lib/tradeDocumentPdf'
 
 interface SaleItem {
   id: string
@@ -14,6 +15,7 @@ interface SaleItem {
   quantity: number
   unit_price: number
   total_price: number
+  vat_rate?: number | null
   products: {
     name: string
     sku: string
@@ -39,6 +41,8 @@ interface Sale {
     phone: string
     email: string
     address: string
+    tax_office?: string | null
+    tax_number?: string | null
   } | null
   sale_items: SaleItem[]
 }
@@ -66,6 +70,69 @@ export default function SaleDetailPage() {
 
     if (params.id) fetchSale()
   }, [params.id, router])
+
+  const handlePrintPdf = async () => {
+    if (!sale) return
+    const vatTotals = documentKdvBreakdown(sale.sale_items, sale.total_amount)
+    try {
+      const tRes = await fetch('/api/tenant')
+      if (!tRes.ok) throw new Error('Firma bilgileri alınamadı')
+      const tenant = await tRes.json()
+
+      const customerBlock = sale.customers
+        ? {
+            company_name: sale.customers.company_name,
+            address: sale.customers.address,
+            phone: sale.customers.phone,
+            email: sale.customers.email,
+            tax_office: sale.customers.tax_office,
+            tax_number: sale.customers.tax_number,
+          }
+        : {
+            company_name: 'Perakende Müşteri',
+            address: null,
+            phone: null,
+            email: null,
+            tax_office: null,
+            tax_number: null,
+          }
+
+      await openTradeDocumentPdf(
+        {
+          kind: 'sale',
+          documentNo: sale.document_no || sale.id.substring(0, 8).toUpperCase(),
+          orderNo: sale.order_no,
+          dateISO: sale.sale_date,
+          description: sale.description,
+        },
+        {
+          name: tenant.name ?? '',
+          address: tenant.address,
+          phone: tenant.phone,
+          email: tenant.email,
+          website: tenant.website,
+          tax_office: tenant.tax_office,
+          tax_number: tenant.tax_number,
+          mersis_no: tenant.mersis_no,
+          trade_registry_no: tenant.trade_registry_no,
+        },
+        customerBlock,
+        sale.sale_items.map((item) => ({
+          sku: item.products?.sku,
+          name: item.products?.name ?? '—',
+          unit: item.products?.unit,
+          quantity: Number(item.quantity),
+          unit_price: Number(item.unit_price),
+          total_price: Number(item.total_price),
+          vat_rate: item.vat_rate,
+        })),
+        vatTotals
+      )
+      toast.success('PDF açıldı — yazdırabilirsiniz')
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : 'PDF oluşturulamadı')
+    }
+  }
 
   const handleDelete = async () => {
     if (!confirm('Bu satışı silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.')) return
@@ -111,8 +178,8 @@ export default function SaleDetailPage() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" onClick={() => window.print()} className="h-9 rounded-lg text-sm">
-            <Printer className="h-4 w-4 mr-1.5" /> Yazdır
+          <Button variant="outline" onClick={handlePrintPdf} className="h-9 rounded-lg text-sm">
+            <Printer className="h-4 w-4 mr-1.5" /> Yazdır (PDF)
           </Button>
           <Button variant="outline" onClick={handleDelete} className="h-9 rounded-lg text-sm text-red-600 border-red-100 hover:bg-red-50 hover:border-red-200">
             <Trash2 className="h-4 w-4 mr-1.5" /> Sil
