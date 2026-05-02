@@ -6,6 +6,7 @@ import { ArrowLeft, Printer, Trash2, Building, Calendar, FileText, Package, Shop
 import { Button } from '@/components/ui/Button'
 import { Card, CardBody, CardHeader, CardTitle } from '@/components/ui/Card'
 import { toast } from 'react-hot-toast'
+import { documentKdvBreakdown } from '@/lib/vat-breakdown'
 
 interface PurchaseItem {
   id: string
@@ -81,6 +82,8 @@ export default function PurchaseDetailPage() {
 
   if (loading) return <div className="p-8 flex justify-center"><div className="animate-spin h-8 w-8 border-b-2 border-primary-600"></div></div>
   if (!purchase) return null
+
+  const vatTotals = documentKdvBreakdown(purchase.purchase_items, purchase.total_amount)
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-12">
@@ -172,9 +175,26 @@ export default function PurchaseDetailPage() {
             </CardTitle>
           </CardHeader>
           <CardBody className="space-y-6 pt-2">
-            <div>
-              <label className="text-xs font-bold text-primary-300 uppercase">Genel Toplam</label>
-              <p className="text-3xl font-black">{purchase.total_amount.toLocaleString('tr-TR')} ₺</p>
+            <div className="space-y-3 text-sm">
+              <p className="text-xs font-bold uppercase tracking-wider text-primary-300">Tutar özeti</p>
+              <div className="flex justify-between gap-3">
+                <span className="text-primary-200">KDV hariç toplam</span>
+                <span className="font-semibold tabular-nums">
+                  {vatTotals.matrah.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺
+                </span>
+              </div>
+              <div className="flex justify-between gap-3">
+                <span className="text-primary-200">KDV tutarı</span>
+                <span className="font-semibold tabular-nums">
+                  {vatTotals.kdv.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺
+                </span>
+              </div>
+              <div className="border-t border-primary-600/50 pt-3">
+                <label className="text-xs font-bold text-primary-300 uppercase">Genel toplam (KDV dahil)</label>
+                <p className="text-2xl font-black tabular-nums">
+                  {vatTotals.brut.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺
+                </p>
+              </div>
             </div>
             <div className="h-px bg-primary-800" />
             <div className="p-4 bg-primary-800/50 rounded-xl border border-primary-600">
@@ -227,6 +247,26 @@ export default function PurchaseDetailPage() {
                   </tr>
                 ))}
               </tbody>
+              <tfoot className="bg-gray-50">
+                <tr className="text-sm font-medium text-gray-700">
+                  <td colSpan={4} className="px-6 py-3 text-right">KDV hariç toplam</td>
+                  <td className="px-6 py-3 text-right tabular-nums">
+                    {vatTotals.matrah.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺
+                  </td>
+                </tr>
+                <tr className="text-sm font-medium text-gray-700">
+                  <td colSpan={4} className="px-6 py-3 text-right">KDV tutarı</td>
+                  <td className="px-6 py-3 text-right tabular-nums">
+                    {vatTotals.kdv.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺
+                  </td>
+                </tr>
+                <tr className="font-bold">
+                  <td colSpan={4} className="px-6 py-4 text-right text-gray-900">Genel toplam (KDV dahil)</td>
+                  <td className="px-6 py-4 text-right text-primary-700 text-base tabular-nums">
+                    {vatTotals.brut.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺
+                  </td>
+                </tr>
+              </tfoot>
             </table>
           </div>
         </CardBody>
