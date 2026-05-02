@@ -3,6 +3,7 @@ import { Card, CardHeader, CardBody, CardTitle } from '@/components/ui/Card'
 import { Users, Building, Settings as SettingsIcon, Package, Warehouse, ArrowLeftRight } from 'lucide-react'
 import { redirect } from 'next/navigation'
 import UserManagement from '@/components/admin/UserManagement'
+import TenantCompanySettingsForm from '@/components/settings/TenantCompanySettingsForm'
 
 export default async function AdminPage() {
   const supabase = await createClient()
@@ -153,35 +154,38 @@ export default async function AdminPage() {
       {/* Tenant Info */}
       <Card>
         <CardHeader>
-          <CardTitle>Firma Bilgileri</CardTitle>
+          <CardTitle>Firma bilgileri</CardTitle>
         </CardHeader>
-        <CardBody>
-          <div className="space-y-3">
-            <div className="flex justify-between py-2 border-b border-gray-100">
-              <span className="text-sm font-medium text-gray-500">Firma Adı:</span>
-              <span className="text-sm text-gray-900">{tenant?.name}</span>
+        <CardBody className="space-y-6">
+          <p className="text-sm text-gray-600">
+            Teklif, satış ve fatura çıktılarında kullanılacak kendi firma bilgilerinizi buradan güncelleyin. Slug sistem
+            adresi içindir; değiştirilemez.
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 rounded-xl bg-gray-50 border border-gray-100 p-4 text-sm">
+            <div>
+              <span className="block text-xs font-semibold text-gray-500 uppercase tracking-wide">Slug</span>
+              <span className="text-gray-900 font-mono text-xs break-all">{tenant?.slug ?? '—'}</span>
             </div>
-            <div className="flex justify-between py-2 border-b border-gray-100">
-              <span className="text-sm font-medium text-gray-500">Slug:</span>
-              <span className="text-sm text-gray-900">{tenant?.slug}</span>
-            </div>
-            <div className="flex justify-between py-2 border-b border-gray-100">
-              <span className="text-sm font-medium text-gray-500">Oluşturulma Tarihi:</span>
-              <span className="text-sm text-gray-900">
-                {tenant?.created_at ? new Date(tenant.created_at).toLocaleDateString('tr-TR') : '-'}
+            <div>
+              <span className="block text-xs font-semibold text-gray-500 uppercase tracking-wide">Oluşturulma</span>
+              <span className="text-gray-900">
+                {tenant?.created_at ? new Date(tenant.created_at).toLocaleDateString('tr-TR') : '—'}
               </span>
             </div>
-            <div className="flex justify-between py-2">
-              <span className="text-sm font-medium text-gray-500">Durum:</span>
-              <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                tenant?.is_active
-                  ? 'bg-primary-100 text-primary-800'
-                  : 'bg-red-100 text-red-800'
-              }`}>
+            <div>
+              <span className="block text-xs font-semibold text-gray-500 uppercase tracking-wide">Durum</span>
+              <span
+                className={`inline-flex mt-0.5 px-2 py-0.5 text-xs font-semibold rounded-full ${
+                  tenant?.is_active ? 'bg-primary-100 text-primary-800' : 'bg-red-100 text-red-800'
+                }`}
+              >
                 {tenant?.is_active ? 'Aktif' : 'Pasif'}
               </span>
             </div>
           </div>
+          {tenant && (
+            <TenantCompanySettingsForm key={String(tenant.updated_at ?? tenant.id)} initial={tenant} />
+          )}
         </CardBody>
       </Card>
 
