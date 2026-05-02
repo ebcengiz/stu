@@ -1,53 +1,25 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, startTransition } from 'react'
 import {
   Plus,
   Trash2,
   Save,
-  X,
   StickyNote,
   ChevronDown,
   ChevronUp,
   GripVertical,
-  Edit2,
   Copy,
 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { toast } from 'react-hot-toast'
 import Barcode from 'react-barcode'
-
-// ------- Types -------
-interface FieldPosition {
-  x: number // percentage 0-100
-  y: number // percentage 0-100
-}
-
-interface LabelTemplate {
-  id: string
-  name: string
-  type: 'product'
-  orientation: 'horizontal' | 'vertical'
-  width: number
-  height: number
-  marginLeft: number
-  marginRight: number
-  labelsPerRow: number
-  gapX: number
-  gapY: number
-  fields: {
-    productName: boolean
-    productCode: boolean
-    salePrice: boolean
-    barcode: boolean
-    tags: boolean
-    description: boolean
-    shelfLocation: boolean
-  }
-  positions: Record<string, FieldPosition>
-}
-
-const STORAGE_KEY = 'label_templates'
+import {
+  LABEL_TEMPLATES_STORAGE_KEY,
+  type LabelFieldPosition,
+  type LabelTemplate,
+  getLabelPrintDimensions,
+} from '@/lib/labelTemplate'
 
 const DEFAULT_TEMPLATE: Omit<LabelTemplate, 'id'> = {
   name: 'Ürün Etiketi',
@@ -107,7 +79,7 @@ function generateId() {
 function loadTemplates(): LabelTemplate[] {
   if (typeof window === 'undefined') return []
   try {
-    const raw = localStorage.getItem(STORAGE_KEY)
+    const raw = localStorage.getItem(LABEL_TEMPLATES_STORAGE_KEY)
     return raw ? JSON.parse(raw) : []
   } catch {
     return []
@@ -115,7 +87,7 @@ function loadTemplates(): LabelTemplate[] {
 }
 
 function saveTemplates(templates: LabelTemplate[]) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(templates))
+  localStorage.setItem(LABEL_TEMPLATES_STORAGE_KEY, JSON.stringify(templates))
 }
 
 // ------- Page -------
@@ -130,14 +102,16 @@ export default function LabelTemplatesPage() {
   })
   const [hasChanges, setHasChanges] = useState(false)
 
-  // Load templates from localStorage on mount
+  // localStorage yalnızca istemcide; SSR ile aynı ilk state ([]) korunur
   useEffect(() => {
     const loaded = loadTemplates()
-    setTemplates(loaded)
-    if (loaded.length > 0) {
-      setSelectedId(loaded[0].id)
-      setEditData({ ...loaded[0] })
-    }
+    startTransition(() => {
+      setTemplates(loaded)
+      if (loaded.length > 0) {
+        setSelectedId(loaded[0].id)
+        setEditData({ ...loaded[0] })
+      }
+    })
   }, [])
 
   const selectTemplate = (id: string) => {
@@ -326,7 +300,8 @@ export default function LabelTemplatesPage() {
                 {/* Preview area */}
                 <div className="p-6">
                   <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Canlı Önizleme</p>
-                  <p className="text-[11px] text-gray-500 mb-4">Elementleri etiket üzerinde sürükleyerek konumlandırabilirsiniz</p>
+                  <p className="text-[11px] text-gray-500 mb-2">Elementleri etiket üzerinde sürükleyerek konumlandırabilirsiniz. Ürün sayfasındaki yazdırma, bu önizleme ile aynı ölçü ve yönü kullanır.</p>
+                  <p className="text-[10px] text-amber-700/90 font-semibold mb-4">Kaydetmediğiniz değişiklikler yazdırmaya yansımaz — sağ panelden &quot;Değişiklikleri Kaydet&quot; kullanın.</p>
                   <LabelPreview template={editData} onPositionChange={(field, pos) => {
                     setEditData((prev) => {
                       if (!prev) return prev
@@ -481,7 +456,7 @@ function LabelPreview({
   onPositionChange,
 }: {
   template: LabelTemplate
-  onPositionChange: (field: string, pos: FieldPosition) => void
+  onPositionChange: (field: string, pos: LabelFieldPosition) => void
 }) {
   const containerRef = useRef<HTMLDivElement>(null)
   const [dragging, setDragging] = useState<string | null>(null)
@@ -491,11 +466,10 @@ function LabelPreview({
     .filter(([, active]) => active)
     .map(([key]) => key)
 
-  // Scale: fit the label into the preview area
+  // Scale: fit the label into the preview area (ürün yazdırma ile aynı widthMm/heightMm)
   const maxW = 500
   const maxH = 350
-  const w = template.orientation === 'horizontal' ? template.width : template.height
-  const h = template.orientation === 'horizontal' ? template.height : template.width
+  const { widthMm: w, heightMm: h } = getLabelPrintDimensions(template)
   const scale = Math.min(maxW / w, maxH / h, 6) // px per mm
   const pxW = w * scale
   const pxH = h * scale

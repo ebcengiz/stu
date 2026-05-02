@@ -29,6 +29,12 @@ import { ManuelStockMovementModal } from '@/components/products/ManuelStockMovem
 import { jsPDF } from 'jspdf'
 import Barcode from 'react-barcode'
 import JsBarcode from 'jsbarcode'
+import {
+  LABEL_TEMPLATES_STORAGE_KEY,
+  getJsBarcodeFormat,
+  getLabelPrintDimensions,
+  topPercentToTextBaselineMm,
+} from '@/lib/labelTemplate'
 
 interface ProductDetail {
   id: string
@@ -526,13 +532,16 @@ export default function ProductDetailPage() {
                     setAccordionOpen({ stockActions: false, otherActions: false })
                     // Load templates from localStorage
                     try {
-                      const raw = localStorage.getItem('label_templates')
+                      const raw = localStorage.getItem(LABEL_TEMPLATES_STORAGE_KEY)
                       const templates = raw ? JSON.parse(raw) : []
                       setLabelTemplates(templates)
-                      if (templates.length > 0 && !selectedTemplateId) {
-                        setSelectedTemplateId(templates[0].id)
+                      if (templates.length > 0) {
+                        const valid = templates.some((t: { id: string }) => t.id === selectedTemplateId)
+                        if (!valid) setSelectedTemplateId(templates[0].id)
                       }
-                    } catch { setLabelTemplates([]) }
+                    } catch {
+                      setLabelTemplates([])
+                    }
                     setPrintModalOpen(true)
                   }}
                   className="flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-xs font-semibold text-gray-800 hover:bg-gray-50"
@@ -806,8 +815,7 @@ export default function ProductDetailPage() {
                   {(() => {
                     const tpl = labelTemplates.find((t: any) => t.id === selectedTemplateId)
                     if (!tpl) return null
-                    const w = tpl.orientation === 'horizontal' ? tpl.width : tpl.height
-                    const h = tpl.orientation === 'horizontal' ? tpl.height : tpl.width
+                    const { widthMm: w, heightMm: h } = getLabelPrintDimensions(tpl)
                     const sc = Math.min(400 / w, 200 / h, 5)
                     const pxW = w * sc
                     const pxH = h * sc
@@ -882,9 +890,7 @@ export default function ProductDetailPage() {
                         const tpl = labelTemplates.find((t: any) => t.id === selectedTemplateId)
                         if (!tpl || !product) return
 
-                        const w = tpl.width
-                        const h = tpl.height
-                        const orientation = tpl.orientation === 'horizontal' ? 'landscape' : 'portrait'
+                        const { widthMm: w, heightMm: h } = getLabelPrintDimensions(tpl)
                         const doc = new jsPDF({
                           orientation: w > h ? 'landscape' : 'portrait',
                           unit: 'mm',
@@ -906,7 +912,6 @@ export default function ProductDetailPage() {
                         for (let i = 0; i < printQty; i++) {
                           if (i > 0) doc.addPage([w, h])
 
-                          // Draw border
                           doc.setDrawColor(200)
                           doc.rect(1, 1, w - 2, h - 2)
 
@@ -916,44 +921,56 @@ export default function ProductDetailPage() {
                             if (!val) return
 
                             const x = (pos.x / 100) * w
-                            const y = (pos.y / 100) * h
+                            const yTop = (pos.y / 100) * h
 
                             if (field === 'barcode') {
-                              // Render barcode as image in PDF
-                              try {
+                              const drawBarcode = (format: string) => {
                                 const canvas = document.createElement('canvas')
                                 JsBarcode(canvas, val, {
-                                  format: 'EAN13',
+                                  format,
                                   width: 2,
                                   height: 40,
                                   displayValue: true,
-                                  fontSize: 12,
+                                  fontSize: 10,
                                   margin: 2,
                                 })
+                                return canvas
+                              }
+                              try {
+                                let canvas: HTMLCanvasElement
+                                try {
+                                  canvas = drawBarcode(getJsBarcodeFormat(val))
+                                } catch {
+                                  canvas = drawBarcode('CODE128')
+                                }
                                 const imgData = canvas.toDataURL('image/png')
-                                const barcodeW = Math.min(w * 0.6, 40)
+                                const barcodeW = Math.min(w * 0.65, 48)
                                 const barcodeH = barcodeW * (canvas.height / canvas.width)
-                                doc.addImage(imgData, 'PNG', x, y, barcodeW, barcodeH)
+                                doc.addImage(imgData, 'PNG', x, yTop, barcodeW, barcodeH)
                               } catch {
                                 doc.setFontSize(8)
                                 doc.setFont('courier', 'normal')
                                 doc.setTextColor(40)
-                                doc.text(val, x, y + 3)
+                                doc.text(val, x, topPercentToTextBaselineMm(pos.y, h, 8))
                               }
                             } else {
+                              let fontSize = 8
                               if (field === 'productName') {
-                                doc.setFontSize(10)
+                                fontSize = 10
                                 doc.setFont('helvetica', 'bold')
                               } else if (field === 'salePrice') {
-                                doc.setFontSize(12)
+                                fontSize = 12
                                 doc.setFont('helvetica', 'bold')
                               } else {
-                                doc.setFontSize(8)
                                 doc.setFont('helvetica', 'normal')
                               }
-
+                              doc.setFontSize(fontSize)
                               doc.setTextColor(40)
-                              doc.text(val, x, y + 3)
+
+                              const maxW = Math.max(8, w - x - 1.5)
+                              const lines = doc.splitTextToSize(String(val), maxW)
+                              const yBase = topPercentToTextBaselineMm(pos.y, h, fontSize)
+                              doc.text(lines, x, yBase)
                             }
                           })
                         }
