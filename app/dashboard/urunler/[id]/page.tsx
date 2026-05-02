@@ -31,6 +31,7 @@ import Barcode from 'react-barcode'
 import JsBarcode from 'jsbarcode'
 import {
   LABEL_TEMPLATES_STORAGE_KEY,
+  getActiveLabelFieldKeys,
   getJsBarcodeFormat,
   getLabelPrintDimensions,
   normalizeLabelTemplate,
@@ -846,7 +847,7 @@ export default function ProductDetailPage() {
                     const copies = Math.max(1, Math.min(999, parseInt(printQtyInput.replace(/\D/g, ''), 10) || 1))
                     const caseInnerStr =
                       product.case_inner_qty != null && product.case_inner_qty > 0
-                        ? `Koli: ${product.case_inner_qty} ${product.unit}`
+                        ? `${product.case_inner_qty} adet`
                         : ''
                     const fieldValues: Record<string, string> = {
                       productName: product.name,
@@ -860,7 +861,9 @@ export default function ProductDetailPage() {
                       caseInnerQty: caseInnerStr,
                     }
 
-                    const activeFields = Object.entries(tpl.fields).filter(([, v]: [string, any]) => v).map(([k]: [string, any]) => k)
+                    const activeFields = getActiveLabelFieldKeys(tpl, {
+                      includeCaseInnerWhenFilled: Boolean(caseInnerStr),
+                    })
 
                     return (
                       <div>
@@ -935,7 +938,7 @@ export default function ProductDetailPage() {
 
                         const caseInnerStr =
                           product.case_inner_qty != null && product.case_inner_qty > 0
-                            ? `Koli: ${product.case_inner_qty} ${product.unit}`
+                            ? `${product.case_inner_qty} adet`
                             : ''
 
                         const fieldValues: Record<string, string> = {
@@ -950,7 +953,9 @@ export default function ProductDetailPage() {
                           caseInnerQty: caseInnerStr,
                         }
 
-                        const activeFields = Object.entries(tpl.fields).filter(([, v]: [string, any]) => v).map(([k]: [string, any]) => k)
+                        const activeFields = getActiveLabelFieldKeys(tpl, {
+                          includeCaseInnerWhenFilled: Boolean(caseInnerStr),
+                        })
 
                         for (let i = 0; i < copies; i++) {
                           if (i > 0) doc.addPage([w, h])

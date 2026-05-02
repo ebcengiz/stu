@@ -78,7 +78,7 @@ const FIELD_PREVIEW_VALUES: Record<string, string> = {
   description: 'ADET',
   shelfLocation: 'A-12',
   printQuantity: '×12',
-  caseInnerQty: 'Koli: 24',
+  caseInnerQty: '24 adet',
 }
 
 function generateId() {

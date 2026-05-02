@@ -63,6 +63,22 @@ const LABEL_FIELD_DEFAULTS: LabelTemplate['fields'] = {
   caseInnerQty: false,
 }
 
+/**
+ * Şablonda işaretli alanlar + üründe koli içi adet doluysa `caseInnerQty` (şablonda kapalı olsa bile).
+ */
+export function getActiveLabelFieldKeys(
+  tpl: Pick<LabelTemplate, 'fields'>,
+  opts?: { includeCaseInnerWhenFilled?: boolean }
+): string[] {
+  const base = Object.entries(tpl.fields)
+    .filter(([, v]) => v)
+    .map(([k]) => k)
+  if (opts?.includeCaseInnerWhenFilled && !base.includes('caseInnerQty')) {
+    return [...base, 'caseInnerQty']
+  }
+  return base
+}
+
 /** localStorage’taki eski şablonlara yeni alanları ve konumları ekler */
 export function normalizeLabelTemplate(raw: any): LabelTemplate {
   const fields = { ...LABEL_FIELD_DEFAULTS, ...(raw?.fields || {}) }
