@@ -106,6 +106,7 @@ interface Product {
   gtip?: string | null
   sale_units?: string[] | null
   shelf_location_id?: string | null
+  case_inner_qty?: number | null
   shelf_locations?: { id: string; name: string } | null
   categories?: Category
   stock?: Array<{
@@ -198,6 +199,7 @@ function ProductsPageContent() {
     gtip: '',
     sale_units: ['adet'] as string[],
     shelf_location_id: '',
+    case_inner_qty: '' as string | number,
   })
   const searchParams = useSearchParams()
 
@@ -419,6 +421,11 @@ function ProductsPageContent() {
         product_kind: formData.product_kind,
         sale_units: formData.sale_units,
         shelf_location_id: formData.shelf_location_id || null,
+        case_inner_qty: (() => {
+          const v = parseTrNumberInput(String(formData.case_inner_qty ?? ''))
+          if (!Number.isFinite(v) || v <= 0) return null
+          return Math.trunc(v)
+        })(),
       }
 
       const response = await fetch(url, {
@@ -479,6 +486,10 @@ function ProductsPageContent() {
           ? (product.shelf_locations as { id: string }).id
           : '') ||
         '',
+      case_inner_qty:
+        product.case_inner_qty != null && product.case_inner_qty > 0
+          ? looseToTrInputString(product.case_inner_qty, 0)
+          : '',
     })
     setAccordionOpen({ def: true, price: false, stock: false, detail: false })
     setShowModal(true)
@@ -536,6 +547,7 @@ function ProductsPageContent() {
       gtip: '',
       sale_units: ['adet'],
       shelf_location_id: '',
+      case_inner_qty: '',
     })
     setAccordionOpen({ def: true, price: false, stock: false, detail: false })
     setShowModal(true)
@@ -1083,6 +1095,16 @@ function ProductsPageContent() {
                                 onChange={(v) => setFormData({ ...formData, min_stock_level: v })}
                                 className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl font-semibold"
                               />
+                            </div>
+                            <div className="space-y-1.5">
+                              <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Koli içi adet</label>
+                              <TrNumberInput
+                                value={String(formData.case_inner_qty ?? '')}
+                                onChange={(v) => setFormData({ ...formData, case_inner_qty: v })}
+                                className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl font-semibold"
+                                placeholder="Opsiyonel"
+                              />
+                              <p className="text-[10px] text-gray-500">Bir kolide kaç birim olduğu (etiket için kullanılabilir).</p>
                             </div>
                             <div className="space-y-1.5 md:col-span-2">
                               <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Raf yeri</label>

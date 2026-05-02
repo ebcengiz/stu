@@ -31,6 +31,7 @@ export async function GET() {
         gtip,
         sale_units,
         shelf_location_id,
+        case_inner_qty,
         categories:category_id (
           id,
           name
@@ -85,6 +86,7 @@ export async function POST(request: Request) {
     // Convert empty strings to null for nullable fields
     const cleanData: any = {}
     for (const [key, value] of Object.entries(productData)) {
+      if (key === 'case_inner_qty') continue
       if (key === 'shelf_location_id' && (value === '' || value === undefined)) {
         cleanData[key] = null
         continue
@@ -96,6 +98,14 @@ export async function POST(request: Request) {
       } else {
         cleanData[key] = value
       }
+    }
+
+    if ('case_inner_qty' in productData) {
+      const ciq = (productData as { case_inner_qty?: unknown }).case_inner_qty
+      cleanData.case_inner_qty =
+        ciq === '' || ciq === null || ciq === undefined
+          ? null
+          : Math.max(1, Math.trunc(Number(ciq)))
     }
 
     if (Array.isArray(cleanData.sale_units)) {

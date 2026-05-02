@@ -33,6 +33,7 @@ export async function GET(
         gtip,
         sale_units,
         shelf_location_id,
+        case_inner_qty,
         created_at,
         categories:category_id (
           id,
@@ -94,6 +95,7 @@ export async function PUT(
 
     const cleanData: any = {}
     for (const [key, value] of Object.entries(productData)) {
+      if (key === 'case_inner_qty') continue
       if (key === 'shelf_location_id' && (value === '' || value === undefined)) {
         cleanData[key] = null
         continue
@@ -105,6 +107,14 @@ export async function PUT(
       } else {
         cleanData[key] = value
       }
+    }
+
+    if ('case_inner_qty' in productData) {
+      const ciq = (productData as { case_inner_qty?: unknown }).case_inner_qty
+      cleanData.case_inner_qty =
+        ciq === '' || ciq === null || ciq === undefined
+          ? null
+          : Math.max(1, Math.trunc(Number(ciq)))
     }
 
     if (Array.isArray(cleanData.sale_units)) {

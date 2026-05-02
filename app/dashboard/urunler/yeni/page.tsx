@@ -25,6 +25,7 @@ export default function NewProductPage() {
     description: '',
     unit: 'adet',
     min_stock_level: '',
+    case_inner_qty: '',
     image_url: '',
     category_id: '',
   })
@@ -90,6 +91,11 @@ export default function NewProductPage() {
         body: JSON.stringify({
           ...formData,
           min_stock_level: Math.trunc(parseTrNumberInput(formData.min_stock_level)) || 0,
+          case_inner_qty: (() => {
+            const v = parseTrNumberInput(String(formData.case_inner_qty ?? ''))
+            if (!Number.isFinite(v) || v <= 0) return null
+            return Math.trunc(v)
+          })(),
         }),
       })
 
@@ -219,6 +225,17 @@ export default function NewProductPage() {
                         className="w-full px-5 py-4 border-2 border-gray-100 rounded-2xl focus:border-primary-500 focus:ring-4 focus:ring-primary-50 outline-none font-bold text-gray-900 transition-all"
                       />
                     </div>
+                  </div>
+
+                  <div className="space-y-2 md:col-span-2">
+                    <label className="block text-[11px] font-black text-gray-400 uppercase tracking-widest px-1">Koli içi adet (opsiyonel)</label>
+                    <TrNumberInput
+                      value={formData.case_inner_qty}
+                      onChange={(v) => setFormData({ ...formData, case_inner_qty: v })}
+                      className="w-full px-5 py-4 border-2 border-gray-100 rounded-2xl focus:border-primary-500 focus:ring-4 focus:ring-primary-50 outline-none font-bold text-gray-900 transition-all"
+                      placeholder="Örn: 12"
+                    />
+                    <p className="text-[10px] text-gray-500 font-medium px-1">Bir kolide kaç birim olduğu; etiket şablonunda gösterebilirsiniz.</p>
                   </div>
                 </div>
 

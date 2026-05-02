@@ -33,6 +33,7 @@ import {
   LABEL_TEMPLATES_STORAGE_KEY,
   getJsBarcodeFormat,
   getLabelPrintDimensions,
+  normalizeLabelTemplate,
   topPercentToTextBaselineMm,
 } from '@/lib/labelTemplate'
 
@@ -57,6 +58,7 @@ interface ProductDetail {
   gtip?: string | null
   sale_units?: string[] | null
   shelf_location_id?: string | null
+  case_inner_qty?: number | null
   categories?: { id: string; name: string } | null
   shelf_locations?: { id: string; name: string } | null
   stock?: Array<{
@@ -116,6 +118,7 @@ export default function ProductDetailPage() {
   const [labelTemplates, setLabelTemplates] = useState<any[]>([])
   const [selectedTemplateId, setSelectedTemplateId] = useState('')
   const [printQty, setPrintQty] = useState(1)
+  const [printQtyInput, setPrintQtyInput] = useState('1')
 
   useEffect(() => {
     const fetchAll = async () => {
@@ -218,6 +221,13 @@ export default function ProductDetailPage() {
     { label: 'Marka', value: product.brand },
     { label: 'KDV oranı', value: `%${product.tax_rate ?? 0}` },
     { label: 'Raf yeri', value: product.shelf_locations?.name },
+    {
+      label: 'Koli içi adet',
+      value:
+        product.case_inner_qty != null && product.case_inner_qty > 0
+          ? `${product.case_inner_qty} ${product.unit}`
+          : null,
+    },
   ].filter((item) => {
     const raw = item.value
     if (raw === null || raw === undefined) return false
@@ -533,8 +543,10 @@ export default function ProductDetailPage() {
                     // Load templates from localStorage
                     try {
                       const raw = localStorage.getItem(LABEL_TEMPLATES_STORAGE_KEY)
-                      const templates = raw ? JSON.parse(raw) : []
+                      const parsed = raw ? JSON.parse(raw) : []
+                      const templates = Array.isArray(parsed) ? parsed.map(normalizeLabelTemplate) : []
                       setLabelTemplates(templates)
+                      setPrintQtyInput(String(Math.max(1, printQty)))
                       if (templates.length > 0) {
                         const valid = templates.some((t: { id: string }) => t.id === selectedTemplateId)
                         if (!valid) setSelectedTemplateId(templates[0].id)
@@ -799,16 +811,27 @@ export default function ProductDetailPage() {
                   </div>
 
                   {/* Quantity */}
-                  <div className="space-y-2">
+                  <div className="space-y-2 relative z-10">
                     <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Adet</label>
                     <input
-                      type="number"
-                      min={1}
-                      max={100}
-                      value={printQty}
-                      onChange={(e) => setPrintQty(Math.max(1, Number(e.target.value) || 1))}
-                      className="w-24 px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm font-bold text-gray-700 focus:ring-2 focus:ring-primary-500/20 outline-none"
+                      type="text"
+                      inputMode="numeric"
+                      autoComplete="off"
+                      value={printQtyInput}
+                      onChange={(e) => {
+                        const d = e.target.value.replace(/\D/g, '').slice(0, 3)
+                        setPrintQtyInput(d)
+                      }}
+                      onBlur={() => {
+                        const n = Math.max(1, Math.min(999, parseInt(printQtyInput, 10) || 1))
+                        setPrintQtyInput(String(n))
+                        setPrintQty(n)
+                      }}
+                      className="w-28 px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm font-bold text-gray-700 focus:ring-2 focus:ring-primary-500/20 outline-none"
                     />
+                    <p className="text-[10px] text-gray-500">
+                      Etikette göstermek için Ayarlar → Etiket Şablonlarında &quot;Yazdırma adedi&quot; alanını açın.
+                    </p>
                   </div>
 
                   {/* Preview */}
@@ -820,6 +843,11 @@ export default function ProductDetailPage() {
                     const pxW = w * sc
                     const pxH = h * sc
 
+                    const copies = Math.max(1, Math.min(999, parseInt(printQtyInput.replace(/\D/g, ''), 10) || 1))
+                    const caseInnerStr =
+                      product.case_inner_qty != null && product.case_inner_qty > 0
+                        ? `Koli: ${product.case_inner_qty} ${product.unit}`
+                        : ''
                     const fieldValues: Record<string, string> = {
                       productName: product.name,
                       productCode: product.sku || '',
@@ -828,6 +856,8 @@ export default function ProductDetailPage() {
                       tags: product.categories?.name || '',
                       description: product.unit?.toUpperCase() || 'ADET',
                       shelfLocation: product.shelf_locations?.name || '',
+                      printQuantity: `×${copies}`,
+                      caseInnerQty: caseInnerStr,
                     }
 
                     const activeFields = Object.entries(tpl.fields).filter(([, v]: [string, any]) => v).map(([k]: [string, any]) => k)
@@ -847,6 +877,8 @@ export default function ProductDetailPage() {
                               const style = field === 'productName' ? 'text-xs font-bold text-gray-900'
                                 : field === 'salePrice' ? 'text-sm font-black text-primary-700'
                                 : field === 'productCode' ? 'text-[10px] font-mono text-gray-500'
+                                : field === 'printQuantity' ? 'text-[11px] font-black text-gray-900'
+                                : field === 'caseInnerQty' ? 'text-[10px] font-bold text-slate-700'
                                 : 'text-[10px] font-semibold text-gray-500'
                               return (
                                 <div
@@ -890,12 +922,21 @@ export default function ProductDetailPage() {
                         const tpl = labelTemplates.find((t: any) => t.id === selectedTemplateId)
                         if (!tpl || !product) return
 
+                        const copies = Math.max(1, Math.min(999, parseInt(printQtyInput.replace(/\D/g, ''), 10) || 1))
+                        setPrintQty(copies)
+                        setPrintQtyInput(String(copies))
+
                         const { widthMm: w, heightMm: h } = getLabelPrintDimensions(tpl)
                         const doc = new jsPDF({
                           orientation: w > h ? 'landscape' : 'portrait',
                           unit: 'mm',
                           format: [w, h],
                         })
+
+                        const caseInnerStr =
+                          product.case_inner_qty != null && product.case_inner_qty > 0
+                            ? `Koli: ${product.case_inner_qty} ${product.unit}`
+                            : ''
 
                         const fieldValues: Record<string, string> = {
                           productName: product.name,
@@ -905,11 +946,13 @@ export default function ProductDetailPage() {
                           tags: product.categories?.name || '',
                           description: product.unit?.toUpperCase() || 'ADET',
                           shelfLocation: product.shelf_locations?.name || '',
+                          printQuantity: `×${copies}`,
+                          caseInnerQty: caseInnerStr,
                         }
 
                         const activeFields = Object.entries(tpl.fields).filter(([, v]: [string, any]) => v).map(([k]: [string, any]) => k)
 
-                        for (let i = 0; i < printQty; i++) {
+                        for (let i = 0; i < copies; i++) {
                           if (i > 0) doc.addPage([w, h])
 
                           doc.setDrawColor(200)
@@ -960,6 +1003,12 @@ export default function ProductDetailPage() {
                                 doc.setFont('helvetica', 'bold')
                               } else if (field === 'salePrice') {
                                 fontSize = 12
+                                doc.setFont('helvetica', 'bold')
+                              } else if (field === 'printQuantity') {
+                                fontSize = 11
+                                doc.setFont('helvetica', 'bold')
+                              } else if (field === 'caseInnerQty') {
+                                fontSize = 8
                                 doc.setFont('helvetica', 'bold')
                               } else {
                                 doc.setFont('helvetica', 'normal')

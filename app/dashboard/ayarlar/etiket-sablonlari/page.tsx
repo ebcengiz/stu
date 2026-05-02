@@ -19,6 +19,7 @@ import {
   type LabelFieldPosition,
   type LabelTemplate,
   getLabelPrintDimensions,
+  normalizeLabelTemplate,
 } from '@/lib/labelTemplate'
 
 const DEFAULT_TEMPLATE: Omit<LabelTemplate, 'id'> = {
@@ -40,6 +41,8 @@ const DEFAULT_TEMPLATE: Omit<LabelTemplate, 'id'> = {
     tags: false,
     description: false,
     shelfLocation: false,
+    printQuantity: true,
+    caseInnerQty: false,
   },
   positions: {
     productName: { x: 10, y: 8 },
@@ -49,6 +52,8 @@ const DEFAULT_TEMPLATE: Omit<LabelTemplate, 'id'> = {
     tags: { x: 10, y: 75 },
     description: { x: 50, y: 8 },
     shelfLocation: { x: 50, y: 25 },
+    printQuantity: { x: 68, y: 78 },
+    caseInnerQty: { x: 10, y: 78 },
   },
 }
 
@@ -60,6 +65,8 @@ const FIELD_LABELS: Record<string, string> = {
   tags: 'Ürün Etiketleri',
   description: 'Sabit Açıklama',
   shelfLocation: 'Raf Yeri',
+  printQuantity: 'Yazdırma adedi',
+  caseInnerQty: 'Koli içi adet',
 }
 
 const FIELD_PREVIEW_VALUES: Record<string, string> = {
@@ -70,6 +77,8 @@ const FIELD_PREVIEW_VALUES: Record<string, string> = {
   tags: 'Elektronik',
   description: 'ADET',
   shelfLocation: 'A-12',
+  printQuantity: '×12',
+  caseInnerQty: 'Koli: 24',
 }
 
 function generateId() {
@@ -80,7 +89,8 @@ function loadTemplates(): LabelTemplate[] {
   if (typeof window === 'undefined') return []
   try {
     const raw = localStorage.getItem(LABEL_TEMPLATES_STORAGE_KEY)
-    return raw ? JSON.parse(raw) : []
+    const parsed = raw ? JSON.parse(raw) : []
+    return Array.isArray(parsed) ? parsed.map(normalizeLabelTemplate) : []
   } catch {
     return []
   }
@@ -527,6 +537,10 @@ function LabelPreview({
         return 'text-[10px] font-semibold text-gray-500 uppercase'
       case 'shelfLocation':
         return 'text-[10px] font-bold text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded'
+      case 'printQuantity':
+        return 'text-[11px] font-black text-gray-900 bg-gray-100 px-1.5 py-0.5 rounded-md border border-gray-200'
+      case 'caseInnerQty':
+        return 'text-[10px] font-bold text-slate-700 bg-slate-50 px-1.5 py-0.5 rounded border border-slate-200'
       default:
         return 'text-[10px] text-gray-600'
     }
