@@ -107,3 +107,15 @@ input[type="number"] {
   -moz-appearance: textfield;
   appearance: textfield;
 }
+
+/* Yazdırma: teklif / belgeler için sayfa kenarı */
+@page {
+  margin: 12mm 14mm;
+}
+
+@media print {
+  body {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}

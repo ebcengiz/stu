@@ -5,6 +5,9 @@ import { useRouter, useParams } from 'next/navigation'
 import { ArrowLeft, CheckCircle2, XCircle, Printer, Calendar, Clock } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Card, CardHeader, CardBody, CardTitle } from '@/components/ui/Card'
+import { OfferPrintView } from '@/components/offers/OfferPrintView'
+import { OfferCustomerDetails } from '@/components/offers/OfferCustomerDetails'
+import type { OfferCustomerEmbed } from '@/lib/types/offer-customer'
 import { toast } from 'react-hot-toast'
 
 interface OfferItem {
@@ -26,7 +29,7 @@ interface Offer {
   status: string
   description: string | null
   notes: string | null
-  customers: { company_name: string; phone: string; email: string; address: string } | null
+  customers: OfferCustomerEmbed | null
   offer_items: OfferItem[]
 }
 
@@ -113,6 +116,12 @@ export default function OfferDetailPage() {
 
   return (
     <div className="mx-auto w-full min-w-0 max-w-full space-y-4 overflow-x-hidden pb-4">
+      {/* Yazdırma: yalnızca bu blok görünür (layout kenar çubuğu da print:hidden) */}
+      <div className="hidden print:block print:px-8 print:py-6">
+        <OfferPrintView offer={offer} />
+      </div>
+
+      <div className="print:hidden space-y-4">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <button onClick={() => router.push('/dashboard/teklifler')} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
@@ -206,25 +215,7 @@ export default function OfferDetailPage() {
               <CardTitle>Müşteri Bilgileri</CardTitle>
             </CardHeader>
             <CardBody className="space-y-4">
-              {offer.customers ? (
-                <>
-                  <div>
-                    <h4 className="text-xs font-bold text-gray-400 uppercase mb-1">Firma</h4>
-                    <p className="text-sm font-bold text-gray-900">{offer.customers.company_name}</p>
-                  </div>
-                  <div>
-                    <h4 className="text-xs font-bold text-gray-400 uppercase mb-1">İletişim</h4>
-                    <p className="text-sm text-gray-700">{offer.customers.phone || '-'}</p>
-                    <p className="text-sm text-gray-700">{offer.customers.email || '-'}</p>
-                  </div>
-                  <div>
-                    <h4 className="text-xs font-bold text-gray-400 uppercase mb-1">Adres</h4>
-                    <p className="text-sm text-gray-600 leading-relaxed">{offer.customers.address || '-'}</p>
-                  </div>
-                </>
-              ) : (
-                <p className="text-sm text-gray-500 italic">Müşteri bilgisi bulunamadı.</p>
-              )}
+              <OfferCustomerDetails customer={offer.customers} variant="screen" />
             </CardBody>
           </Card>
 
@@ -250,6 +241,7 @@ export default function OfferDetailPage() {
             </CardBody>
           </Card>
         </div>
+      </div>
       </div>
     </div>
   )

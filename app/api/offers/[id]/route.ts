@@ -13,7 +13,22 @@ export async function GET(
       .from('offers')
       .select(`
         *,
-        customers (company_name),
+        customers (
+          id,
+          company_name,
+          company_logo,
+          address,
+          contact_person,
+          phone,
+          email,
+          tax_number,
+          tax_office,
+          notes,
+          category1,
+          category2,
+          currency,
+          is_active
+        ),
         offer_items (
           *,
           products (name, unit)

@@ -57,13 +57,15 @@ export default function DashboardLayout({
   const marginClass = isMounted && isSidebarCollapsed ? 'lg:pl-20' : 'lg:pl-64'
 
   return (
-    <div className="flex min-h-screen flex-col overflow-x-hidden bg-[#F5F5F0] lg:flex-row">
+    <div className="flex min-h-screen flex-col overflow-x-hidden bg-[#F5F5F0] lg:flex-row print:bg-white">
       <GlobalModalCloser />
-      <DashboardSidebar profile={profile} />
+      <div className="print:hidden">
+        <DashboardSidebar profile={profile} />
+      </div>
       <div
-        className={`flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden transition-all duration-300 ${marginClass}`}
+        className={`flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden transition-all duration-300 print:pl-0 ${marginClass}`}
       >
-        <main className="min-h-0 min-w-0 flex-1 overflow-x-hidden p-3 sm:p-4 lg:p-6">
+        <main className="min-h-0 min-w-0 flex-1 overflow-x-hidden p-3 sm:p-4 lg:p-6 print:p-0 print:bg-white">
           {children}
         </main>
       </div>
