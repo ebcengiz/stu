@@ -2,6 +2,7 @@
 
 import { OfferCustomerDetails } from '@/components/offers/OfferCustomerDetails'
 import type { OfferCustomerEmbed } from '@/lib/types/offer-customer'
+import { documentKdvBreakdown } from '@/lib/vat-breakdown'
 
 interface OfferItem {
   id: string
@@ -44,6 +45,8 @@ export function OfferPrintView({ offer }: OfferPrintViewProps) {
       })
     : null
 
+  const vatTotals = documentKdvBreakdown(offer.offer_items, offer.total_amount)
+
   return (
     <article className="mx-auto max-w-[210mm] bg-white text-gray-900 print:max-w-none">
       <header className="border-b-2 border-gray-900 pb-6 mb-8">
@@ -82,10 +85,26 @@ export function OfferPrintView({ offer }: OfferPrintViewProps) {
         </div>
         <div className="rounded-lg border border-gray-200 bg-gray-50/80 p-4 print:border-gray-300 print:bg-white">
           <h2 className="mb-2 text-xs font-bold uppercase tracking-wider text-gray-500">Özet</h2>
-          <p className="text-2xl font-bold text-primary-800 print:text-gray-900">
-            {offer.total_amount.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺
-          </p>
-          <p className="mt-1 text-xs text-gray-500">KDV dahil satır tutarları toplamıdır.</p>
+          <dl className="space-y-1 text-sm">
+            <div className="flex justify-between gap-4">
+              <dt className="text-gray-600">KDV hariç toplam</dt>
+              <dd className="font-semibold tabular-nums">
+                {vatTotals.matrah.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺
+              </dd>
+            </div>
+            <div className="flex justify-between gap-4">
+              <dt className="text-gray-600">KDV tutarı</dt>
+              <dd className="font-semibold tabular-nums">
+                {vatTotals.kdv.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺
+              </dd>
+            </div>
+            <div className="flex justify-between gap-4 border-t border-gray-200 pt-2 mt-2">
+              <dt className="font-bold text-gray-800">Genel toplam (KDV dahil)</dt>
+              <dd className="text-xl font-bold text-primary-800 print:text-gray-900 tabular-nums">
+                {vatTotals.brut.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺
+              </dd>
+            </div>
+          </dl>
         </div>
       </section>
 
@@ -121,12 +140,28 @@ export function OfferPrintView({ offer }: OfferPrintViewProps) {
             ))}
           </tbody>
           <tfoot>
+            <tr className="bg-gray-50 print:bg-gray-100">
+              <td colSpan={4} className="border border-gray-400 px-3 py-2 text-right text-gray-800">
+                KDV hariç toplam
+              </td>
+              <td className="border border-gray-400 px-3 py-2 text-right tabular-nums font-semibold">
+                {vatTotals.matrah.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺
+              </td>
+            </tr>
+            <tr className="bg-gray-50 print:bg-gray-100">
+              <td colSpan={4} className="border border-gray-400 px-3 py-2 text-right text-gray-800">
+                KDV tutarı
+              </td>
+              <td className="border border-gray-400 px-3 py-2 text-right tabular-nums font-semibold">
+                {vatTotals.kdv.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺
+              </td>
+            </tr>
             <tr className="bg-gray-50 font-bold print:bg-gray-100">
               <td colSpan={4} className="border border-gray-400 px-3 py-3 text-right text-gray-900">
-                Genel toplam
+                Genel toplam (KDV dahil)
               </td>
-              <td className="border border-gray-400 px-3 py-3 text-right text-lg text-primary-900 print:text-gray-900">
-                {offer.total_amount.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺
+              <td className="border border-gray-400 px-3 py-3 text-right text-lg text-primary-900 print:text-gray-900 tabular-nums">
+                {vatTotals.brut.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺
               </td>
             </tr>
           </tfoot>

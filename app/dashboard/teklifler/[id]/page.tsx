@@ -9,6 +9,7 @@ import { OfferPrintView } from '@/components/offers/OfferPrintView'
 import { OfferCustomerDetails } from '@/components/offers/OfferCustomerDetails'
 import type { OfferCustomerEmbed } from '@/lib/types/offer-customer'
 import { toast } from 'react-hot-toast'
+import { documentKdvBreakdown } from '@/lib/vat-breakdown'
 
 interface OfferItem {
   id: string
@@ -114,6 +115,8 @@ export default function OfferDetailPage() {
   if (loading) return <div className="p-8 flex justify-center"><div className="animate-spin h-8 w-8 border-b-2 border-primary-600"></div></div>
   if (!offer) return null
 
+  const vatTotals = documentKdvBreakdown(offer.offer_items, offer.total_amount)
+
   return (
     <div className="mx-auto w-full min-w-0 max-w-full space-y-4 overflow-x-hidden pb-4">
       {/* Yazdırma: yalnızca bu blok görünür (layout kenar çubuğu da print:hidden) */}
@@ -180,11 +183,23 @@ export default function OfferDetailPage() {
                     </tr>
                   ))}
                 </tbody>
-                <tfoot className="bg-gray-50 font-bold">
-                  <tr>
-                    <td colSpan={4} className="px-6 py-4 text-right text-gray-900">Genel Toplam:</td>
-                    <td className="px-6 py-4 text-right text-primary-700 text-lg">
-                      {offer.total_amount.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺
+                <tfoot className="bg-gray-50">
+                  <tr className="text-sm font-medium text-gray-700">
+                    <td colSpan={4} className="px-6 py-3 text-right">KDV hariç toplam</td>
+                    <td className="px-6 py-3 text-right tabular-nums">
+                      {vatTotals.matrah.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺
+                    </td>
+                  </tr>
+                  <tr className="text-sm font-medium text-gray-700">
+                    <td colSpan={4} className="px-6 py-3 text-right">KDV tutarı</td>
+                    <td className="px-6 py-3 text-right tabular-nums">
+                      {vatTotals.kdv.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺
+                    </td>
+                  </tr>
+                  <tr className="font-bold">
+                    <td colSpan={4} className="px-6 py-4 text-right text-gray-900">Genel toplam (KDV dahil)</td>
+                    <td className="px-6 py-4 text-right text-primary-700 text-lg tabular-nums">
+                      {vatTotals.brut.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺
                     </td>
                   </tr>
                 </tfoot>
