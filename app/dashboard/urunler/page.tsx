@@ -24,6 +24,7 @@ import {
   Boxes,
   FileText,
   Tag,
+  FileSpreadsheet,
 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Card, CardHeader, CardBody, CardTitle } from '@/components/ui/Card'
@@ -33,6 +34,7 @@ import BarcodeScanner from '@/components/barcode/BarcodeScanner'
 import { CURRENCY_SYMBOLS } from '@/lib/currency'
 import { toast } from 'react-hot-toast'
 import TrNumberInput from '@/components/ui/TrNumberInput'
+import { ExcelBulkImportModal } from '@/components/bulk-import/ExcelBulkImportModal'
 import { looseToTrInputString, parseTrNumberInput } from '@/lib/tr-number-input'
 
 // Dynamically import LocationPicker to avoid SSR issues with Leaflet
@@ -175,6 +177,7 @@ function ProductsPageContent() {
   const [warehouseFilter, setWarehouseFilter] = useState('')
   const [sortConfig, setSortConfig] = useState<{ key: keyof Product; direction: 'asc' | 'desc' } | null>(null)
   const [autoEditHandledId, setAutoEditHandledId] = useState<string | null>(null)
+  const [excelImportOpen, setExcelImportOpen] = useState(false)
   
   const [formData, setFormData] = useState({
     name: '',
@@ -692,8 +695,41 @@ function ProductsPageContent() {
           <h1 className="text-3xl font-bold text-gray-800">Ürünler</h1>
           <p className="mt-2 text-gray-500">Ürünlerinizi yönetin ve stok takibi yapın</p>
         </div>
-        <Button onClick={openNewModal} className="h-12 px-6 rounded-xl font-bold"><Plus className="mr-2 h-5 w-5" />Yeni Ürün</Button>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setExcelImportOpen(true)}
+            className="h-12 px-5 rounded-xl font-bold border-emerald-200 text-emerald-800 hover:bg-emerald-50"
+          >
+            <FileSpreadsheet className="mr-2 h-5 w-5" />
+            Excel&apos;den yükle
+          </Button>
+          <Button onClick={openNewModal} className="h-12 px-6 rounded-xl font-bold">
+            <Plus className="mr-2 h-5 w-5" />
+            Yeni Ürün
+          </Button>
+        </div>
       </div>
+
+      <ExcelBulkImportModal
+        open={excelImportOpen}
+        onClose={() => setExcelImportOpen(false)}
+        kind="products"
+        productRefs={{
+          categories: categories.map((c) => ({ id: c.id, name: c.name })),
+          warehouses: warehouses.map((w) => ({ id: w.id, name: w.name })),
+          shelfLocations: shelfLocations.map((s) => ({ id: s.id, name: s.name })),
+        }}
+        brands={brands.map((b) => ({ name: b.name }))}
+        onSuccess={() => {
+          fetchProducts()
+          fetchCategories()
+          fetchWarehouses()
+          fetchShelfLocations()
+          fetchBrands()
+        }}
+      />
 
       <Card className="rounded-2xl overflow-hidden">
         <CardHeader className="bg-gray-50/50">

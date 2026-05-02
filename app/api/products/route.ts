@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { insertProductFromBody } from '@/lib/server/insertProductFromBody'
 import { NextResponse } from 'next/server'
 
 export async function GET() {
@@ -78,79 +79,20 @@ export async function POST(request: Request) {
 
     if (!profile) throw new Error('Profile not found')
 
-    // Stok bilgilerini ayır (movement_type da ayır - products tablosunda yok)
-    const { initial_quantity, warehouse_id, movement_type: _movement_type, ...productData } = body
-
-    const nullableStringKeys = ['sku', 'barcode', 'description', 'image_url', 'brand', 'gtip']
-
-    // Convert empty strings to null for nullable fields
-    const cleanData: any = {}
-    for (const [key, value] of Object.entries(productData)) {
-      if (key === 'case_inner_qty') continue
-      if (key === 'shelf_location_id' && (value === '' || value === undefined)) {
-        cleanData[key] = null
-        continue
-      }
-      if (value === '' || value === undefined) {
-        if (nullableStringKeys.includes(key)) {
-          cleanData[key] = null
-        }
-      } else {
-        cleanData[key] = value
-      }
+    const result = await insertProductFromBody(
+      supabase,
+      { tenantId: profile.tenant_id, userId: user.id },
+      body,
+      { initialStockNote: 'Başlangıç stoku' }
+    )
+    if (!result.ok) {
+      console.error('Product create error:', result.message)
+      return NextResponse.json({ error: result.message }, { status: 400 })
     }
 
-    if ('case_inner_qty' in productData) {
-      const ciq = (productData as { case_inner_qty?: unknown }).case_inner_qty
-      cleanData.case_inner_qty =
-        ciq === '' || ciq === null || ciq === undefined
-          ? null
-          : Math.max(1, Math.trunc(Number(ciq)))
-    }
-
-    if (Array.isArray(cleanData.sale_units)) {
-      cleanData.sale_units = cleanData.sale_units.filter(Boolean)
-      if (cleanData.sale_units.length === 0) {
-        cleanData.sale_units = ['adet']
-      }
-    }
-
-    // 1. Önce ürünü oluştur
-    const { data: product, error: productError } = await supabase
-      .from('products')
-      .insert({
-        ...cleanData,
-        tenant_id: profile.tenant_id,
-      })
-      .select()
-      .single()
-
-    if (productError) {
-      console.error('Product create error:', productError)
-      throw productError
-    }
-
-    // 2. Eğer başlangıç stok bilgisi varsa, SADECE stock_movements tablosuna ekle
-    // Trigger otomatik olarak stock tablosunu güncelleyecek
-    if (initial_quantity && initial_quantity > 0 && warehouse_id) {
-      // Stok hareketini kaydet - trigger stock tablosunu otomatik güncelleyecek
-      const { error: movementError } = await supabase
-        .from('stock_movements')
-        .insert({
-          tenant_id: profile.tenant_id,
-          product_id: product.id,
-          warehouse_id: warehouse_id,
-          movement_type: 'in',
-          quantity: initial_quantity,
-          reference_no: null,
-          notes: 'Başlangıç stoku',
-          created_by: user.id
-        })
-
-      if (movementError) {
-        console.error('Stock movement create error:', movementError)
-        throw movementError
-      }
+    const { data: product, error: fetchErr } = await supabase.from('products').select().eq('id', result.id).single()
+    if (fetchErr || !product) {
+      return NextResponse.json({ error: fetchErr?.message || 'Ürün okunamadı' }, { status: 500 })
     }
 
     return NextResponse.json(product)

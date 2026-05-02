@@ -1,13 +1,14 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { Plus, Search, Edit2, Trash2, X, Mail, Phone, MapPin } from 'lucide-react'
+import { useState, useEffect, useMemo } from 'react'
+import { Plus, Search, Edit2, Trash2, X, Mail, Phone, MapPin, FileSpreadsheet } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Card, CardBody } from '@/components/ui/Card'
 import { useRouter } from 'next/navigation'
 import { TagSelector } from '@/components/admin/TagSelector'
 import { toast } from 'react-hot-toast'
 import { CURRENCY_SYMBOLS } from '@/lib/currency'
+import { ExcelBulkImportModal } from '@/components/bulk-import/ExcelBulkImportModal'
 
 interface Customer {
   id: string
@@ -40,6 +41,7 @@ export default function CustomersPage() {
   const [showOnlyWithBalance, setShowOnlyWithBalance] = useState(false)
   const [saving, setSaving] = useState(false)
   const [uploadingLogo, setUploadingLogo] = useState(false)
+  const [excelImportOpen, setExcelImportOpen] = useState(false)
 
   const [formData, setFormData] = useState({
     company_name: '',
@@ -170,6 +172,8 @@ export default function CustomersPage() {
 
   const categories = Array.from(new Set(customers.map(c => c.category1).filter((v): v is string => Boolean(v))))
   const labels = Array.from(new Set(customers.map(c => c.category2).filter((v): v is string => Boolean(v))))
+  const sampleCat1 = useMemo(() => [...categories].sort((a, b) => a.localeCompare(b, 'tr')), [categories])
+  const sampleCat2 = useMemo(() => [...labels].sort((a, b) => a.localeCompare(b, 'tr')), [labels])
 
   const filteredCustomers = customers.filter(customer => {
     const searchLower = searchTerm.toLowerCase()
@@ -191,11 +195,31 @@ export default function CustomersPage() {
           <h1 className="text-3xl font-bold text-gray-800">Müşteriler</h1>
           <p className="mt-2 text-gray-500">Müşteri ve firma bilgilerinizi yönetin</p>
         </div>
-        <Button onClick={openNewModal}>
-          <Plus className="mr-2 h-4 w-4" />
-          Yeni Müşteri
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setExcelImportOpen(true)}
+            className="border-emerald-200 text-emerald-800 hover:bg-emerald-50"
+          >
+            <FileSpreadsheet className="mr-2 h-4 w-4" />
+            Excel&apos;den yükle
+          </Button>
+          <Button onClick={openNewModal}>
+            <Plus className="mr-2 h-4 w-4" />
+            Yeni Müşteri
+          </Button>
+        </div>
       </div>
+
+      <ExcelBulkImportModal
+        open={excelImportOpen}
+        onClose={() => setExcelImportOpen(false)}
+        kind="customers"
+        sampleCategory1={sampleCat1}
+        sampleCategory2={sampleCat2}
+        onSuccess={fetchCustomers}
+      />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 bg-white  p-4 rounded-2xl border border-gray-200 shadow-lg shadow-black/10">
         <div className="space-y-1">
